@@ -1,0 +1,10 @@
+*.pyc
+.coverage
+docs/_build/
+httpretty.egg-info/
+build/
+dist/
+.DS_Store
+*.swp
+.#*
+#*
