@@ -25,7 +25,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 import urllib2
-from datetime import datetime
 from sure import that, within, microseconds
 from httpretty import HTTPretty
 
@@ -47,17 +46,19 @@ def test_httpretty_should_mock_headers(now):
     u"HTTPretty should mock basic headers"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
-                           body="this is supposed to be the response")
+                           body="this is supposed to be the response",
+                           status=201)
 
     request = urllib2.urlopen('http://github.com')
     headers = dict(request.headers)
     request.close()
 
+    assert that(request.code).equals(201)
     assert that(headers).equals({
         'content-type': 'text/plain',
         'connection': 'close',
         'content-length': '35',
-        'status': '200 OK',
+        'status': '201 Created',
         'server': 'Python/HTTPretty',
         'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT')
     })
@@ -79,6 +80,7 @@ def test_httpretty_should_allow_adding_and_overwritting(now):
     headers = dict(request.headers)
     request.close()
 
+    assert that(request.code).equals(200)
     assert that(headers).equals({
         'content-type': 'application/json',
         'connection': 'close',
@@ -121,6 +123,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs(now):
     headers = dict(request.headers)
     request.close()
 
+    assert that(request.code).equals(200)
     assert that(headers).equals({
         'content-type': 'application/json',
         'connection': 'close',
