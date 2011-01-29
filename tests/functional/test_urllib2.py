@@ -28,7 +28,7 @@ import urllib2
 from sure import that, within, microseconds
 from httpretty import HTTPretty
 
-@within(five=microseconds)
+@within(two=microseconds)
 def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
     u"HTTPretty should mock a simple GET with urllib2.read()"
 
@@ -40,3 +40,24 @@ def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
     fd.close()
 
     assert that(got).equals('The biggest portal in Brazil')
+
+@within(five=microseconds)
+def test_httpretty_should_mock_headers(now):
+    u"HTTPretty should mock basic headers"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+                           body="this is supposed to be the response")
+
+    request = urllib2.urlopen('http://github.com')
+    headers = dict(request.headers)
+    request.close()
+
+    assert that(headers).equals({
+        'content-type': 'text/plain',
+        'connection': 'close',
+        'content-length': '35',
+        'status': '200 OK',
+        'server': 'Python/HTTPretty',
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT')
+    })
+
