@@ -57,7 +57,7 @@ you will need **ONLY** if you decide to contribute to HTTPretty which means you'
 1. fork and clone the project
 2. install the dependencies above
 3. run the tests with make:
-    > make unit functional integration
+    > make unit functional
 4. hack at will
 5. commit, push etc
 6. send a pull request

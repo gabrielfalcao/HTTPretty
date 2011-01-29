@@ -1,8 +1,7 @@
-all: check_dependencies unit functional integration doctest
+all: check_dependencies unit functional
 
 filename=httpretty-`python -c 'import httpretty;print httpretty.version'`.tar.gz
 
-#export PYTHONPATH:= ${PWD}
 export HTTPRETTY_DEPENDENCIES:= nose sure
 
 check_dependencies:
@@ -18,16 +17,6 @@ unit: clean
 functional: clean
 	@echo "Running functional tests ..."
 	@nosetests -s --verbosity=2 --with-coverage --cover-erase --cover-inclusive tests/functional --cover-package=httpretty
-
-integration: clean
-	@echo "Running integration tests ..."
-	@nosetests -s --verbosity=2 tests/integration
-
-doctest: clean
-	@cd docs && make doctest
-
-documentation:
-	@cd docs && make html
 
 clean:
 	@printf "Cleaning up files that are already in .gitignore... "

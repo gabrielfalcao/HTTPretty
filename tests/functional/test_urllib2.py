@@ -28,7 +28,7 @@ import urllib2
 from sure import that, within, microseconds
 from httpretty import HTTPretty
 
-#@within(five=microseconds) # ensure time to timeout actual request
+@within(five=microseconds)
 def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
     u"HTTPretty should mock a simple GET with urllib2.read()"
 
