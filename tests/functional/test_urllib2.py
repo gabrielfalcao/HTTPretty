@@ -25,6 +25,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 import urllib2
+from datetime import datetime
 from sure import that, within, microseconds
 from httpretty import HTTPretty
 
@@ -58,6 +59,74 @@ def test_httpretty_should_mock_headers(now):
         'content-length': '35',
         'status': '200 OK',
         'server': 'Python/HTTPretty',
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT')
+    })
+
+
+@within(five=microseconds)
+def test_httpretty_should_allow_adding_and_overwritting(now):
+    u"HTTPretty should allow adding and overwritting headers"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+                           body="this is supposed to be the response",
+                           adding_headers={
+                               'Server': 'Apache',
+                               'Content-Length': '23456789',
+                               'Content-Type': 'application/json',
+                           })
+
+    request = urllib2.urlopen('http://github.com')
+    headers = dict(request.headers)
+    request.close()
+
+    assert that(headers).equals({
+        'content-type': 'application/json',
+        'connection': 'close',
+        'content-length': '23456789',
+        'status': '200 OK',
+        'server': 'Apache',
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT')
+    })
+
+@within(five=microseconds)
+def test_httpretty_should_allow_forcing_headers():
+    u"HTTPretty should allow forcing headers"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+                           body="this is supposed to be the response",
+                           forcing_headers={
+                               'Content-Type': 'application/xml',
+                           })
+
+    request = urllib2.urlopen('http://github.com')
+    headers = dict(request.headers)
+    request.close()
+
+    assert that(headers).equals({
+        'content-type': 'application/xml',
+    })
+
+
+@within(five=microseconds)
+def test_httpretty_should_allow_adding_and_overwritting_by_kwargs(now):
+    u"HTTPretty should allow adding and overwritting headers by keyword args"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+                           body="this is supposed to be the response",
+                           server='Apache',
+                           content_length='23456789',
+                           content_type='application/json')
+
+    request = urllib2.urlopen('http://github.com')
+    headers = dict(request.headers)
+    request.close()
+
+    assert that(headers).equals({
+        'content-type': 'application/json',
+        'connection': 'close',
+        'content-length': '23456789',
+        'status': '200 OK',
+        'server': 'Apache',
         'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT')
     })
 

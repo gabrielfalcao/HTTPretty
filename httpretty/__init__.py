@@ -35,6 +35,7 @@ class fakesock(object):
 
     class socket(object):
         _entry = None
+        debuglevel = 0
         def __init__(self, family, type, protocol):
             self.family = family
             self.type = type
@@ -122,28 +123,46 @@ STATUSES = {
 }
 
 class Entry(object):
-    def __init__(self, method, uri, body):
+    def __init__(self, method, uri, body, adding_headers=None, forcing_headers=None, status=200, **headers):
         self.method = method
         self.uri = uri
         self.body = body
+        self.adding_headers = adding_headers or {}
+        self.forcing_headers = forcing_headers or {}
+        self.status = status
+        for k, v in headers.items():
+            name = "-".join(k.split("_")).capitalize()
+            self.adding_headers[name] = v
 
     def fill_filekind(self, fk):
         now = datetime.utcnow()
         headers = {
-            'Status': 200,
+            'Status': self.status,
             'Date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
             'Server': 'Python/HTTPretty',
             'Connection': 'close',
         }
-        status = headers['Status']
+
+        if isinstance(self.forcing_headers, dict) and self.forcing_headers:
+            headers = self.forcing_headers.copy()
+
+        if self.adding_headers:
+            headers.update(self.adding_headers)
+
+        status = headers.get('Status', self.status)
 
         string_list = [
             'HTTP/1.1 %d %s' % (status, STATUSES[status]),
-            'Date: %s' % headers.pop('Date'),
-            'Content-Type: %s' % headers.pop('Content-Type', 'text/plain; charset=utf-8'),
-            'Content-Length: %s' % headers.pop('Content-Length', len(self.body)),
-            'Server: %s' % headers.pop('Server'),
         ]
+
+        if 'Date' in headers:
+            string_list.append('Date: %s' % headers.pop('Date'))
+
+        if not self.forcing_headers:
+            string_list.append('Content-Type: %s' % headers.pop('Content-Type', 'text/plain; charset=utf-8'))
+            string_list.append('Content-Length: %s' % headers.pop('Content-Length', len(self.body)))
+            string_list.append('Server: %s' % headers.pop('Server')),
+
         for k, v in headers.items():
             string_list.append(
                 '%s: %s' % (k, unicode(v))
@@ -200,8 +219,8 @@ class HTTPretty(object):
     HEAD = 'HEAD'
 
     @classmethod
-    def register_uri(self, method, uri, body):
-        self._entries[URIInfo.from_uri(uri)] = Entry(method, uri, body)
+    def register_uri(self, method, uri, body, adding_headers=None, forcing_headers=None, status=200, **headers):
+        self._entries[URIInfo.from_uri(uri)] = Entry(method, uri, body, adding_headers, forcing_headers, status, **headers)
 
     def __repr__(self):
         return u'<HTTPretty with %d URI entries>' % len(self._entries)
