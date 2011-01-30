@@ -157,4 +157,10 @@ def test_httpretty_should_support_a_list_of_successive_responses(now):
     assert that(request2.code).equals(202)
     assert that(body2).equals('second and last response')
 
+    request3 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+    body3 = request3.read()
+    request3.close()
+    assert that(request3.code).equals(202)
+    assert that(body3).equals('second and last response')
+
 
