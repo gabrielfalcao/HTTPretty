@@ -64,10 +64,17 @@ class fakesock(object):
 
             info = URIInfo(hostname=self._host, port=self._port, path=path)
 
-            entry = HTTPretty._entries.get(info, None)
-            if not entry:
+            entries = []
+            for key, value in HTTPretty._entries.items():
+                if key == info:
+                    entries = value
+                    info = key
+                    break
+
+            if not entries:
                 return
 
+            entry = info.get_next_entry()
             if entry.method == method:
                 self._entry = entry
 
@@ -129,13 +136,18 @@ class Entry(object):
         self.body = body
         self.adding_headers = adding_headers or {}
         self.forcing_headers = forcing_headers or {}
-        self.status = status
+        self.status = int(status)
+
         for k, v in headers.items():
             name = "-".join(k.split("_")).capitalize()
             self.adding_headers[name] = v
 
+    def __repr__(self):
+        return r'<Entry %s %s getting %d>' % (self.method, self.uri, self.status)
+
     def fill_filekind(self, fk):
         now = datetime.utcnow()
+
         headers = {
             'Status': self.status,
             'Date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
@@ -143,8 +155,8 @@ class Entry(object):
             'Connection': 'close',
         }
 
-        if isinstance(self.forcing_headers, dict) and self.forcing_headers:
-            headers = self.forcing_headers.copy()
+        if self.forcing_headers:
+            headers = self.forcing_headers
 
         if self.adding_headers:
             headers.update(self.adding_headers)
@@ -174,7 +186,7 @@ class Entry(object):
         fk.seek(0)
 
 class URIInfo(object):
-    def __init__(self, username='', password='', hostname='', port=80, path='/', query='', fragment=''):
+    def __init__(self, username='', password='', hostname='', port=80, path='/', query='', fragment='', entries=None):
         self.username = username or ''
         self.password = password or ''
         self.hostname = hostname or ''
@@ -182,6 +194,21 @@ class URIInfo(object):
         self.path = path or ''
         self.query = query or ''
         self.fragment = fragment or ''
+        self.entries = entries
+        self.current_entry = 0
+
+    def get_next_entry(self):
+        if self.current_entry >= len(self.entries):
+            self.current_entry = -1
+
+
+        if not self.entries:
+            raise ValueError('I have no entries: %s' % self)
+
+        entry = self.entries[self.current_entry]
+        if self.current_entry != -1:
+            self.current_entry += 1
+        return entry
 
     def __unicode__(self):
         attrs = 'username', 'password', 'hostname', 'port', 'path', 'query', 'fragment'
@@ -197,7 +224,7 @@ class URIInfo(object):
         return unicode(self) == unicode(other)
 
     @classmethod
-    def from_uri(cls, uri):
+    def from_uri(cls, uri, entry):
         result = urlsplit(uri)
         return cls(result.username,
                    result.password,
@@ -205,12 +232,14 @@ class URIInfo(object):
                    result.port or 80,
                    result.path,
                    result.query,
-                   result.fragment)
+                   result.fragment,
+                   entry)
 
 
 class HTTPretty(object):
     u"""The URI registration class"""
     _entries = {}
+
 
     GET = 'GET'
     PUT = 'PUT'
@@ -219,11 +248,29 @@ class HTTPretty(object):
     HEAD = 'HEAD'
 
     @classmethod
-    def register_uri(self, method, uri, body, adding_headers=None, forcing_headers=None, status=200, **headers):
-        self._entries[URIInfo.from_uri(uri)] = Entry(method, uri, body, adding_headers, forcing_headers, status, **headers)
+    def register_uri(cls, method, uri, body='HTTPretty :)', adding_headers=None, forcing_headers=None, status=200, responses=None, **headers):
+        if isinstance(responses, list) and len(responses) > 0:
+            entries_for_this_uri = responses
+        else:
+            entries_for_this_uri = [cls.Response(body=body, adding_headers=adding_headers, forcing_headers=forcing_headers, status=status, **headers)]
+
+        for e in entries_for_this_uri:
+            e.uri = uri
+            e.method = method
+
+        info = URIInfo.from_uri(uri, entries_for_this_uri)
+        if cls._entries.has_key(info):
+            del cls._entries[info]
+
+        cls._entries[info] = entries_for_this_uri
 
     def __repr__(self):
         return u'<HTTPretty with %d URI entries>' % len(self._entries)
+
+
+    @classmethod
+    def Response(cls, body, adding_headers=None, forcing_headers=None, status=200, **headers):
+        return Entry(method=None, uri=None, body=body, adding_headers=adding_headers, forcing_headers=forcing_headers, status=status, **headers)
 
 socket.socket = fakesock.socket
 socket.create_connection = create_fake_connection

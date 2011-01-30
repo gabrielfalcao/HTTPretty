@@ -133,3 +133,28 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs(now):
         'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT')
     })
 
+
+@within(five=microseconds)
+def test_httpretty_should_support_a_list_of_successive_responses(now):
+    u"HTTPretty should support adding a list of successive responses"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
+                           responses=[
+                               HTTPretty.Response(body="first response", status=201),
+                               HTTPretty.Response(body='second and last response', status=202),
+                            ])
+
+    request1 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+    body1 = request1.read()
+    request1.close()
+
+    assert that(request1.code).equals(201)
+    assert that(body1).equals('first response')
+
+    request2 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+    body2 = request2.read()
+    request2.close()
+    assert that(request2.code).equals(202)
+    assert that(body2).equals('second and last response')
+
+
