@@ -30,8 +30,11 @@ from datetime import datetime
 from StringIO import StringIO
 from urlparse import urlsplit
 
+old_socket = socket.socket
+old_create_connection = socket.create_connection
+
 class fakesock(object):
-    old_socket = socket.socket
+
 
     class socket(object):
         _entry = None
@@ -40,8 +43,10 @@ class fakesock(object):
             self.family = family
             self.type = type
             self.protocol = protocol
+            self.truesock = old_socket(family, type, protocol)
 
         def connect(self, address):
+
             self._address = (self._host, self._port) = address
             self._closed = False
 
@@ -272,7 +277,18 @@ class HTTPretty(object):
     def Response(cls, body, adding_headers=None, forcing_headers=None, status=200, **headers):
         return Entry(method=None, uri=None, body=body, adding_headers=adding_headers, forcing_headers=forcing_headers, status=status, **headers)
 
-socket.socket = fakesock.socket
-socket.create_connection = create_fake_connection
-socket.create = fakesock.socket
-socket.__dict__.update(fakesock.__dict__)
+    @classmethod
+    def disable(cls):
+        socket.socket = old_socket
+        socket.create_connection = old_create_connection
+        socket.__dict__['socket'] = old_socket
+        socket.__dict__['create_connection'] = old_create_connection
+
+    @classmethod
+    def enable(cls):
+        socket.socket = fakesock.socket
+        socket.create_connection = create_fake_connection
+        socket.__dict__['socket'] = fakesock.socket
+        socket.__dict__['create_connection'] = create_fake_connection
+
+HTTPretty.enable()

@@ -25,7 +25,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 import urllib2
-from sure import that, within, microseconds
+from sure import that, within, microseconds, that_with_context
 from httpretty import HTTPretty
 
 @within(two=microseconds)
@@ -162,5 +162,3 @@ def test_httpretty_should_support_a_list_of_successive_responses(now):
     request3.close()
     assert that(request3.code).equals(202)
     assert that(body3).equals('second and last response')
-
-
