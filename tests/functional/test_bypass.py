@@ -59,4 +59,12 @@ def test_httpretty_bypasses_a_unregistered_request():
 
     assert that(got2).equals('<- HELLO WORLD ->')
 
+    HTTPretty.enable()
+
+    fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
+    got3 = fd.read()
+    fd.close()
+
+    assert that(got3).equals('glub glub')
+
 
