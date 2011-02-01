@@ -48,17 +48,17 @@ are supposed to get mocked.
 you will need **ONLY** if you decide to contribute to HTTPretty which means you're gonna need run our test suite
 
 * [nose](http://code.google.com/p/python-nose/)
-    > [sudo] pip install nose
 * [sure](http://github.com/gabrielfalcao/sure/)
-    > [sudo] pip install sure
 * [httplib2](http://code.google.com/p/httplib2/)
-    > [sudo] pip install httplib2
 * [bolacha](http://github.com/gabrielfalcao/bolacha/)
-    > [sudo] pip install bolacha
 * [tornado](http://tornadoweb.org/)
-    > [sudo] pip install tornado
 * [multiprocessing](http://tornadoweb.org/)
-    > [sudo] pip install multiprocessing
+
+## Here is a oneliner
+
+### I know you want it :)
+
+    sudo pip install multiprocessing sure nose tornado httplib2 bolacha
 
 # Contributing
 
