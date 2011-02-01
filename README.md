@@ -23,8 +23,8 @@ Python's [socket](http://docs.python.org/library/socket.html) core
 module, reimplementing the HTTP protocol, by mocking requests and
 responses.
 
-This is a nice thing, if you consider that mostly python http module
-will be "mockable".
+This is a nice thing, if you consider that all python http modules
+are supposed to get mocked.
 
 # Usage
 
