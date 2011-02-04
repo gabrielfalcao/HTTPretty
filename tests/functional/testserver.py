@@ -68,6 +68,8 @@ class Server(object):
         args = (app, self.port, data)
         self.process = Process(target=go, args=args)
         self.process.start()
+        import time;
+        time.sleep(0.4)
 
     def stop(self):
         try:

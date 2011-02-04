@@ -39,19 +39,19 @@ def stop_server(context):
     HTTPretty.enable()
 
 @that_with_context(start_server, stop_server)
-def test_httpretty_bypasses_a_unregistered_request():
-    u"HTTPretty should bypass a unregistered request by disabling it"
+def test_httpretty_bypasses_when_disabled():
+    u"HTTPretty should bypass all requests by disabling it"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://localhost:9999/go-for-bubbles/",
                            body="glub glub")
+
+    HTTPretty.disable()
 
     fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
     got1 = fd.read()
     fd.close()
 
-    assert that(got1).equals('glub glub')
-
-    HTTPretty.disable()
+    assert that(got1).equals('. o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o .')
 
     fd = urllib2.urlopen('http://localhost:9999/come-again/')
     got2 = fd.read()
@@ -68,3 +68,21 @@ def test_httpretty_bypasses_a_unregistered_request():
     assert that(got3).equals('glub glub')
 
 
+@that_with_context(start_server, stop_server)
+def test_httpretty_bypasses_a_unregistered_request():
+    u"HTTPretty should bypass a unregistered request by disabling it"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://localhost:9999/go-for-bubbles/",
+                           body="glub glub")
+
+    fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
+    got1 = fd.read()
+    fd.close()
+
+    assert that(got1).equals('glub glub')
+
+    fd = urllib2.urlopen('http://localhost:9999/come-again/')
+    got2 = fd.read()
+    fd.close()
+
+    assert that(got2).equals('<- HELLO WORLD ->')

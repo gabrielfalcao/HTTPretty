@@ -33,9 +33,8 @@ from urlparse import urlsplit
 old_socket = socket.socket
 old_create_connection = socket.create_connection
 
+
 class fakesock(object):
-
-
     class socket(object):
         _entry = None
         debuglevel = 0
@@ -44,27 +43,45 @@ class fakesock(object):
             self.type = type
             self.protocol = protocol
             self.truesock = old_socket(family, type, protocol)
-
+            self._closed = True
+            self.fd = StringIO()
         def connect(self, address):
-
             self._address = (self._host, self._port) = address
             self._closed = False
 
         def close(self):
+            if not self._closed:
+                self.truesock.close()
             self._closed = True
 
         def makefile(self, mode, bufsize):
             self._mode = mode
             self._bufsize = bufsize
-            fd = StringIO()
 
             if self._entry:
-                self._entry.fill_filekind(fd)
+                self._entry.fill_filekind(self.fd)
 
-            return fd
+            return self.fd
+
+        def _true_sendall(self, data):
+            self.truesock.connect(self._address)
+            self.truesock.sendall(data)
+            _d = self.truesock.recv(255)
+            self.fd.seek(0)
+            self.fd.write(_d)
+            while _d:
+                _d = self.truesock.recv(255)
+                self.fd.write(_d)
+
+            self.fd.seek(0)
+            self.truesock.close()
 
         def sendall(self, data):
-            verb, headers_string = data.split('\n', 1)
+            try:
+                verb, headers_string = data.split('\n', 1)
+            except ValueError:
+                return self._true_sendall(data)
+
             method, path, version = re.split('\s+', verb.strip(), 3)
 
             info = URIInfo(hostname=self._host, port=self._port, path=path)
@@ -77,6 +94,7 @@ class fakesock(object):
                     break
 
             if not entries:
+                self._true_sendall(data)
                 return
 
             entry = info.get_next_entry()
