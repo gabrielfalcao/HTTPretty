@@ -32,12 +32,22 @@ from urlparse import urlsplit
 
 old_socket = socket.socket
 old_create_connection = socket.create_connection
+old_gethostbyname = socket.gethostbyname
+old_gethostname = socket.gethostname
+old_getaddrinfo = socket.getaddrinfo
+old_socksocket = None
 
+try:
+    import socks
+    old_socksocket = socks.socksocket
+except ImportError:
+    socks = None
 
 class fakesock(object):
     class socket(object):
         _entry = None
         debuglevel = 0
+
         def __init__(self, family, type, protocol):
             self.family = family
             self.type = type
@@ -45,6 +55,8 @@ class fakesock(object):
             self.truesock = old_socket(family, type, protocol)
             self._closed = True
             self.fd = StringIO()
+            self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
+
         def connect(self, address):
             self._address = (self._host, self._port) = address
             self._closed = False
@@ -108,6 +120,15 @@ def create_fake_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
 
     s.connect(address)
     return s
+
+def fake_gethostbyname(host):
+    return host
+
+def fake_gethostname():
+    return 'localhost'
+
+def fake_getaddrinfo(host, port, family=None, socktype=None, proto=None, flags=None):
+    return [(2, 1, 6, '', (host, port))]
 
 STATUSES = {
     100: "Continue",
@@ -263,7 +284,6 @@ class HTTPretty(object):
     u"""The URI registration class"""
     _entries = {}
 
-
     GET = 'GET'
     PUT = 'PUT'
     POST = 'POST'
@@ -275,11 +295,16 @@ class HTTPretty(object):
         if isinstance(responses, list) and len(responses) > 0:
             entries_for_this_uri = responses
         else:
-            entries_for_this_uri = [cls.Response(body=body, adding_headers=adding_headers, forcing_headers=forcing_headers, status=status, **headers)]
+            entries_for_this_uri = [
+                cls.Response(
+                    body=body,
+                    adding_headers=adding_headers,
+                    forcing_headers=forcing_headers,
+                    status=status, **headers
+                )
+            ]
 
-        for e in entries_for_this_uri:
-            e.uri = uri
-            e.method = method
+        map(lambda e: setattr(e, 'uri', uri) or setattr(e, 'method', method), entries_for_this_uri)
 
         info = URIInfo.from_uri(uri, entries_for_this_uri)
         if cls._entries.has_key(info):
@@ -290,23 +315,56 @@ class HTTPretty(object):
     def __repr__(self):
         return u'<HTTPretty with %d URI entries>' % len(self._entries)
 
-
     @classmethod
     def Response(cls, body, adding_headers=None, forcing_headers=None, status=200, **headers):
-        return Entry(method=None, uri=None, body=body, adding_headers=adding_headers, forcing_headers=forcing_headers, status=status, **headers)
+        return Entry(
+            method=None,
+            uri=None,
+            body=body,
+            adding_headers=adding_headers,
+            forcing_headers=forcing_headers,
+            status=status,
+            **headers
+        )
 
     @classmethod
     def disable(cls):
         socket.socket = old_socket
         socket.create_connection = old_create_connection
+        socket.gethostname = old_gethostname
+        socket.gethostbyname = old_gethostbyname
+        socket.getaddrinfo = old_getaddrinfo
+        socket.inet_aton = old_gethostbyname
+
         socket.__dict__['socket'] = old_socket
         socket.__dict__['create_connection'] = old_create_connection
+        socket.__dict__['gethostname'] = old_gethostname
+        socket.__dict__['gethostbyname'] = old_gethostbyname
+        socket.__dict__['getaddrinfo'] = old_getaddrinfo
+        socket.__dict__['inet_aton'] = old_gethostbyname
+
+        if socks:
+            socks.socksocket = old_socksocket
+            socks.__dict__['socksocket'] = old_socksocket
 
     @classmethod
     def enable(cls):
         socket.socket = fakesock.socket
         socket.create_connection = create_fake_connection
+        socket.gethostname = fake_gethostname
+        socket.gethostbyname = fake_gethostbyname
+        socket.getaddrinfo = fake_getaddrinfo
+        socket.inet_aton = fake_gethostbyname
+
         socket.__dict__['socket'] = fakesock.socket
         socket.__dict__['create_connection'] = create_fake_connection
+        socket.__dict__['gethostname'] = fake_gethostname
+        socket.__dict__['gethostbyname'] = fake_gethostbyname
+        socket.__dict__['inet_aton'] = fake_gethostbyname
+        socket.__dict__['getaddrinfo'] = fake_getaddrinfo
+
+        if socks:
+            socks.socksocket = fakesock.socket
+            socks.__dict__['socksocket'] = fakesock.socket
 
 HTTPretty.enable()
