@@ -43,6 +43,21 @@ try:
 except ImportError:
     socks = None
 
+class FakeSockFile(StringIO):
+    def read(self, amount=None):
+        amount = amount or self.len
+        new_amount = amount
+
+        if amount > self.len:
+            new_amount = self.len - self.tell()
+
+        ret = StringIO.read(self, new_amount)
+        remaining = amount - new_amount - 1
+        if remaining > 0:
+            ret = ret + (" " * remaining)
+
+        return ret
+
 class fakesock(object):
     class socket(object):
         _entry = None
@@ -54,7 +69,7 @@ class fakesock(object):
             self.protocol = protocol
             self.truesock = old_socket(family, type, protocol)
             self._closed = True
-            self.fd = StringIO()
+            self.fd = FakeSockFile()
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
 
         def connect(self, address):
@@ -89,6 +104,7 @@ class fakesock(object):
             self.truesock.close()
 
         def sendall(self, data):
+            self.fd.seek(0)
             try:
                 verb, headers_string = data.split('\n', 1)
             except ValueError:
