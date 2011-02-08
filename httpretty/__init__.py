@@ -25,6 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 import re
 import socket
+import warnings
 
 from datetime import datetime
 from StringIO import StringIO
@@ -42,6 +43,9 @@ try:
     old_socksocket = socks.socksocket
 except ImportError:
     socks = None
+
+class HTTPrettyError(Exception):
+    pass
 
 class FakeSockFile(StringIO):
     def read(self, amount=None):
@@ -194,6 +198,7 @@ class Entry(object):
         self.method = method
         self.uri = uri
         self.body = body
+        self.body_length = len(body or '')
         self.adding_headers = adding_headers or {}
         self.forcing_headers = forcing_headers or {}
         self.status = int(status)
@@ -201,6 +206,30 @@ class Entry(object):
         for k, v in headers.items():
             name = "-".join(k.split("_")).capitalize()
             self.adding_headers[name] = v
+
+        self.validate()
+
+    def validate(self):
+        content_length_keys = 'Content-Length', 'content-cength'
+        for key in content_length_keys:
+            got = self.adding_headers.get(key, self.forcing_headers.get(key, None))
+            if got is None:
+                continue
+
+            try:
+                igot = int(got)
+            except ValueError:
+                warnings.warn('HTTPretty got to register the Content-Length header with "%r" which is not a number' % got)
+
+            if igot > self.body_length:
+                raise HTTPrettyError(
+                    'HTTPretty got inconsistent parameters. The header Content-Length you registered expects size "%d" '
+                    'but the body you registered for that has actually length "%d".\n'
+                    'Fix that, or if you really want that, call register_uri with "fill_with" callback.' % (
+                        igot, self.body_length
+                    )
+                )
+
 
     def __repr__(self):
         return r'<Entry %s %s getting %d>' % (self.method, self.uri, self.status)
