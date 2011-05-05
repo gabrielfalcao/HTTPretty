@@ -23,7 +23,7 @@ clean:
 	@for pattern in `cat .gitignore`; do rm -rf $$pattern; done
 	@echo "OK!"
 
-release: clean unit functional integration doctest deploy-documentation
+release: clean unit functional
 	@printf "Exporting to $(filename)... "
 	@tar czf $(filename) httpretty setup.py README.md COPYING
 	@echo "DONE!"
