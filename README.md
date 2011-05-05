@@ -42,6 +42,37 @@ are supposed to get mocked.
 
     The biggest portal in Brazil
 
+## rotating responses
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
+                           responses=[
+                               HTTPretty.Response(body="first response", status=201),
+                               HTTPretty.Response(body='second and last response', status=202),
+                            ])
+
+    request1 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+    body1 = request1.read()
+    request1.close()
+
+    assert that(request1.code).equals(201)
+    assert that(body1).equals('first response')
+
+    request2 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+    body2 = request2.read()
+    request2.close()
+    assert that(request2.code).equals(202)
+    assert that(body2).equals('second and last response')
+
+    request3 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+    body3 = request3.read()
+    request3.close()
+    assert that(request3.code).equals(202)
+    assert that(body3).equals('second and last response')
+
+
+# Documentation
+
+Unfortunately HTTPretty is lacking a documentation, but as for it is 100% based on [FakeWeb](http://fakeweb.rubyforge.org/), a good way to learn it is by looking at **HTTPretty** tests right [here](http://github.com/gabrielfalcao/HTTPretty/blob/master/tests/functional/test_urllib2.py)
 
 # Dependencies
 
