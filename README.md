@@ -23,8 +23,10 @@ Python's [socket](http://docs.python.org/library/socket.html) core
 module, reimplementing the HTTP protocol, by mocking requests and
 responses.
 
-This is a nice thing, if you consider that all python http modules
-are supposed to get mocked.
+As for it works in this way, you don't need to worry what http library
+you're gonna use.
+
+HTTPretty will mock the response for you :) *(and also give you the latest requests so that you can check them)*
 
 # Usage
 
@@ -45,6 +47,43 @@ print got
 **:: output ::**
 
     The biggest portal in Brazil
+
+## mocking the status code
+
+```python
+HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+                       body="here is the mocked body",
+                       status=201)
+
+fd = urllib2.urlopen('http://github.com')
+got = fd.read()
+fd.close()
+
+assert got == "here is the mocked body"
+assert fd.code == 201
+```
+
+## you can tell HTTPretty to return any HTTP headers you want
+
+**and all you need is to add keyword args in which the keys are always lower-cased and with underscores `_` instead of dashes `-`**
+
+For example, let's say you want to mock that server returns `content-type`. To do so, use the argument `content_type`, **all the keyword args are taken by HTTPretty and transformed in the RFC2616 equivalent name**.
+
+```python
+HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+                       body='{"success": false}',
+                       status=500,
+                       content_type='text/json')
+
+fd = urllib2.urlopen('http://github.com')
+got = fd.read()
+fd.close()
+
+assert simplejson.loads(got)['success'] is False
+assert fd.code == 500
+
+```
+
 
 ## rotating responses
 
