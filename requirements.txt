@@ -1,0 +1,6 @@
+nose
+sure
+bolacha
+httplib2
+tornado
+multiprocessing

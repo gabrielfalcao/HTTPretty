@@ -23,15 +23,19 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-version = '0.1'
+version = '0.2'
 
 import re
 import socket
 import warnings
+import logging
+import traceback
 
 from datetime import datetime
 from StringIO import StringIO
 from urlparse import urlsplit
+
+from BaseHTTPServer import BaseHTTPRequestHandler
 
 old_socket = socket.socket
 old_create_connection = socket.create_connection
@@ -49,6 +53,24 @@ except ImportError:
 
 class HTTPrettyError(Exception):
     pass
+
+
+class HTTPrettyRequest(BaseHTTPRequestHandler):
+    def __init__(self, headers, body=''):
+        self.body = body
+        self.raw_headers = headers
+
+        self.rfile = StringIO(headers + body)
+        self.raw_requestline = self.rfile.readline()
+        self.error_code = self.error_message = None
+        self.parse_request()
+        self.method = self.command
+
+    def __repr__(self):
+        return 'HTTPrettyRequest(headers={0}, body="{1}")'.format(
+            self.headers,
+            self.body,
+        )
 
 
 class FakeSockFile(StringIO):
@@ -71,7 +93,7 @@ class fakesock(object):
     class socket(object):
         _entry = None
         debuglevel = 0
-
+        _sent_data = []
         def __init__(self, family, type, protocol):
             self.family = family
             self.type = type
@@ -113,15 +135,34 @@ class fakesock(object):
             self.truesock.close()
 
         def sendall(self, data):
+            self._sent_data.append(data)
+            hostnames = [i.hostname for i in HTTPretty._entries.keys()]
             self.fd.seek(0)
             try:
                 verb, headers_string = data.split('\n', 1)
+                is_parsing_headers = True
             except ValueError:
-                return self._true_sendall(data)
+                is_parsing_headers = False
+
+                if self._host not in hostnames:
+                    return self._true_sendall(data)
+
+            if not is_parsing_headers:
+                if len(self._sent_data) > 1:
+                    headers, body = self._sent_data[-2:]
+                    try:
+                        return HTTPretty.historify_request(headers, body)
+
+                    except Exception, e:
+                        logging.error(traceback.format_exc(e))
+                        return self._true_sendall(data)
 
             method, path, version = re.split('\s+', verb.strip(), 3)
 
-            info = URIInfo(hostname=self._host, port=self._port, path=path)
+            request = HTTPretty.historify_request(data)
+
+            info = URIInfo(hostname=self._host, port=self._port, path=path,
+                           last_request=request)
 
             entries = []
             for key, value in HTTPretty._entries.items():
@@ -272,8 +313,14 @@ class Entry(object):
             string_list.append('Date: %s' % headers.pop('Date'))
 
         if not self.forcing_headers:
-            string_list.append('Content-Type: %s' % headers.pop('Content-Type', 'text/plain; charset=utf-8'))
-            string_list.append('Content-Length: %s' % headers.pop('Content-Length', len(self.body)))
+            content_type = headers.pop('Content-Type',
+                                       'text/plain; charset=utf-8')
+            content_length = headers.pop('Content-Length', len(self.body))
+            string_list.append(
+                'Content-Type: %s' % content_type)
+            string_list.append(
+                'Content-Length: %s' % content_length)
+
             string_list.append('Server: %s' % headers.pop('Server')),
 
         for k, v in headers.items():
@@ -286,8 +333,18 @@ class Entry(object):
         fk.write(self.body)
         fk.seek(0)
 
+
 class URIInfo(object):
-    def __init__(self, username='', password='', hostname='', port=80, path='/', query='', fragment='', entries=None):
+    def __init__(self,
+                 username='',
+                 password='',
+                 hostname='',
+                 port=80,
+                 path='/',
+                 query='',
+                 fragment='',
+                 entries=None,
+                 last_request=None):
         self.username = username or ''
         self.password = password or ''
         self.hostname = hostname or ''
@@ -297,6 +354,7 @@ class URIInfo(object):
         self.fragment = fragment or ''
         self.entries = entries
         self.current_entry = 0
+        self.last_request = last_request
 
     def get_next_entry(self):
         if self.current_entry >= len(self.entries):
@@ -340,12 +398,20 @@ class URIInfo(object):
 class HTTPretty(object):
     u"""The URI registration class"""
     _entries = {}
-
+    latest_requests = []
     GET = 'GET'
     PUT = 'PUT'
     POST = 'POST'
     DELETE = 'DELETE'
     HEAD = 'HEAD'
+    PATCH = 'PATCH'
+
+    @classmethod
+    def historify_request(cls, headers, body=''):
+        request = HTTPrettyRequest(headers, body)
+        cls.last_request = request
+        cls.latest_requests.append(request)
+        return request
 
     @classmethod
     def register_uri(cls, method, uri, body='HTTPretty :)', adding_headers=None, forcing_headers=None, status=200, responses=None, **headers):

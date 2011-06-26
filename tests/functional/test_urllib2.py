@@ -28,6 +28,7 @@ import urllib2
 from sure import *
 from httpretty import HTTPretty
 
+
 @within(two=microseconds)
 def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
     u"HTTPretty should mock a simple GET with urllib2.read()"
@@ -40,6 +41,7 @@ def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
     fd.close()
 
     assert that(got).equals('The biggest portal in Brazil')
+
 
 @within(two=microseconds)
 def test_httpretty_should_mock_headers_urllib2(now):
@@ -87,8 +89,9 @@ def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
         'content-length': '27',
         'status': '200 OK',
         'server': 'Apache',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
     })
+
 
 @within(two=microseconds)
 def test_httpretty_should_allow_forcing_headers_urllib2():
@@ -131,7 +134,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
         'content-length': '23456789',
         'status': '200 OK',
         'server': 'Apache',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
     })
 
 
@@ -163,3 +166,31 @@ def test_httpretty_should_support_a_list_of_successive_responses_urllib2(now):
     request3.close()
     assert that(request3.code).equals(202)
     assert that(body3).equals('second and last response')
+
+
+@within(two=microseconds)
+def test_can_inspect_last_request(now):
+    u"HTTPretty.last_request is a mimetools.Message request from last match"
+
+    HTTPretty.register_uri(HTTPretty.POST, "http://api.github.com/",
+                           body='{"repositories": ["HTTPretty", "lettuce"]}')
+
+    request = urllib2.Request(
+        'http://api.github.com',
+        '{"username": "gabrielfalcao"}',
+        {
+            'content-type': 'text/json',
+        },
+    )
+    fd = urllib2.urlopen(request)
+    got = fd.read()
+    fd.close()
+
+    assert that(HTTPretty.last_request.method).equals('POST')
+    assert that(HTTPretty.last_request.body).equals(
+        '{"username": "gabrielfalcao"}',
+    )
+    assert that(HTTPretty.last_request.headers['content-type']).equals(
+        'text/json',
+    )
+    assert that(got).equals('{"repositories": ["HTTPretty", "lettuce"]}')

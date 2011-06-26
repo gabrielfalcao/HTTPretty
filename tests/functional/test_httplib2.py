@@ -47,6 +47,8 @@ def test_httpretty_should_mock_a_simple_get_with_httplib2_read(context, now):
 
     _, got = context.http.request('http://globo.com', 'GET')
     assert that(got).equals('The biggest portal in Brazil')
+    assert that(HTTPretty.last_request.method).equals('GET')
+    assert that(HTTPretty.last_request.path).equals('/')
 
 @within(two=microseconds)
 @that_with_context(prepare, and_clear)
@@ -166,3 +168,28 @@ def test_httpretty_should_support_a_list_of_successive_responses_httplib2(contex
     assert that(headers3['status']).equals('202')
     assert that(body3).equals('second and last response')
 
+
+@within(two=microseconds)
+@that_with_context(prepare, and_clear)
+def test_can_inspect_last_request(context, now):
+    u"HTTPretty.last_request is a mimetools.Message request from last match"
+
+    HTTPretty.register_uri(HTTPretty.POST, "http://api.github.com/",
+                           body='{"repositories": ["HTTPretty", "lettuce"]}')
+
+    headers, body = context.http.request(
+        'http://api.github.com', 'POST',
+        body='{"username": "gabrielfalcao"}',
+        headers={
+            'content-type': 'text/json',
+        },
+    )
+
+    assert that(HTTPretty.last_request.method).equals('POST')
+    assert that(HTTPretty.last_request.body).equals(
+        '{"username": "gabrielfalcao"}',
+    )
+    assert that(HTTPretty.last_request.headers['content-type']).equals(
+        'text/json',
+    )
+    assert that(body).equals('{"repositories": ["HTTPretty", "lettuce"]}')

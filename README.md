@@ -28,15 +28,19 @@ are supposed to get mocked.
 
 # Usage
 
-    from httpretty import HTTPretty
-    HTTPretty.register_uri(HTTPretty.GET, "http://globo.com/",
-                           body="The biggest portal in Brazil")
+## expecting a simple response body
 
-    fd = urllib2.urlopen('http://globo.com')
-    got = fd.read()
-    fd.close()
+```python
+from httpretty import HTTPretty
+HTTPretty.register_uri(HTTPretty.GET, "http://globo.com/",
+                       body="The biggest portal in Brazil")
 
-    print got
+fd = urllib2.urlopen('http://globo.com')
+got = fd.read()
+fd.close()
+
+print got
+```
 
 **:: output ::**
 
@@ -44,39 +48,63 @@ are supposed to get mocked.
 
 ## rotating responses
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
-                           responses=[
-                               HTTPretty.Response(body="first response", status=201),
-                               HTTPretty.Response(body='second and last response', status=202),
-                            ])
+same URL, same request method, the first request return the first
+HTTPretty.Response, all the subsequent ones return the last (status
+202)
 
-    request1 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
-    body1 = request1.read()
-    request1.close()
+```python
+HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
+                       responses=[
+                           HTTPretty.Response(body="first response", status=201),
+                           HTTPretty.Response(body='second and last response', status=202),
+                        ])
 
-    assert that(request1.code).equals(201)
-    assert that(body1).equals('first response')
+request1 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+body1 = request1.read()
+request1.close()
 
-    request2 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
-    body2 = request2.read()
-    request2.close()
-    assert that(request2.code).equals(202)
-    assert that(body2).equals('second and last response')
+assert that(request1.code).equals(201)
+assert that(body1).equals('first response')
 
-    request3 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
-    body3 = request3.read()
-    request3.close()
-    assert that(request3.code).equals(202)
-    assert that(body3).equals('second and last response')
+request2 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+body2 = request2.read()
+request2.close()
+assert that(request2.code).equals(202)
+assert that(body2).equals('second and last response')
 
+request3 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+body3 = request3.read()
+request3.close()
+assert that(request3.code).equals(202)
+assert that(body3).equals('second and last response')
+```
 
 # Documentation
 
-Unfortunately HTTPretty is lacking a documentation, but as for it is 100% based on [FakeWeb](http://fakeweb.rubyforge.org/), a good way to learn it is by looking at **HTTPretty** tests right [here](http://github.com/gabrielfalcao/HTTPretty/blob/master/tests/functional/test_urllib2.py)
+## expect for a response, and check the request got by the "server" to make sure it was fine.
+
+```python
+from httpretty import HTTPretty
+from httplib2 import Http
+
+HTTPretty.register_uri(HTTPretty.PATCH, "http://api.github.com/",
+                       body='{"repositories": ["HTTPretty", "lettuce"]}')
+
+client = Http()
+headers, body = client.request('http://api.github.com', 'PATCH',
+                               body='{"username": "gabrielfalcao"}',
+                               headers={
+                                   'content-type': 'text/json',
+                               })
+assert body == '{"repositories": ["HTTPretty", "lettuce"]}'
+assert HTTPretty.last_request.method == 'PATCH'
+assert HTTPretty.last_request.headers['content-type'] == 'text/json'
+```
 
 # Dependencies
 
-you will need **ONLY** if you decide to contribute to HTTPretty which means you're gonna need run our test suite
+you will need **ONLY** if you decide to contribute to HTTPretty which
+means you're gonna need run our test suite
 
 * [nose](http://code.google.com/p/python-nose/)
 * [sure](http://github.com/gabrielfalcao/sure/)
