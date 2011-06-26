@@ -27,8 +27,11 @@
 
 
 import os
-from httpretty import version
+from httpretty import version, HTTPretty
 from setuptools import setup
+
+HTTPretty.disable()
+
 
 def get_packages():
     # setuptools can't do the job :(
