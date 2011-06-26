@@ -29,16 +29,16 @@ import httplib2
 from sure import *
 from httpretty import HTTPretty
 
-def setup(context):
+def prepare(context, now):
     HTTPretty.enable()
     context.http = httplib2.Http()
 
-def teardown(context):
+def and_clear(context, now):
     HTTPretty.enable()
     context.http = httplib2.Http()
 
 @within(two=microseconds)
-@that_with_context(setup, teardown)
+@that_with_context(prepare, and_clear)
 def test_httpretty_should_mock_a_simple_get_with_httplib2_read(context, now):
     u"HTTPretty should mock a simple GET with httplib2.context.http"
 
@@ -49,7 +49,7 @@ def test_httpretty_should_mock_a_simple_get_with_httplib2_read(context, now):
     assert that(got).equals('The biggest portal in Brazil')
 
 @within(two=microseconds)
-@that_with_context(setup, teardown)
+@that_with_context(prepare, and_clear)
 def test_httpretty_should_mock_headers_httplib2(context, now):
     u"HTTPretty should mock basic headers with httplib2"
 
@@ -70,7 +70,7 @@ def test_httpretty_should_mock_headers_httplib2(context, now):
 
 
 @within(two=microseconds)
-@that_with_context(setup, teardown)
+@that_with_context(prepare, and_clear)
 def test_httpretty_should_allow_adding_and_overwritting_httplib2(context, now):
     u"HTTPretty should allow adding and overwritting headers with httplib2"
 
@@ -95,7 +95,7 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2(context, now):
     })
 
 @within(two=microseconds)
-@that_with_context(setup, teardown)
+@that_with_context(prepare, and_clear)
 def test_httpretty_should_allow_forcing_headers_httplib2(context, now):
     u"HTTPretty should allow forcing headers with httplib2"
 
@@ -115,7 +115,7 @@ def test_httpretty_should_allow_forcing_headers_httplib2(context, now):
 
 
 @within(two=microseconds)
-@that_with_context(setup, teardown)
+@that_with_context(prepare, and_clear)
 def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(context, now):
     u"HTTPretty should allow adding and overwritting headers by keyword args " \
         "with httplib2"
@@ -140,7 +140,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(context, no
 
 
 @within(two=microseconds)
-@that_with_context(setup, teardown)
+@that_with_context(prepare, and_clear)
 def test_httpretty_should_support_a_list_of_successive_responses_httplib2(context, now):
     u"HTTPretty should support adding a list of successive responses with httplib2"
 

@@ -83,13 +83,13 @@ you will need **ONLY** if you decide to contribute to HTTPretty which means you'
 * [httplib2](http://code.google.com/p/httplib2/)
 * [bolacha](http://github.com/gabrielfalcao/bolacha/)
 * [tornado](http://tornadoweb.org/)
-* [multiprocessing](http://tornadoweb.org/)
+* [multiprocessing](http://code.google.com/p/python-multiprocessing/) **(only needed if you're running python < 2.6)**
 
 ## Here is a oneliner
 
 ### I know you want it :)
 
-    sudo pip install multiprocessing sure nose tornado httplib2 bolacha
+    pip install -r requirements.txt
 
 # Contributing
 

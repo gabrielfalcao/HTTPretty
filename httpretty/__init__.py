@@ -46,8 +46,10 @@ try:
 except ImportError:
     socks = None
 
+
 class HTTPrettyError(Exception):
     pass
+
 
 class FakeSockFile(StringIO):
     def read(self, amount=None):
@@ -63,6 +65,7 @@ class FakeSockFile(StringIO):
             ret = ret + (" " * remaining)
 
         return ret
+
 
 class fakesock(object):
     class socket(object):
@@ -135,6 +138,7 @@ class fakesock(object):
             if entry.method == method:
                 self._entry = entry
 
+
 def create_fake_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
     s = fakesock.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
@@ -143,14 +147,19 @@ def create_fake_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
     s.connect(address)
     return s
 
+
 def fake_gethostbyname(host):
     return host
+
 
 def fake_gethostname():
     return 'localhost'
 
-def fake_getaddrinfo(host, port, family=None, socktype=None, proto=None, flags=None):
+
+def fake_getaddrinfo(
+    host, port, family=None, socktype=None, proto=None, flags=None):
     return [(2, 1, 6, '', (host, port))]
+
 
 STATUSES = {
     100: "Continue",
@@ -194,6 +203,7 @@ STATUSES = {
     504: "Gateway Time-out",
     505: "HTTP Version not supported",
 }
+
 
 class Entry(object):
     def __init__(self, method, uri, body, adding_headers=None, forcing_headers=None, status=200, **headers):
