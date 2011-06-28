@@ -68,6 +68,10 @@ def test_one():
     assert got == "The biggest portal in Brazil"
 ```
 
+the `@httprettified` is a short-hand decorator that wraps the
+decorated function with HTTPretty.enable() and then calls
+HTTPretty.disable() right after.
+
 ## mocking the status code
 
 ```python
@@ -87,16 +91,12 @@ def test_github_access():
     assert fd.code == 201
 ```
 
-the `@httprettified` is a short-hand decorator that wraps the
-decorated function with HTTPretty.enable() and then calls
-HTTPretty.disable() right after.
-
-
 ## you can tell HTTPretty to return any HTTP headers you want
 
 **and all you need is to add keyword args in which the keys are always lower-cased and with underscores `_` instead of dashes `-`**
 
-For example, let's say you want to mock that server returns `content-type`. To do so, use the argument `content_type`, **all the keyword args are taken by HTTPretty and transformed in the RFC2616 equivalent name**.
+For example, let's say you want to mock that server returns `content-type`.
+To do so, use the argument `content_type`, **all the keyword args are taken by HTTPretty and transformed in the RFC2616 equivalent name**.
 
 ```python
 HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
@@ -146,8 +146,6 @@ request3.close()
 assert that(request3.code).equals(202)
 assert that(body3).equals('second and last response')
 ```
-
-# Documentation
 
 ## expect for a response, and check the request got by the "server" to make sure it was fine.
 
