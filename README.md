@@ -35,33 +35,38 @@ HTTPretty will mock the response for you :) *(and also give you the latest reque
 ```python
 from httpretty import HTTPretty
 
-HTTPretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
-HTTPretty.register_uri(HTTPretty.GET, "http://globo.com/",
-                       body="The biggest portal in Brazil")
+def test_one():
+    HTTPretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
+    HTTPretty.register_uri(HTTPretty.GET, "http://globo.com/",
+                           body="The biggest portal in Brazil")
 
-fd = urllib2.urlopen('http://globo.com')
-got = fd.read()
-fd.close()
+    fd = urllib2.urlopen('http://globo.com')
+    got = fd.read()
+    fd.close()
 
-print got
+    assert got == "The biggest portal in Brazil"
 
-HTTPretty.disable()  # disable afterwards, so that you will have no problems in coda that uses that socket module
-
+    HTTPretty.disable()  # disable afterwards, so that you will have no problems in coda that uses that socket module
 ```
-
-**:: output ::**
-
-    The biggest portal in Brazil
-
 
 ## ohhhh, really? can that be easier?
 
 **YES** we've got a decorator
 
 ```python
+from httpretty import HTTPretty, httprettified
 
+@httprettified
+def test_one():
+    HTTPretty.register_uri(HTTPretty.GET, "http://globo.com/",
+                           body="The biggest portal in Brazil")
+
+    fd = urllib2.urlopen('http://globo.com')
+    got = fd.read()
+    fd.close()
+
+    assert got == "The biggest portal in Brazil"
 ```
-
 
 ## mocking the status code
 
