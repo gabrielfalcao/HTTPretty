@@ -27,6 +27,7 @@ version = '0.2'
 
 import re
 import socket
+import functools
 import warnings
 import logging
 import traceback
@@ -94,6 +95,7 @@ class fakesock(object):
         _entry = None
         debuglevel = 0
         _sent_data = []
+
         def __init__(self, family, type, protocol):
             self.family = family
             self.type = type
@@ -247,7 +249,12 @@ STATUSES = {
 
 
 class Entry(object):
-    def __init__(self, method, uri, body, adding_headers=None, forcing_headers=None, status=200, **headers):
+    def __init__(self, method, uri, body,
+                 adding_headers=None,
+                 forcing_headers=None,
+                 status=200,
+                 **headers):
+
         self.method = method
         self.uri = uri
         self.body = body
@@ -265,27 +272,34 @@ class Entry(object):
     def validate(self):
         content_length_keys = 'Content-Length', 'content-cength'
         for key in content_length_keys:
-            got = self.adding_headers.get(key, self.forcing_headers.get(key, None))
+            got = self.adding_headers.get(
+                key, self.forcing_headers.get(key, None))
+
             if got is None:
                 continue
 
             try:
                 igot = int(got)
             except ValueError:
-                warnings.warn('HTTPretty got to register the Content-Length header with "%r" which is not a number' % got)
+                warnings.warn(
+                    'HTTPretty got to register the Content-Length header ' \
+                    'with "%r" which is not a number' % got,
+                )
 
             if igot > self.body_length:
                 raise HTTPrettyError(
-                    'HTTPretty got inconsistent parameters. The header Content-Length you registered expects size "%d" '
-                    'but the body you registered for that has actually length "%d".\n'
-                    'Fix that, or if you really want that, call register_uri with "fill_with" callback.' % (
-                        igot, self.body_length
+                    'HTTPretty got inconsistent parameters. The header ' \
+                    'Content-Length you registered expects size "%d" but ' \
+                    'the body you registered for that has actually length ' \
+                    '"%d".\nFix that, or if you really want that, call ' \
+                    'register_uri with "fill_with" callback.' % (
+                        igot, self.body_length,
                     )
                 )
 
-
     def __repr__(self):
-        return r'<Entry %s %s getting %d>' % (self.method, self.uri, self.status)
+        return r'<Entry %s %s getting %d>' % (
+            self.method, self.uri, self.status)
 
     def fill_filekind(self, fk):
         now = datetime.utcnow()
@@ -325,7 +339,7 @@ class Entry(object):
 
         for k, v in headers.items():
             string_list.append(
-                '%s: %s' % (k, unicode(v))
+                '%s: %s' % (k, unicode(v)),
             )
 
         fk.write("\n".join(string_list))
@@ -345,6 +359,7 @@ class URIInfo(object):
                  fragment='',
                  entries=None,
                  last_request=None):
+
         self.username = username or ''
         self.password = password or ''
         self.hostname = hostname or ''
@@ -360,7 +375,6 @@ class URIInfo(object):
         if self.current_entry >= len(self.entries):
             self.current_entry = -1
 
-
         if not self.entries:
             raise ValueError('I have no entries: %s' % self)
 
@@ -370,8 +384,17 @@ class URIInfo(object):
         return entry
 
     def __unicode__(self):
-        attrs = 'username', 'password', 'hostname', 'port', 'path', 'query', 'fragment'
-        return ur'<httpretty.URIInfo(%s)>' % ", ".join(['%s="%s"' % (k, getattr(self, k, '')) for k in attrs])
+        attrs = (
+            'username',
+            'password',
+            'hostname',
+            'port',
+            'path',
+            'query',
+            'fragment',
+        )
+        fmt = ", ".join(['%s="%s"' % (k, getattr(self, k, '')) for k in attrs])
+        return ur'<httpretty.URIInfo(%s)>' % fmt
 
     def __repr__(self):
         return unicode(self)
@@ -414,20 +437,27 @@ class HTTPretty(object):
         return request
 
     @classmethod
-    def register_uri(cls, method, uri, body='HTTPretty :)', adding_headers=None, forcing_headers=None, status=200, responses=None, **headers):
+    def register_uri(cls, method, uri, body='HTTPretty :)',
+                     adding_headers=None,
+                     forcing_headers=None,
+                     status=200,
+                     responses=None, **headers):
+
         if isinstance(responses, list) and len(responses) > 0:
             entries_for_this_uri = responses
         else:
+            headers['body'] = body
+            headers['adding_headers'] = adding_headers
+            headers['forcing_headers'] = forcing_headers
+            headers['status'] = status
+            headers['responses'] = responses
+
             entries_for_this_uri = [
-                cls.Response(
-                    body=body,
-                    adding_headers=adding_headers,
-                    forcing_headers=forcing_headers,
-                    status=status, **headers
-                )
+                cls.Response(**headers),
             ]
 
-        map(lambda e: setattr(e, 'uri', uri) or setattr(e, 'method', method), entries_for_this_uri)
+        map(lambda e: setattr(e, 'uri', uri) or setattr(e, 'method', method),
+            entries_for_this_uri)
 
         info = URIInfo.from_uri(uri, entries_for_this_uri)
         if cls._entries.has_key(info):
@@ -439,16 +469,14 @@ class HTTPretty(object):
         return u'<HTTPretty with %d URI entries>' % len(self._entries)
 
     @classmethod
-    def Response(cls, body, adding_headers=None, forcing_headers=None, status=200, **headers):
-        return Entry(
-            method=None,
-            uri=None,
-            body=body,
-            adding_headers=adding_headers,
-            forcing_headers=forcing_headers,
-            status=status,
-            **headers
-        )
+    def Response(cls, body, adding_headers=None, forcing_headers=None,
+                 status=200, **headers):
+
+        headers['body'] = body
+        headers['adding_headers'] = adding_headers
+        headers['forcing_headers'] = forcing_headers
+        headers['status'] = status
+        return Entry(method=None, uri=None, **headers)
 
     @classmethod
     def disable(cls):
@@ -490,4 +518,16 @@ class HTTPretty(object):
             socks.socksocket = fakesock.socket
             socks.__dict__['socksocket'] = fakesock.socket
 
-HTTPretty.enable()
+
+def httprettified(test):
+    "A decorator tests that use HTTPretty"
+    @functools.wraps
+    def wrapper(*args, **kw):
+        HTTPretty.enable()
+        try:
+            r = test(*args, **kw)
+        finally:
+            HTTPretty.disable()
+            return r
+
+    return wrapper

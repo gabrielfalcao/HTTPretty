@@ -27,23 +27,28 @@
 import urllib2
 from testserver import Server
 from sure import that, that_with_context
-from httpretty import HTTPretty
+from httpretty import HTTPretty, httprettified
+
 
 def start_server(context):
     context.server = Server(9999)
     context.server.start()
     HTTPretty.enable()
 
+
 def stop_server(context):
     context.server.stop()
     HTTPretty.enable()
 
+
+@httprettified
 @that_with_context(start_server, stop_server)
 def test_httpretty_bypasses_when_disabled():
     u"HTTPretty should bypass all requests by disabling it"
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://localhost:9999/go-for-bubbles/",
-                           body="glub glub")
+    HTTPretty.register_uri(
+        HTTPretty.GET, "http://localhost:9999/go-for-bubbles/",
+        body="glub glub")
 
     HTTPretty.disable()
 
@@ -51,7 +56,8 @@ def test_httpretty_bypasses_when_disabled():
     got1 = fd.read()
     fd.close()
 
-    assert that(got1).equals('. o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o .')
+    assert that(got1).equals(
+        '. o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o .')
 
     fd = urllib2.urlopen('http://localhost:9999/come-again/')
     got2 = fd.read()
@@ -68,12 +74,14 @@ def test_httpretty_bypasses_when_disabled():
     assert that(got3).equals('glub glub')
 
 
+@httprettified
 @that_with_context(start_server, stop_server)
 def test_httpretty_bypasses_a_unregistered_request():
     u"HTTPretty should bypass a unregistered request by disabling it"
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://localhost:9999/go-for-bubbles/",
-                           body="glub glub")
+    HTTPretty.register_uri(
+        HTTPretty.GET, "http://localhost:9999/go-for-bubbles/",
+        body="glub glub")
 
     fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
     got1 = fd.read()
