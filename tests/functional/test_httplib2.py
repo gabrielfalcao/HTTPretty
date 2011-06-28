@@ -26,29 +26,19 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 import httplib2
-from sure import that, that_with_context, within, microseconds
+from sure import that, within, microseconds
 from httpretty import HTTPretty, httprettified
 
 
-def prepare(context, now):
-    HTTPretty.enable()
-    context.http = httplib2.Http()
-
-
-def and_clear(context, now):
-    HTTPretty.enable()
-    context.http = httplib2.Http()
-
-
+@httprettified
 @within(two=microseconds)
-@that_with_context(prepare, and_clear)
-def test_httpretty_should_mock_a_simple_get_with_httplib2_read(context, now):
+def test_httpretty_should_mock_a_simple_get_with_httplib2_read(now):
     u"HTTPretty should mock a simple GET with httplib2.context.http"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://globo.com/",
                            body="The biggest portal in Brazil")
 
-    _, got = context.http.request('http://globo.com', 'GET')
+    _, got = httplib2.Http().request('http://globo.com', 'GET')
     assert that(got).equals('The biggest portal in Brazil')
     assert that(HTTPretty.last_request.method).equals('GET')
     assert that(HTTPretty.last_request.path).equals('/')
@@ -56,15 +46,14 @@ def test_httpretty_should_mock_a_simple_get_with_httplib2_read(context, now):
 
 @httprettified
 @within(two=microseconds)
-@that_with_context(prepare, and_clear)
-def test_httpretty_should_mock_headers_httplib2(context, now):
+def test_httpretty_should_mock_headers_httplib2(now):
     u"HTTPretty should mock basic headers with httplib2"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
                            body="this is supposed to be the response",
                            status=201)
 
-    headers, _ = context.http.request('http://github.com', 'GET')
+    headers, _ = httplib2.Http().request('http://github.com', 'GET')
     assert that(headers['status']).equals('201')
     assert that(headers).equals({
         'content-type': 'text/plain',
@@ -76,9 +65,9 @@ def test_httpretty_should_mock_headers_httplib2(context, now):
     })
 
 
+@httprettified
 @within(two=microseconds)
-@that_with_context(prepare, and_clear)
-def test_httpretty_should_allow_adding_and_overwritting_httplib2(context, now):
+def test_httpretty_should_allow_adding_and_overwritting_httplib2(now):
     u"HTTPretty should allow adding and overwritting headers with httplib2"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
@@ -89,7 +78,7 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2(context, now):
                                'Content-Type': 'application/json',
                            })
 
-    headers, _ = context.http.request('http://github.com', 'GET')
+    headers, _ = httplib2.Http().request('http://github.com', 'GET')
 
     assert that(headers).equals({
         'content-type': 'application/json',
@@ -102,9 +91,9 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2(context, now):
     })
 
 
+@httprettified
 @within(two=microseconds)
-@that_with_context(prepare, and_clear)
-def test_httpretty_should_allow_forcing_headers_httplib2(context, now):
+def test_httpretty_should_allow_forcing_headers_httplib2(now):
     u"HTTPretty should allow forcing headers with httplib2"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
@@ -113,7 +102,7 @@ def test_httpretty_should_allow_forcing_headers_httplib2(context, now):
                                'Content-Type': 'application/xml',
                            })
 
-    headers, _ = context.http.request('http://github.com', 'GET')
+    headers, _ = httplib2.Http().request('http://github.com', 'GET')
 
     assert that(headers).equals({
         'content-location': 'http://github.com/',  # httplib2 FORCES
@@ -126,9 +115,9 @@ def test_httpretty_should_allow_forcing_headers_httplib2(context, now):
     })
 
 
+@httprettified
 @within(two=microseconds)
-@that_with_context(prepare, and_clear)
-def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(context, now):
+def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
     u"HTTPretty should allow adding and overwritting headers by keyword args " \
         "with httplib2"
 
@@ -138,7 +127,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(context, no
                            content_length='27',
                            content_type='application/json')
 
-    headers, _ = context.http.request('http://github.com', 'GET')
+    headers, _ = httplib2.Http().request('http://github.com', 'GET')
 
     assert that(headers).equals({
         'content-type': 'application/json',
@@ -155,9 +144,9 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(context, no
     })
 
 
+@httprettified
 @within(two=microseconds)
-@that_with_context(prepare, and_clear)
-def test_rotating_responses_with_httplib2(context, now):
+def test_rotating_responses_with_httplib2(now):
     u"HTTPretty should support rotating responses with httplib2"
 
     HTTPretty.register_uri(
@@ -167,34 +156,34 @@ def test_rotating_responses_with_httplib2(context, now):
             HTTPretty.Response(body='second and last response', status=202),
         ])
 
-    headers1, body1 = context.http.request(
+    headers1, body1 = httplib2.Http().request(
         'http://github.com/gabrielfalcao/httpretty', 'GET')
 
     assert that(headers1['status']).equals('201')
     assert that(body1).equals('first response')
 
-    headers2, body2 = context.http.request(
+    headers2, body2 = httplib2.Http().request(
         'http://github.com/gabrielfalcao/httpretty', 'GET')
 
     assert that(headers2['status']).equals('202')
     assert that(body2).equals('second and last response')
 
-    headers3, body3 = context.http.request(
+    headers3, body3 = httplib2.Http().request(
         'http://github.com/gabrielfalcao/httpretty', 'GET')
 
     assert that(headers3['status']).equals('202')
     assert that(body3).equals('second and last response')
 
 
+@httprettified
 @within(two=microseconds)
-@that_with_context(prepare, and_clear)
-def test_can_inspect_last_request(context, now):
+def test_can_inspect_last_request(now):
     u"HTTPretty.last_request is a mimetools.Message request from last match"
 
     HTTPretty.register_uri(HTTPretty.POST, "http://api.github.com/",
                            body='{"repositories": ["HTTPretty", "lettuce"]}')
 
-    headers, body = context.http.request(
+    headers, body = httplib2.Http().request(
         'http://api.github.com', 'POST',
         body='{"username": "gabrielfalcao"}',
         headers={

@@ -1,5 +1,5 @@
 # HTTPretty
-> Version 0.2
+> Version 0.3
 
 # What
 
@@ -34,6 +34,8 @@ HTTPretty will mock the response for you :) *(and also give you the latest reque
 
 ```python
 from httpretty import HTTPretty
+
+HTTPretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
 HTTPretty.register_uri(HTTPretty.GET, "http://globo.com/",
                        body="The biggest portal in Brazil")
 
@@ -42,26 +44,48 @@ got = fd.read()
 fd.close()
 
 print got
+
+HTTPretty.disable()  # disable afterwards, so that you will have no problems in coda that uses that socket module
+
 ```
 
 **:: output ::**
 
     The biggest portal in Brazil
 
+
+## ohhhh, really? can that be easier?
+
+**YES** we've got a decorator
+
+```python
+
+```
+
+
 ## mocking the status code
 
 ```python
-HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
-                       body="here is the mocked body",
-                       status=201)
+from httpretty import HTTPretty, httprettified
 
-fd = urllib2.urlopen('http://github.com')
-got = fd.read()
-fd.close()
+@httprettified
+def test_github_access():
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+                           body="here is the mocked body",
+                           status=201)
 
-assert got == "here is the mocked body"
-assert fd.code == 201
+    fd = urllib2.urlopen('http://github.com')
+    got = fd.read()
+    fd.close()
+
+    assert got == "here is the mocked body"
+    assert fd.code == 201
 ```
+
+the `@httprettified` is a short-hand decorator that wraps the
+decorated function with HTTPretty.enable() and then calls
+HTTPretty.disable() right after.
+
 
 ## you can tell HTTPretty to return any HTTP headers you want
 

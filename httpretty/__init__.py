@@ -23,7 +23,7 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-version = '0.2'
+version = '0.3'
 
 import re
 import socket
@@ -450,7 +450,6 @@ class HTTPretty(object):
             headers['adding_headers'] = adding_headers
             headers['forcing_headers'] = forcing_headers
             headers['status'] = status
-            headers['responses'] = responses
 
             entries_for_this_uri = [
                 cls.Response(**headers),
@@ -521,13 +520,12 @@ class HTTPretty(object):
 
 def httprettified(test):
     "A decorator tests that use HTTPretty"
-    @functools.wraps
+    @functools.wraps(test)
     def wrapper(*args, **kw):
         HTTPretty.enable()
         try:
-            r = test(*args, **kw)
+            return test(*args, **kw)
         finally:
             HTTPretty.disable()
-            return r
 
     return wrapper

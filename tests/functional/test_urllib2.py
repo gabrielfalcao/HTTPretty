@@ -26,9 +26,10 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 import urllib2
 from sure import *
-from httpretty import HTTPretty
+from httpretty import HTTPretty, httprettified
 
 
+@httprettified
 @within(two=microseconds)
 def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
     u"HTTPretty should mock a simple GET with urllib2.read()"
@@ -43,6 +44,7 @@ def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
     assert that(got).equals('The biggest portal in Brazil')
 
 
+@httprettified
 @within(two=microseconds)
 def test_httpretty_should_mock_headers_urllib2(now):
     u"HTTPretty should mock basic headers with urllib2"
@@ -62,10 +64,11 @@ def test_httpretty_should_mock_headers_urllib2(now):
         'content-length': '35',
         'status': '201 Created',
         'server': 'Python/HTTPretty',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
     })
 
 
+@httprettified
 @within(two=microseconds)
 def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
     u"HTTPretty should allow adding and overwritting headers with urllib2"
@@ -93,6 +96,7 @@ def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
     })
 
 
+@httprettified
 @within(two=microseconds)
 def test_httpretty_should_allow_forcing_headers_urllib2():
     u"HTTPretty should allow forcing headers with urllib2"
@@ -112,10 +116,11 @@ def test_httpretty_should_allow_forcing_headers_urllib2():
     })
 
 
+@httprettified
 @within(two=microseconds)
 def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
-    u"HTTPretty should allow adding and overwritting headers by keyword args " \
-        "with urllib2"
+    u"HTTPretty should allow adding and overwritting headers by " \
+    "keyword args with urllib2"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
                            body="this is supposed to be the response",
@@ -138,15 +143,18 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
     })
 
 
+@httprettified
 @within(two=microseconds)
 def test_httpretty_should_support_a_list_of_successive_responses_urllib2(now):
-    u"HTTPretty should support adding a list of successive responses with urllib2"
+    u"HTTPretty should support adding a list of successive " \
+    "responses with urllib2"
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
-                           responses=[
-                               HTTPretty.Response(body="first response", status=201),
-                               HTTPretty.Response(body='second and last response', status=202),
-                            ])
+    HTTPretty.register_uri(
+        HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
+        responses=[
+            HTTPretty.Response(body="first response", status=201),
+            HTTPretty.Response(body='second and last response', status=202),
+        ])
 
     request1 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
     body1 = request1.read()
@@ -168,6 +176,7 @@ def test_httpretty_should_support_a_list_of_successive_responses_urllib2(now):
     assert that(body3).equals('second and last response')
 
 
+@httprettified
 @within(two=microseconds)
 def test_can_inspect_last_request(now):
     u"HTTPretty.last_request is a mimetools.Message request from last match"
