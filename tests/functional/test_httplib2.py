@@ -150,26 +150,26 @@ def test_rotating_responses_with_httplib2(now):
     u"HTTPretty should support rotating responses with httplib2"
 
     HTTPretty.register_uri(
-        HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
+        HTTPretty.GET, "https://api.yahoo.com/test",
         responses=[
             HTTPretty.Response(body="first response", status=201),
             HTTPretty.Response(body='second and last response', status=202),
         ])
 
     headers1, body1 = httplib2.Http().request(
-        'http://github.com/gabrielfalcao/httpretty', 'GET')
+        'https://api.yahoo.com/test', 'GET')
 
     assert that(headers1['status']).equals('201')
     assert that(body1).equals('first response')
 
     headers2, body2 = httplib2.Http().request(
-        'http://github.com/gabrielfalcao/httpretty', 'GET')
+        'https://api.yahoo.com/test', 'GET')
 
     assert that(headers2['status']).equals('202')
     assert that(body2).equals('second and last response')
 
     headers3, body3 = httplib2.Http().request(
-        'http://github.com/gabrielfalcao/httpretty', 'GET')
+        'https://api.yahoo.com/test', 'GET')
 
     assert that(headers3['status']).equals('202')
     assert that(body3).equals('second and last response')

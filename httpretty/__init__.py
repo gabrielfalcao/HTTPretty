@@ -23,7 +23,7 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-version = '0.3'
+version = '0.4'
 
 import re
 import socket
@@ -33,6 +33,7 @@ import logging
 import traceback
 
 from datetime import datetime
+from datetime import timedelta
 from StringIO import StringIO
 from urlparse import urlsplit
 
@@ -44,12 +45,23 @@ old_gethostbyname = socket.gethostbyname
 old_gethostname = socket.gethostname
 old_getaddrinfo = socket.getaddrinfo
 old_socksocket = None
+old_ssl_wrap_socket = None
+old_sslwrap_simple = None
+old_sslsocket = None
 
 try:
     import socks
     old_socksocket = socks.socksocket
 except ImportError:
     socks = None
+
+try:
+    import ssl
+    old_ssl_wrap_socket = ssl.wrap_socket
+    old_sslwrap_simple = ssl.sslwrap_simple
+    old_sslsocket = ssl.SSLSocket
+except ImportError:
+    ssl = None
 
 
 class HTTPrettyError(Exception):
@@ -90,20 +102,62 @@ class FakeSockFile(StringIO):
         return ret
 
 
+class FakeSSLSocket(object):
+    def __init__(self, sock, *args, **kw):
+        self._httpretty_sock = sock
+
+    def __getattr__(self, attr):
+        if attr == '_httpretty_sock':
+            return super(FakeSSLSocket, self).__getattribute__(attr)
+
+        return getattr(self._httpretty_sock, attr)
+
+
 class fakesock(object):
     class socket(object):
         _entry = None
         debuglevel = 0
         _sent_data = []
 
-        def __init__(self, family, type, protocol):
-            self.family = family
-            self.type = type
-            self.protocol = protocol
+        def __init__(self, family, type, protocol=6):
+            self.setsockopt(family, type, protocol)
             self.truesock = old_socket(family, type, protocol)
             self._closed = True
             self.fd = FakeSockFile()
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
+            self._sock = self
+
+        def getpeercert(self, *a, **kw):
+            now = datetime.now()
+            shift = now + timedelta(days=30 * 12)
+            return {
+                'notAfter': shift.strftime('%b %d %H:%M:%S GMT'),
+                'subjectAltName': (
+                    ('DNS', '*%s' % self._host),
+                    ('DNS', self._host),
+                    ('DNS', '*'),
+                ),
+                'subject': (
+                    (
+                        ('organizationName', u'*.%s' % self._host),
+                    ),
+                    (
+                        ('organizationalUnitName',
+                         u'Domain Control Validated'),
+                    ),
+                    (
+                        ('commonName', u'*.%s' % self._host),
+                    ),
+                ),
+            }
+
+        def ssl(self, sock, *args, **kw):
+            return sock
+
+        def setsockopt(self, family, type, protocol):
+            self.family = family
+            self.protocol = protocol
+            self.type = type
 
         def connect(self, address):
             self._address = (self._host, self._port) = address
@@ -123,9 +177,9 @@ class fakesock(object):
 
             return self.fd
 
-        def _true_sendall(self, data):
+        def _true_sendall(self, data, *args, **kw):
             self.truesock.connect(self._address)
-            self.truesock.sendall(data)
+            self.truesock.sendall(data, *args, **kw)
             _d = self.truesock.recv(255)
             self.fd.seek(0)
             self.fd.write(_d)
@@ -136,7 +190,8 @@ class fakesock(object):
             self.fd.seek(0)
             self.truesock.close()
 
-        def sendall(self, data):
+        def sendall(self, data, *args, **kw):
+
             self._sent_data.append(data)
             hostnames = [i.hostname for i in HTTPretty._entries.keys()]
             self.fd.seek(0)
@@ -157,7 +212,7 @@ class fakesock(object):
 
                     except Exception, e:
                         logging.error(traceback.format_exc(e))
-                        return self._true_sendall(data)
+                        return self._true_sendall(data, *args, **kw)
 
             method, path, version = re.split('\s+', verb.strip(), 3)
 
@@ -180,6 +235,13 @@ class fakesock(object):
             entry = info.get_next_entry()
             if entry.method == method:
                 self._entry = entry
+
+        sendto = send = recvfrom_into = recv_into = recvfrom = recv = \
+            lambda *a, **kw: None
+
+
+def fake_wrap_socket(s, *args, **kw):
+    return s
 
 
 def create_fake_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
@@ -357,15 +419,24 @@ class URIInfo(object):
                  path='/',
                  query='',
                  fragment='',
+                 scheme='',
                  entries=None,
                  last_request=None):
 
         self.username = username or ''
         self.password = password or ''
         self.hostname = hostname or ''
-        self.port = int(port) != 80 and str(port) or ''
+
+        if port:
+            port = int(port)
+
+        elif scheme == 'https':
+            port = 443
+
+        self.port = port or 80
         self.path = path or ''
         self.query = query or ''
+        self.scheme = scheme
         self.fragment = fragment or ''
         self.entries = entries
         self.current_entry = 0
@@ -411,10 +482,11 @@ class URIInfo(object):
         return cls(result.username,
                    result.password,
                    result.hostname,
-                   result.port or 80,
+                   result.port,
                    result.path,
                    result.query,
                    result.fragment,
+                   result.scheme,
                    entry)
 
 
@@ -459,7 +531,7 @@ class HTTPretty(object):
             entries_for_this_uri)
 
         info = URIInfo.from_uri(uri, entries_for_this_uri)
-        if cls._entries.has_key(info):
+        if info in cls._entries:
             del cls._entries[info]
 
         cls._entries[info] = entries_for_this_uri
@@ -480,6 +552,9 @@ class HTTPretty(object):
     @classmethod
     def disable(cls):
         socket.socket = old_socket
+        socket.SocketType = old_socket
+        socket._socketobject = old_socket
+
         socket.create_connection = old_create_connection
         socket.gethostname = old_gethostname
         socket.gethostbyname = old_gethostbyname
@@ -487,6 +562,9 @@ class HTTPretty(object):
         socket.inet_aton = old_gethostbyname
 
         socket.__dict__['socket'] = old_socket
+        socket.__dict__['_socketobject'] = old_socket
+        socket.__dict__['SocketType'] = old_socket
+
         socket.__dict__['create_connection'] = old_create_connection
         socket.__dict__['gethostname'] = old_gethostname
         socket.__dict__['gethostbyname'] = old_gethostbyname
@@ -497,9 +575,20 @@ class HTTPretty(object):
             socks.socksocket = old_socksocket
             socks.__dict__['socksocket'] = old_socksocket
 
+        if ssl:
+            ssl.wrap_socket = old_ssl_wrap_socket
+            ssl.sslwrap_simple = old_sslwrap_simple
+            ssl.SSLSocket = old_sslsocket
+            ssl.__dict__['wrap_socket'] = old_ssl_wrap_socket
+            ssl.__dict__['sslwrap_simple'] = old_sslwrap_simple
+            ssl.__dict__['SSLSocket'] = old_sslsocket
+
     @classmethod
     def enable(cls):
         socket.socket = fakesock.socket
+        socket._socketobject = fakesock.socket
+        socket.SocketType = fakesock.socket
+
         socket.create_connection = create_fake_connection
         socket.gethostname = fake_gethostname
         socket.gethostbyname = fake_gethostbyname
@@ -507,6 +596,9 @@ class HTTPretty(object):
         socket.inet_aton = fake_gethostbyname
 
         socket.__dict__['socket'] = fakesock.socket
+        socket.__dict__['_socketobject'] = fakesock.socket
+        socket.__dict__['SocketType'] = fakesock.socket
+
         socket.__dict__['create_connection'] = create_fake_connection
         socket.__dict__['gethostname'] = fake_gethostname
         socket.__dict__['gethostbyname'] = fake_gethostbyname
@@ -517,12 +609,23 @@ class HTTPretty(object):
             socks.socksocket = fakesock.socket
             socks.__dict__['socksocket'] = fakesock.socket
 
+        if ssl:
+            ssl.wrap_socket = fake_wrap_socket
+            ssl.sslwrap_simple = fake_wrap_socket
+            ssl.SSLSocket = FakeSSLSocket
+
+            ssl.__dict__['wrap_socket'] = fake_wrap_socket
+            ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
+            ssl.__dict__['SSLSocket'] = FakeSSLSocket
+
 
 def httprettified(test):
     "A decorator tests that use HTTPretty"
     @functools.wraps(test)
     def wrapper(*args, **kw):
         HTTPretty.enable()
+        HTTPretty._entries.clear()
+
         try:
             return test(*args, **kw)
         finally:

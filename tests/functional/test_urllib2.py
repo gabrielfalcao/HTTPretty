@@ -150,26 +150,26 @@ def test_httpretty_should_support_a_list_of_successive_responses_urllib2(now):
     "responses with urllib2"
 
     HTTPretty.register_uri(
-        HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
+        HTTPretty.GET, "https://api.yahoo.com/test",
         responses=[
             HTTPretty.Response(body="first response", status=201),
             HTTPretty.Response(body='second and last response', status=202),
         ])
 
-    request1 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+    request1 = urllib2.urlopen('https://api.yahoo.com/test')
     body1 = request1.read()
     request1.close()
 
     assert that(request1.code).equals(201)
     assert that(body1).equals('first response')
 
-    request2 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+    request2 = urllib2.urlopen('https://api.yahoo.com/test')
     body2 = request2.read()
     request2.close()
     assert that(request2.code).equals(202)
     assert that(body2).equals('second and last response')
 
-    request3 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
+    request3 = urllib2.urlopen('https://api.yahoo.com/test')
     body3 = request3.read()
     request3.close()
     assert that(request3.code).equals(202)
