@@ -255,11 +255,12 @@ def fake_wrap_socket(s, *args, **kw):
     return s
 
 
-def create_fake_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+def create_fake_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
     s = fakesock.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
         s.settimeout(timeout)
-
+    if source_address:
+        s.bind(source_address)
     s.connect(address)
     return s
 
