@@ -28,6 +28,7 @@
 from sure import that
 from httpretty import HTTPretty, HTTPrettyError
 
+
 def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
     u"HTTPretty should raise proper exception on inconsistent Content-Length / "\
     "registered response body"
@@ -48,3 +49,10 @@ def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
         'but the body you registered for that has actually length "10".\n'
         'Fix that, or if you really want that, call register_uri with "fill_with" callback.'
     )
+
+
+def test_does_not_have_last_request_by_default():
+    u'HTTPretty.last_request is a dummy object by default'
+
+    assert that(HTTPretty.last_request.headers).is_empty
+    assert that(HTTPretty.last_request.body).is_empty

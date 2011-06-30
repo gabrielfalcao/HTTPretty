@@ -86,6 +86,15 @@ class HTTPrettyRequest(BaseHTTPRequestHandler):
         )
 
 
+class EmptyRequestHeaders(dict):
+    pass
+
+
+class HTTPrettyRequestEmpty(object):
+    body = ''
+    headers = EmptyRequestHeaders()
+
+
 class FakeSockFile(StringIO):
     def read(self, amount=None):
         amount = amount or self.len
@@ -236,8 +245,10 @@ class fakesock(object):
             if entry.method == method:
                 self._entry = entry
 
-        sendto = send = recvfrom_into = recv_into = recvfrom = recv = \
-            lambda *a, **kw: None
+        def debug(*a, **kw):
+            import debug
+
+        sendto = send = recvfrom_into = recv_into = recvfrom = recv = debug
 
 
 def fake_wrap_socket(s, *args, **kw):
@@ -500,6 +511,7 @@ class HTTPretty(object):
     DELETE = 'DELETE'
     HEAD = 'HEAD'
     PATCH = 'PATCH'
+    last_request = HTTPrettyRequestEmpty()
 
     @classmethod
     def historify_request(cls, headers, body=''):
