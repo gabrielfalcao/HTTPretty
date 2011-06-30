@@ -203,3 +203,32 @@ def test_can_inspect_last_request(now):
         'text/json',
     )
     assert that(got).equals('{"repositories": ["HTTPretty", "lettuce"]}')
+
+
+@httprettified
+@within(two=microseconds)
+def test_can_inspect_last_request_with_ssl(now):
+    u"HTTPretty.last_request is recorded even when mocking 'https' (SSL)"
+
+    HTTPretty.register_uri(HTTPretty.POST, "https://secure.github.com/",
+                           body='{"repositories": ["HTTPretty", "lettuce"]}')
+
+    request = urllib2.Request(
+        'https://secure.github.com',
+        '{"username": "gabrielfalcao"}',
+        {
+            'content-type': 'text/json',
+        },
+    )
+    fd = urllib2.urlopen(request)
+    got = fd.read()
+    fd.close()
+
+    assert that(HTTPretty.last_request.method).equals('POST')
+    assert that(HTTPretty.last_request.body).equals(
+        '{"username": "gabrielfalcao"}',
+    )
+    assert that(HTTPretty.last_request.headers['content-type']).equals(
+        'text/json',
+    )
+    assert that(got).equals('{"repositories": ["HTTPretty", "lettuce"]}')
