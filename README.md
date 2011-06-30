@@ -189,14 +189,18 @@ means you're gonna need run our test suite
 
 ### I know you want it :)
 
-    pip install -r requirements.txt
+```bash
+pip install -r requirements.txt
+```
 
 # Contributing
 
 1. fork and clone the project
 2. install the dependencies above
 3. run the tests with make:
-    > make unit functional
+```bash
+make unit functional
+```
 4. hack at will
 5. commit, push etc
 6. send a pull request
