@@ -3,4 +3,5 @@ sure
 bolacha
 httplib2
 tornado
-multiprocessingcoverage
+multiprocessing
+coverage
