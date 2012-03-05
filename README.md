@@ -201,6 +201,10 @@ pip install -r requirements.txt
 ```bash
 make unit functional
 ```
+or with [Tox](http://tox.testrun.org/):
+```
+tox
+```
 4. hack at will
 5. commit, push etc
 6. send a pull request
