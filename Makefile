@@ -24,6 +24,5 @@ clean:
 	@echo "OK!"
 
 release: clean unit functional
-	@printf "Exporting to $(filename)... "
-	@tar czf $(filename) httpretty setup.py README.md COPYING
-	@echo "DONE!"
+	@echo "Releasing httpretty..."
+	@python setup.py sdist register upload
