@@ -55,13 +55,13 @@ def test_httpretty_should_mock_headers_httplib2(now):
 
     headers, _ = httplib2.Http().request('http://github.com', 'GET')
     assert that(headers['status']).equals('201')
-    assert that(headers).equals({
-        'content-type': 'text/plain',
+    assert that(dict(headers)).equals({
+        'content-type': 'text/plain; charset=utf-8',
         'connection': 'close',
         'content-length': '35',
         'status': '201',
         'server': 'Python/HTTPretty',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%SGMT'),
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
     })
 
 
@@ -70,7 +70,7 @@ def test_httpretty_should_mock_headers_httplib2(now):
 def test_httpretty_should_allow_adding_and_overwritting_httplib2(now):
     u"HTTPretty should allow adding and overwritting headers with httplib2"
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="this is supposed to be the response",
                            adding_headers={
                                'Server': 'Apache',
@@ -78,11 +78,11 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2(now):
                                'Content-Type': 'application/json',
                            })
 
-    headers, _ = httplib2.Http().request('http://github.com', 'GET')
+    headers, _ = httplib2.Http().request('http://github.com/foo', 'GET')
 
-    assert that(headers).equals({
+    assert that(dict(headers)).equals({
         'content-type': 'application/json',
-        'content-location': 'http://github.com/',
+        'content-location': 'http://github.com/foo',
         'connection': 'close',
         'content-length': '27',
         'status': '200',
@@ -96,16 +96,16 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2(now):
 def test_httpretty_should_allow_forcing_headers_httplib2(now):
     u"HTTPretty should allow forcing headers with httplib2"
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="this is supposed to be the response",
                            forcing_headers={
                                'Content-Type': 'application/xml',
                            })
 
-    headers, _ = httplib2.Http().request('http://github.com', 'GET')
+    headers, _ = httplib2.Http().request('http://github.com/foo', 'GET')
 
-    assert that(headers).equals({
-        'content-location': 'http://github.com/',  # httplib2 FORCES
+    assert that(dict(headers)).equals({
+        'content-location': 'http://github.com/foo',  # httplib2 FORCES
                                                    # content-location
                                                    # even if the
                                                    # server does not
@@ -121,17 +121,17 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
     u"HTTPretty should allow adding and overwritting headers by keyword args " \
         "with httplib2"
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="this is supposed to be the response",
                            server='Apache',
                            content_length='27',
                            content_type='application/json')
 
-    headers, _ = httplib2.Http().request('http://github.com', 'GET')
+    headers, _ = httplib2.Http().request('http://github.com/foo', 'GET')
 
-    assert that(headers).equals({
+    assert that(dict(headers)).equals({
         'content-type': 'application/json',
-        'content-location': 'http://github.com/',  # httplib2 FORCES
+        'content-location': 'http://github.com/foo',  # httplib2 FORCES
                                                    # content-location
                                                    # even if the
                                                    # server does not
@@ -225,4 +225,3 @@ def test_can_inspect_last_request_with_ssl(now):
         'text/json',
     )
     assert that(body).equals('{"repositories": ["HTTPretty", "lettuce"]}')
-

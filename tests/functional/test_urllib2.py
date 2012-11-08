@@ -54,15 +54,16 @@ def test_httpretty_should_mock_headers_urllib2(now):
                            status=201)
 
     request = urllib2.urlopen('http://github.com')
+
     headers = dict(request.headers)
     request.close()
 
     assert that(request.code).equals(201)
     assert that(headers).equals({
-        'content-type': 'text/plain',
+        'content-type': 'text/plain; charset=utf-8',
         'connection': 'close',
         'content-length': '35',
-        'status': '201 Created',
+        'status': '201',
         'server': 'Python/HTTPretty',
         'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
     })
@@ -90,7 +91,7 @@ def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
         'content-type': 'application/json',
         'connection': 'close',
         'content-length': '27',
-        'status': '200 OK',
+        'status': '200',
         'server': 'Apache',
         'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
     })
@@ -123,9 +124,9 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
     "keyword args with urllib2"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
-                           body="this is supposed to be the response",
+                           body="this is supposed to be the response, indeed",
                            server='Apache',
-                           content_length='23456789',
+                           content_length='111111',
                            content_type='application/json')
 
     request = urllib2.urlopen('http://github.com')
@@ -136,8 +137,8 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
     assert that(headers).equals({
         'content-type': 'application/json',
         'connection': 'close',
-        'content-length': '23456789',
-        'status': '200 OK',
+        'content-length': '111111',
+        'status': '200',
         'server': 'Apache',
         'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
     })

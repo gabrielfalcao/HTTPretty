@@ -225,7 +225,9 @@ class fakesock(object):
 
             method, path, version = re.split('\s+', verb.strip(), 3)
 
-            request = HTTPretty.historify_request(data)
+            headers, body = data.split('\r\n\r\n')
+
+            request = HTTPretty.historify_request(headers, body)
 
             info = URIInfo(hostname=self._host, port=self._port, path=path,
                            last_request=request)
@@ -375,6 +377,14 @@ class Entry(object):
         return r'<Entry %s %s getting %d>' % (
             self.method, self.uri, self.status)
 
+    def normalize_headers(self, headers):
+        new = {}
+        for k in headers:
+            new_k = '-'.join([s.title() for s in k.split('-')])
+            new[new_k] = headers[k]
+
+        return new
+
     def fill_filekind(self, fk):
         now = datetime.utcnow()
 
@@ -391,8 +401,9 @@ class Entry(object):
         if self.adding_headers:
             headers.update(self.adding_headers)
 
-        status = headers.get('Status', self.status)
+        headers = self.normalize_headers(headers)
 
+        status = headers.get('Status', self.status)
         string_list = [
             'HTTP/1.1 %d %s' % (status, STATUSES[status]),
         ]
@@ -403,7 +414,9 @@ class Entry(object):
         if not self.forcing_headers:
             content_type = headers.pop('Content-Type',
                                        'text/plain; charset=utf-8')
-            content_length = headers.pop('Content-Length', len(self.body))
+
+            content_length = headers.pop('Content-Length', self.body_length)
+
             string_list.append(
                 'Content-Type: %s' % content_type)
             string_list.append(
@@ -418,6 +431,7 @@ class Entry(object):
 
         fk.write("\n".join(string_list))
         fk.write('\n\r\n')
+
         fk.write(self.body)
         fk.seek(0)
 
@@ -559,7 +573,7 @@ class HTTPretty(object):
         headers['body'] = body
         headers['adding_headers'] = adding_headers
         headers['forcing_headers'] = forcing_headers
-        headers['status'] = status
+        headers['status'] = int(status)
         return Entry(method=None, uri=None, **headers)
 
     @classmethod
