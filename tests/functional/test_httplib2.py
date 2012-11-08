@@ -35,11 +35,11 @@ from httpretty import HTTPretty, httprettified
 def test_httpretty_should_mock_a_simple_get_with_httplib2_read(now):
     u"HTTPretty should mock a simple GET with httplib2.context.http"
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://globo.com/",
-                           body="The biggest portal in Brazil")
+    HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
+                           body="Find the best daily deals")
 
-    _, got = httplib2.Http().request('http://globo.com', 'GET')
-    assert that(got).equals('The biggest portal in Brazil')
+    _, got = httplib2.Http().request('http://yipit.com', 'GET')
+    assert that(got).equals('Find the best daily deals')
     assert that(HTTPretty.last_request.method).equals('GET')
     assert that(HTTPretty.last_request.path).equals('/')
 

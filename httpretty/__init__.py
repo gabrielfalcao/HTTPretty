@@ -68,10 +68,17 @@ class HTTPrettyError(Exception):
     pass
 
 
+def utf8(s):
+    if isinstance(s, unicode):
+        s = s.encode('utf-8')
+
+    return str(s)
+
+
 class HTTPrettyRequest(BaseHTTPRequestHandler):
     def __init__(self, headers, body=''):
-        self.body = body
-        self.raw_headers = headers
+        self.body = utf8(body)
+        self.raw_headers = utf8(headers)
 
         self.rfile = StringIO(headers + body)
         self.raw_requestline = self.rfile.readline()
@@ -215,7 +222,7 @@ class fakesock(object):
 
             if not is_parsing_headers:
                 if len(self._sent_data) > 1:
-                    headers, body = self._sent_data[-2:]
+                    headers, body = map(utf8, self._sent_data[-2:])
                     try:
                         return HTTPretty.historify_request(headers, body)
 
@@ -225,7 +232,7 @@ class fakesock(object):
 
             method, path, version = re.split('\s+', verb.strip(), 3)
 
-            headers, body = data.split('\r\n\r\n')
+            headers, body = map(utf8, data.split('\r\n\r\n'))
 
             request = HTTPretty.historify_request(headers, body)
 
@@ -249,6 +256,9 @@ class fakesock(object):
 
         def debug(*a, **kw):
             import debug
+
+        def settimeout(self, new_timeout):
+            self.timeout = new_timeout
 
         sendto = send = recvfrom_into = recv_into = recvfrom = recv = debug
 
@@ -426,7 +436,7 @@ class Entry(object):
 
         for k, v in headers.items():
             string_list.append(
-                '%s: %s' % (k, unicode(v)),
+                '%s: %s' % (k, utf8(v)),
             )
 
         fk.write("\n".join(string_list))
@@ -570,7 +580,7 @@ class HTTPretty(object):
     def Response(cls, body, adding_headers=None, forcing_headers=None,
                  status=200, **headers):
 
-        headers['body'] = body
+        headers['body'] = utf8(body)
         headers['adding_headers'] = adding_headers
         headers['forcing_headers'] = forcing_headers
         headers['status'] = int(status)

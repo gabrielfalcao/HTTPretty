@@ -24,42 +24,39 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-import urllib2
-from sure import *
+
+import requests
+from sure import that, within, microseconds
 from httpretty import HTTPretty, httprettified
 
 
 @httprettified
 @within(two=microseconds)
-def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
-    u"HTTPretty should mock a simple GET with urllib2.read()"
+def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
+    u"HTTPretty should mock a simple GET with requests.get"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
                            body="Find the best daily deals")
 
-    fd = urllib2.urlopen('http://yipit.com')
-    got = fd.read()
-    fd.close()
-
-    assert that(got).equals('Find the best daily deals')
+    response = requests.get('http://yipit.com')
+    assert that(response.text).equals('Find the best daily deals')
+    assert that(HTTPretty.last_request.method).equals('GET')
+    assert that(HTTPretty.last_request.path).equals('/')
 
 
 @httprettified
 @within(two=microseconds)
-def test_httpretty_should_mock_headers_urllib2(now):
-    u"HTTPretty should mock basic headers with urllib2"
+def test_httpretty_should_mock_headers_requests(now):
+    u"HTTPretty should mock basic headers with requests"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
                            body="this is supposed to be the response",
                            status=201)
 
-    request = urllib2.urlopen('http://github.com')
+    response = requests.get('http://github.com')
+    assert that(response.status_code).equals(201)
 
-    headers = dict(request.headers)
-    request.close()
-
-    assert that(request.code).equals(201)
-    assert that(headers).equals({
+    assert that(dict(response.headers)).equals({
         'content-type': 'text/plain; charset=utf-8',
         'connection': 'close',
         'content-length': '35',
@@ -71,10 +68,10 @@ def test_httpretty_should_mock_headers_urllib2(now):
 
 @httprettified
 @within(two=microseconds)
-def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
-    u"HTTPretty should allow adding and overwritting headers with urllib2"
+def test_httpretty_should_allow_adding_and_overwritting_requests(now):
+    u"HTTPretty should allow adding and overwritting headers with requests"
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="this is supposed to be the response",
                            adding_headers={
                                'Server': 'Apache',
@@ -82,12 +79,9 @@ def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
                                'Content-Type': 'application/json',
                            })
 
-    request = urllib2.urlopen('http://github.com')
-    headers = dict(request.headers)
-    request.close()
+    response = requests.get('http://github.com/foo')
 
-    assert that(request.code).equals(200)
-    assert that(headers).equals({
+    assert that(dict(response.headers)).equals({
         'content-type': 'application/json',
         'connection': 'close',
         'content-length': '27',
@@ -99,45 +93,42 @@ def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
 
 @httprettified
 @within(two=microseconds)
-def test_httpretty_should_allow_forcing_headers_urllib2():
-    u"HTTPretty should allow forcing headers with urllib2"
+def test_httpretty_should_allow_forcing_headers_requests(now):
+    u"HTTPretty should allow forcing headers with requests"
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
-                           body="this is supposed to be the response",
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
+                           body="<root><baz /</root>",
                            forcing_headers={
                                'Content-Type': 'application/xml',
+                               'Content-Length': '19',
                            })
 
-    request = urllib2.urlopen('http://github.com')
-    headers = dict(request.headers)
-    request.close()
+    response = requests.get('http://github.com/foo')
 
-    assert that(headers).equals({
+    assert that(dict(response.headers)).equals({
         'content-type': 'application/xml',
+        'content-length': '19',
     })
 
 
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
-    u"HTTPretty should allow adding and overwritting headers by " \
-    "keyword args with urllib2"
+    u"HTTPretty should allow adding and overwritting headers by keyword args " \
+        "with requests"
 
-    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
-                           body="this is supposed to be the response, indeed",
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
+                           body="this is supposed to be the response",
                            server='Apache',
-                           content_length='111111',
+                           content_length='27',
                            content_type='application/json')
 
-    request = urllib2.urlopen('http://github.com')
-    headers = dict(request.headers)
-    request.close()
+    response = requests.get('http://github.com/foo')
 
-    assert that(request.code).equals(200)
-    assert that(headers).equals({
+    assert that(dict(response.headers)).equals({
         'content-type': 'application/json',
         'connection': 'close',
-        'content-length': '111111',
+        'content-length': '27',
         'status': '200',
         'server': 'Apache',
         'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
@@ -146,9 +137,8 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
 
 @httprettified
 @within(two=microseconds)
-def test_httpretty_should_support_a_list_of_successive_responses_urllib2(now):
-    u"HTTPretty should support adding a list of successive " \
-    "responses with urllib2"
+def test_rotating_responses_with_requests(now):
+    u"HTTPretty should support rotating responses with requests"
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -157,24 +147,23 @@ def test_httpretty_should_support_a_list_of_successive_responses_urllib2(now):
             HTTPretty.Response(body='second and last response', status=202),
         ])
 
-    request1 = urllib2.urlopen('https://api.yahoo.com/test')
-    body1 = request1.read()
-    request1.close()
+    response1 = requests.get(
+        'https://api.yahoo.com/test')
 
-    assert that(request1.code).equals(201)
-    assert that(body1).equals('first response')
+    assert that(response1.status_code).equals(201)
+    assert that(response1.text).equals('first response')
 
-    request2 = urllib2.urlopen('https://api.yahoo.com/test')
-    body2 = request2.read()
-    request2.close()
-    assert that(request2.code).equals(202)
-    assert that(body2).equals('second and last response')
+    response2 = requests.get(
+        'https://api.yahoo.com/test')
 
-    request3 = urllib2.urlopen('https://api.yahoo.com/test')
-    body3 = request3.read()
-    request3.close()
-    assert that(request3.code).equals(202)
-    assert that(body3).equals('second and last response')
+    assert that(response2.status_code).equals(202)
+    assert that(response2.text).equals('second and last response')
+
+    response3 = requests.get(
+        'https://api.yahoo.com/test')
+
+    assert that(response3.status_code).equals(202)
+    assert that(response3.text).equals('second and last response')
 
 
 @httprettified
@@ -185,16 +174,13 @@ def test_can_inspect_last_request(now):
     HTTPretty.register_uri(HTTPretty.POST, "http://api.github.com/",
                            body='{"repositories": ["HTTPretty", "lettuce"]}')
 
-    request = urllib2.Request(
+    response = requests.post(
         'http://api.github.com',
         '{"username": "gabrielfalcao"}',
-        {
+        headers={
             'content-type': 'text/json',
         },
     )
-    fd = urllib2.urlopen(request)
-    got = fd.read()
-    fd.close()
 
     assert that(HTTPretty.last_request.method).equals('POST')
     assert that(HTTPretty.last_request.body).equals(
@@ -203,7 +189,7 @@ def test_can_inspect_last_request(now):
     assert that(HTTPretty.last_request.headers['content-type']).equals(
         'text/json',
     )
-    assert that(got).equals('{"repositories": ["HTTPretty", "lettuce"]}')
+    assert that(response.json).equals({"repositories": ["HTTPretty", "lettuce"]})
 
 
 @httprettified
@@ -214,16 +200,13 @@ def test_can_inspect_last_request_with_ssl(now):
     HTTPretty.register_uri(HTTPretty.POST, "https://secure.github.com/",
                            body='{"repositories": ["HTTPretty", "lettuce"]}')
 
-    request = urllib2.Request(
+    response = requests.post(
         'https://secure.github.com',
         '{"username": "gabrielfalcao"}',
-        {
+        headers={
             'content-type': 'text/json',
         },
     )
-    fd = urllib2.urlopen(request)
-    got = fd.read()
-    fd.close()
 
     assert that(HTTPretty.last_request.method).equals('POST')
     assert that(HTTPretty.last_request.body).equals(
@@ -232,4 +215,4 @@ def test_can_inspect_last_request_with_ssl(now):
     assert that(HTTPretty.last_request.headers['content-type']).equals(
         'text/json',
     )
-    assert that(got).equals('{"repositories": ["HTTPretty", "lettuce"]}')
+    assert that(response.json).equals({"repositories": ["HTTPretty", "lettuce"]})
