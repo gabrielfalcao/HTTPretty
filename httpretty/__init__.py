@@ -75,7 +75,7 @@ def utf8(s):
     return str(s)
 
 
-class HTTPrettyRequest(BaseHTTPRequestHandler):
+class HTTPrettyRequest(BaseHTTPRequestHandler, object):
     def __init__(self, headers, body=''):
         self.body = utf8(body)
         self.raw_headers = utf8(headers)
