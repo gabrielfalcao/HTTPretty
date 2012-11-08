@@ -1,10 +1,10 @@
 # HTTPretty
-> Version 0.4
+> Version 0.5
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 
 # changes
 
-## version 0.4
+## version 0.5
 
 * supporting `https` (SSL'ed URLs)
 
