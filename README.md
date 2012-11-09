@@ -22,7 +22,7 @@ from httpretty import httprettified
 @httprettified
 def test_yipit_api_returning_deals():
     HTTPretty.register_uri(HTTPretty.GET, "http://api.yipit.com/v1/deals/",
-                           body="[{"title": "Test Deal"}]",
+                           body='[{"title": "Test Deal"}]',
                            content_type="application/json")
 
     response = requests.get('http://api.yipit.com/v1/deals/')
