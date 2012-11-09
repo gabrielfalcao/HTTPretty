@@ -205,42 +205,37 @@ Because HTTPretty works in the socket level it should work with any HTTP client 
 * [httplib2](http://code.google.com/p/httplib2/)
 * [urllib2](http://docs.python.org/2/library/urllib2.html)
 
-# Dependencies
+# Hacking on HTTPretty
 
-you will need **ONLY** if you decide to contribute to HTTPretty which
-means you're gonna need run our test suite
+#### create a virtual env
 
-* [nose](http://code.google.com/p/python-nose/)
-* [sure](http://github.com/gabrielfalcao/sure/)
-* [httplib2](http://code.google.com/p/httplib2/)
-* [bolacha](http://github.com/gabrielfalcao/bolacha/)
-* [tornado](http://tornadoweb.org/)
-* [multiprocessing](http://code.google.com/p/python-multiprocessing/) **(only needed if you're running python < 2.6)**
+you will need [virtualenvwrapper](http://www.doughellmann.com/projects/virtualenvwrapper/)
 
-## Here is a oneliner
 
-### I know you want it :)
+```console
+mkvirtualenv --distribute --no-site-packages HTTPretty
+```
 
-```bash
+#### install the dependencies
+
+```console
 pip install -r requirements.pip
 ```
 
-# Contributing
+#### next steps:
 
-1. fork and clone the project
-2. install the dependencies above
-3. run the tests with make:
+1. run the tests with make:
 ```bash
 make unit functional
 ```
-4. hack at will
-5. commit, push etc
-6. send a pull request
+2. hack at will
+3. commit, push etc
+4. send a pull request
 
 # License
 
     <HTTPretty - HTTP client mock for Python>
-    Copyright (C) <2011>  Gabriel Falcão <gabriel@nacaolivre.org>
+    Copyright (C) <2011-2012>  Gabriel Falcão <gabriel@nacaolivre.org>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
