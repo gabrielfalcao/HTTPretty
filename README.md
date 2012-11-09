@@ -40,7 +40,7 @@ If you come from ruby this would probably sound familiar :smiley:
 ## expecting a simple response body
 
 ```python
-import urllib2
+import requests
 from httpretty import HTTPretty
 
 def test_one():
@@ -48,11 +48,9 @@ def test_one():
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
                            body="Find the best daily deals")
 
-    fd = urllib2.urlopen('http://yipit.com')
-    got = fd.read()
-    fd.close()
+    response = requests.get('http://yipit.com')
 
-    assert got == "Find the best daily deals"
+    assert response.text == "Find the best daily deals"
 
     HTTPretty.disable()  # disable afterwards, so that you will have no problems in coda that uses that socket module
 ```
@@ -81,8 +79,8 @@ HTTPretty.disable() right after.
 ## mocking the status code
 
 ```python
-import json
-import urllib2
+import requests
+from sure import expect
 from httpretty import HTTPretty, httprettified
 
 @httprettified
@@ -91,12 +89,8 @@ def test_github_access():
                            body="here is the mocked body",
                            status=201)
 
-    fd = urllib2.urlopen('http://github.com')
-    got = fd.read()
-    fd.close()
-
-    assert got == "here is the mocked body"
-    assert fd.code == 201
+    response = requests.get('http://github.com')
+    expect(response.status_code).to.equal(201)
 ```
 
 ## you can tell HTTPretty to return any HTTP headers you want
@@ -107,30 +101,24 @@ For example, let's say you want to mock that server returns `content-type`.
 To do so, use the argument `content_type`, **all the keyword args are taken by HTTPretty and transformed in the RFC2616 equivalent name**.
 
 ```python
-import urllib2
-
-HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao",
+HTTPretty.register_uri(HTTPretty.GET, "http://foo-api.com/gabrielfalcao",
                        body='{"success": false}',
                        status=500,
                        content_type='text/json')
 
-fd = urllib2.urlopen('http://github.com/gabrielfalcao')
-got = fd.read()
-fd.close()
+response = requests.get('http://foo-api.com/gabrielfalcao')
 
-assert json.loads(got)['success'] is False
-assert fd.code == 500
-
+expect(response.json).to.equal({'success': False})
+expect(response.status_code).to.equal(500)
 ```
 
 ## rotating responses
 
 same URL, same request method, the first request return the first
-HTTPretty.Response, all the subsequent ones return the last (status
-202)
+HTTPretty.Response, all the subsequent ones return the last (status 202)
 
 ```python
-import urllib2
+import requests
 from sure import expect
 
 HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
@@ -139,25 +127,18 @@ HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty
                            HTTPretty.Response(body='second and last response', status=202),
                         ])
 
-request1 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
-body1 = request1.read()
-request1.close()
+response1 = requests.get('http://github.com/gabrielfalcao/httpretty')
+expect(response1.status_code).to.equal(201)
+expect(response1.text).to.equal('first response')
 
-expect(request1.code).to.equal(201)
-expect(body1).to.equal('first response')
+response2 = requests.get('http://github.com/gabrielfalcao/httpretty')
+expect(response2.status_code).to.equal(202)
+expect(response2.text).to.equal('second and last response')
 
-request2 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
-body2 = request2.read()
-request2.close()
+response3 = requests.get('http://github.com/gabrielfalcao/httpretty')
 
-expect(request2.code).to.equal(202)
-expect(body2).to.equal('second and last response')
-
-request3 = urllib2.urlopen('http://github.com/gabrielfalcao/httpretty')
-body3 = request3.read()
-request3.close()
-expect(request3.code).to.equal(202)
-expect(body3).to.equal('second and last response')
+expect(response3.status_code).to.equal(202)
+expect(response3.text).to.equal('second and last response')
 ```
 
 ## expect for a response, and check the request got by the "server" to make sure it was fine.
@@ -168,7 +149,7 @@ from sure import expect
 from httpretty import HTTPretty
 
 
-HTTPretty.register_uri(HTTPretty.POST, "http://api.yipit.com/foo",
+HTTPretty.register_uri(HTTPretty.POST, "http://api.yipit.com/foo/",
                        body='{"repositories": ["HTTPretty", "lettuce"]}')
 
 response = requests.post('http://api.yipit.com/foo',
@@ -195,7 +176,7 @@ tool, mess with scope and so on.
 
 ## The idea behind HTTPretty (how it works)
 
-HTTPretty [monkey matches](http://en.wikipedia.org/wiki/Monkey_patch)
+HTTPretty [monkey patches](http://en.wikipedia.org/wiki/Monkey_patch)
 Python's [socket](http://docs.python.org/library/socket.html) core
 module, reimplementing the HTTP protocol, by mocking requests and
 responses.
@@ -215,6 +196,14 @@ if you use the `forcing_headers` options make sure to add the header
 `Content-Length` otherwise the
 [requests](http://docs.python-requests.org/en/latest/) will try to
 load the response endlessly
+
+# Officially supported libraries
+
+Because HTTPretty works in the socket level it should work with any HTTP client libraries, although it is [battle tested](https://github.com/gabrielfalcao/HTTPretty/tree/master/tests/functional) against:
+
+* [requests](http://docs.python-requests.org/en/latest/)
+* [httplib2](http://code.google.com/p/httplib2/)
+* [urllib2](http://docs.python.org/2/library/urllib2.html)
 
 # Dependencies
 
