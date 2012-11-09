@@ -101,15 +101,17 @@ For example, let's say you want to mock that server returns `content-type`.
 To do so, use the argument `content_type`, **all the keyword args are taken by HTTPretty and transformed in the RFC2616 equivalent name**.
 
 ```python
-HTTPretty.register_uri(HTTPretty.GET, "http://foo-api.com/gabrielfalcao",
-                       body='{"success": false}',
-                       status=500,
-                       content_type='text/json')
+@httprettified
+def test_some_api():
+    HTTPretty.register_uri(HTTPretty.GET, "http://foo-api.com/gabrielfalcao",
+                           body='{"success": false}',
+                           status=500,
+                           content_type='text/json')
 
-response = requests.get('http://foo-api.com/gabrielfalcao')
+    response = requests.get('http://foo-api.com/gabrielfalcao')
 
-expect(response.json).to.equal({'success': False})
-expect(response.status_code).to.equal(500)
+    expect(response.json).to.equal({'success': False})
+    expect(response.status_code).to.equal(500)
 ```
 
 ## rotating responses
@@ -121,24 +123,27 @@ HTTPretty.Response, all the subsequent ones return the last (status 202)
 import requests
 from sure import expect
 
-HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
-                       responses=[
-                           HTTPretty.Response(body="first response", status=201),
-                           HTTPretty.Response(body='second and last response', status=202),
-                        ])
 
-response1 = requests.get('http://github.com/gabrielfalcao/httpretty')
-expect(response1.status_code).to.equal(201)
-expect(response1.text).to.equal('first response')
+@httprettified
+def test_rotating_responses():
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
+                           responses=[
+                               HTTPretty.Response(body="first response", status=201),
+                               HTTPretty.Response(body='second and last response', status=202),
+                            ])
 
-response2 = requests.get('http://github.com/gabrielfalcao/httpretty')
-expect(response2.status_code).to.equal(202)
-expect(response2.text).to.equal('second and last response')
+    response1 = requests.get('http://github.com/gabrielfalcao/httpretty')
+    expect(response1.status_code).to.equal(201)
+    expect(response1.text).to.equal('first response')
 
-response3 = requests.get('http://github.com/gabrielfalcao/httpretty')
+    response2 = requests.get('http://github.com/gabrielfalcao/httpretty')
+    expect(response2.status_code).to.equal(202)
+    expect(response2.text).to.equal('second and last response')
 
-expect(response3.status_code).to.equal(202)
-expect(response3.text).to.equal('second and last response')
+    response3 = requests.get('http://github.com/gabrielfalcao/httpretty')
+
+    expect(response3.status_code).to.equal(202)
+    expect(response3.text).to.equal('second and last response')
 ```
 
 ## expect for a response, and check the request got by the "server" to make sure it was fine.
@@ -146,21 +151,23 @@ expect(response3.text).to.equal('second and last response')
 ```python
 import requests
 from sure import expect
-from httpretty import HTTPretty
+from httpretty import HTTPretty, httprettified
 
 
-HTTPretty.register_uri(HTTPretty.POST, "http://api.yipit.com/foo/",
-                       body='{"repositories": ["HTTPretty", "lettuce"]}')
+@httprettified
+def test_yipit_api_integration():
+    HTTPretty.register_uri(HTTPretty.POST, "http://api.yipit.com/foo/",
+                           body='{"repositories": ["HTTPretty", "lettuce"]}')
 
-response = requests.post('http://api.yipit.com/foo',
-                        '{"username": "gabrielfalcao"}',
-                        headers={
-                            'content-type': 'text/json',
-                        })
+    response = requests.post('http://api.yipit.com/foo',
+                            '{"username": "gabrielfalcao"}',
+                            headers={
+                                'content-type': 'text/json',
+                            })
 
-expect(response.text).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
-expect(HTTPretty.last_request.method).to.equal("POST")
-expect(HTTPretty.last_request.headers['content-type']).to.equal('text/json')
+    expect(response.text).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
+    expect(HTTPretty.last_request.method).to.equal("POST")
+    expect(HTTPretty.last_request.headers['content-type']).to.equal('text/json')
 ```
 
 # Motivation

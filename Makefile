@@ -1,4 +1,4 @@
-all: check_dependencies unit functional
+all: check_dependencies unit functional doctests
 
 filename=httpretty-`python -c 'import httpretty;print httpretty.version'`.tar.gz
 
