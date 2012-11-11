@@ -360,7 +360,7 @@ class Entry(object):
         self.validate()
 
     def validate(self):
-        content_length_keys = 'Content-Length', 'content-cength'
+        content_length_keys = 'Content-Length', 'content-length'
         for key in content_length_keys:
             got = self.adding_headers.get(
                 key, self.forcing_headers.get(key, None))
@@ -381,8 +381,7 @@ class Entry(object):
                     'HTTPretty got inconsistent parameters. The header ' \
                     'Content-Length you registered expects size "%d" but ' \
                     'the body you registered for that has actually length ' \
-                    '"%d".\nFix that, or if you really want that, call ' \
-                    'register_uri with "fill_with" callback.' % (
+                    '"%d".' % (
                         igot, self.body_length,
                     )
                 )

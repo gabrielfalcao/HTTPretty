@@ -46,8 +46,7 @@ def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
     ).raises(
         HTTPrettyError,
         'HTTPretty got inconsistent parameters. The header Content-Length you registered expects size "999" '
-        'but the body you registered for that has actually length "10".\n'
-        'Fix that, or if you really want that, call register_uri with "fill_with" callback.'
+        'but the body you registered for that has actually length "10".'
     )
 
 
