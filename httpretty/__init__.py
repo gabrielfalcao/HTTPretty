@@ -231,12 +231,16 @@ class fakesock(object):
                         return self._true_sendall(data, *args, **kw)
 
             method, path, version = re.split('\s+', verb.strip(), 3)
+            # path might come with
+            s = urlsplit(path)
 
             headers, body = map(utf8, data.split('\r\n\r\n'))
 
             request = HTTPretty.historify_request(headers, body)
 
-            info = URIInfo(hostname=self._host, port=self._port, path=path,
+            info = URIInfo(hostname=self._host, port=self._port,
+                           path=s.path,
+                           query=s.query,
                            last_request=request)
 
             entries = []
@@ -497,8 +501,6 @@ class URIInfo(object):
             'hostname',
             'port',
             'path',
-            'query',
-            'fragment',
         )
         fmt = ", ".join(['%s="%s"' % (k, getattr(self, k, '')) for k in attrs])
         return ur'<httpretty.URIInfo(%s)>' % fmt

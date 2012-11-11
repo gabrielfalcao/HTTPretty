@@ -26,7 +26,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 import httplib2
-from sure import that, within, microseconds
+from sure import that, expect, within, microseconds
 from httpretty import HTTPretty, httprettified
 
 
@@ -225,3 +225,18 @@ def test_can_inspect_last_request_with_ssl(now):
         'text/json',
     )
     assert that(body).equals('{"repositories": ["HTTPretty", "lettuce"]}')
+
+
+@httprettified
+@within(two=microseconds)
+def test_httpretty_ignores_querystrings_from_registered_uri(now):
+    u"Registering URIs with query string cause them to be ignored"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/?id=123",
+                           body="Find the best daily deals")
+
+    _, got = httplib2.Http().request('http://yipit.com/?id=123', 'GET')
+
+    expect(got).to.equal('Find the best daily deals')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/?id=123')
