@@ -184,7 +184,7 @@ class fakesock(object):
                 self.truesock.close()
             self._closed = True
 
-        def makefile(self, mode, bufsize):
+        def makefile(self, mode='r', bufsize=-1):
             self._mode = mode
             self._bufsize = bufsize
 
