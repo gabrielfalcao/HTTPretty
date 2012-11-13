@@ -196,11 +196,11 @@ class fakesock(object):
         def _true_sendall(self, data, *args, **kw):
             self.truesock.connect(self._address)
             self.truesock.sendall(data, *args, **kw)
-            _d = self.truesock.recv(255)
+            _d = self.truesock.recv(16)
             self.fd.seek(0)
             self.fd.write(_d)
             while _d:
-                _d = self.truesock.recv(255)
+                _d = self.truesock.recv(16)
                 self.fd.write(_d)
 
             self.fd.seek(0)
