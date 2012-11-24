@@ -230,3 +230,33 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
     expect(response.text).to.equal('Find the best daily deals')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/?id=123')
+
+@httprettified
+@within(five=microseconds)
+def test_streaming_responses(now):
+    """
+    Mock a streaming HTTP response, like those returned by the Twitter streaming
+    API.
+    """
+
+    #XXX this obviously isn't a fully functional twitter streaming client!
+    twitter_response_lines = [
+        '{"text":"If \\"for the boobs\\" requests to follow me one more time I\'m calling the police. http://t.co/a0mDEAD8"}\r\n',
+        '\r\n',
+        '{"text":"RT @onedirection: Thanks for all your #FollowMe1D requests Directioners! We\u2019ll be following 10 people throughout the day starting NOW. G ..."}\r\n'
+    ]
+    
+    HTTPretty.register_uri(HTTPretty.POST,
+                           "https://stream.twitter.com/1/statuses/filter.json",
+                           body=(l for l in twitter_response_lines),
+                           streaming=True)
+
+    # taken from the requests docs
+    # http://docs.python-requests.org/en/latest/user/advanced/#streaming-requests
+    response = requests.post("https://stream.twitter.com/1/statuses/filter.json",
+                            data={'track':'requests'},
+                            auth=('username','password'), prefetch=False)
+    line_iter = response.iter_lines()
+    for i in xrange(len(twitter_response_lines)):
+        expect(line_iter.next().strip()).to.equal(
+            twitter_response_lines[i].strip())
