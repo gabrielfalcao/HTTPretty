@@ -238,6 +238,22 @@ def test_streaming_responses(now):
     Mock a streaming HTTP response, like those returned by the Twitter streaming
     API.
     """
+    from contextlib import contextmanager
+    @contextmanager
+    def in_time(time, message):
+        """
+        A context manager that uses signals to force a time limit in tests
+        (unlike the `@within` decorator, which only complains afterward), or
+        raise an AssertionError.
+        """
+        import signal
+        def handler(signum, frame):
+            raise AssertionError(message)
+        signal.signal(signal.SIGALRM, handler)
+        signal.setitimer(signal.ITIMER_REAL, time)
+        yield
+        signal.setitimer(signal.ITIMER_REAL, 0)
+
 
     #XXX this obviously isn't a fully functional twitter streaming client!
     twitter_response_lines = [
@@ -246,17 +262,34 @@ def test_streaming_responses(now):
         '{"text":"RT @onedirection: Thanks for all your #FollowMe1D requests Directioners! We\u2019ll be following 10 people throughout the day starting NOW. G ..."}\r\n'
     ]
     
-    HTTPretty.register_uri(HTTPretty.POST,
-                           "https://stream.twitter.com/1/statuses/filter.json",
+    TWITTER_STREAMING_URL = "https://stream.twitter.com/1/statuses/filter.json"
+
+    HTTPretty.register_uri(HTTPretty.POST, TWITTER_STREAMING_URL,
                            body=(l for l in twitter_response_lines),
                            streaming=True)
 
     # taken from the requests docs
     # http://docs.python-requests.org/en/latest/user/advanced/#streaming-requests
-    response = requests.post("https://stream.twitter.com/1/statuses/filter.json",
-                            data={'track':'requests'},
+    response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
                             auth=('username','password'), prefetch=False)
+
+    
+
+    #test iterating by line
     line_iter = response.iter_lines()
-    for i in xrange(len(twitter_response_lines)):
-        expect(line_iter.next().strip()).to.equal(
-            twitter_response_lines[i].strip())
+    with in_time(0.01, 'Iterating by line is taking forever!'):
+        for i in xrange(len(twitter_response_lines)):
+            expect(line_iter.next().strip()).to.equal(
+                twitter_response_lines[i].strip())
+
+    response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
+                            auth=('username','password'), prefetch=False)
+
+    #test iterating by line after a second request
+    line_iter = response.iter_lines()
+    with in_time(0.01, 'Iterating by line is taking forever the second time '
+                       'around!'):
+        for i in xrange(len(twitter_response_lines)):
+            expect(line_iter.next().strip()).to.equal(
+                twitter_response_lines[i].strip())
+
