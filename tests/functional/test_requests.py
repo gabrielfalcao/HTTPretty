@@ -273,8 +273,6 @@ def test_streaming_responses(now):
     response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
                             auth=('username','password'), prefetch=False)
 
-    
-
     #test iterating by line
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever!'):
@@ -282,14 +280,36 @@ def test_streaming_responses(now):
             expect(line_iter.next().strip()).to.equal(
                 twitter_response_lines[i].strip())
 
+    #test iterating by line after a second request
     response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
                             auth=('username','password'), prefetch=False)
 
-    #test iterating by line after a second request
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever the second time '
                        'around!'):
         for i in xrange(len(twitter_response_lines)):
             expect(line_iter.next().strip()).to.equal(
                 twitter_response_lines[i].strip())
+
+    #test iterating by char
+    response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
+                            auth=('username','password'), prefetch=False)
+
+    twitter_expected_response_body = ''.join(twitter_response_lines)
+    with in_time(0.02, 'Iterating by char is taking forever!'):
+        twitter_body = u''.join(c for c in response.iter_content(chunk_size=1))
+
+    expect(twitter_body).to.equal(twitter_expected_response_body)
+
+    #test iterating by chunks larger than the stream
+
+    response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
+                            auth=('username','password'), prefetch=False)
+
+    with in_time(0.02, 'Iterating by large chunks is taking forever!'):
+        twitter_body = u''.join(c for c in 
+                                response.iter_content(chunk_size=1024))
+
+    expect(twitter_body).to.equal(twitter_expected_response_body)
+
 
