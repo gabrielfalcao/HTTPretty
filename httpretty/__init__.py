@@ -23,7 +23,7 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-version = '0.5.3'
+version = '0.5.4'
 
 import re
 import socket
@@ -483,7 +483,7 @@ class Entry(object):
 
         fk.write("\n".join(string_list))
         fk.write('\n\r\n')
-        
+
         if self.streaming:
             for chunk in self.body:
                 fk.write(utf8(chunk))
