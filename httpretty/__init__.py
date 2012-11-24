@@ -378,12 +378,17 @@ class Entry(object):
                  adding_headers=None,
                  forcing_headers=None,
                  status=200,
+                 streaming=False,
                  **headers):
 
         self.method = method
         self.uri = uri
         self.body = body
-        self.body_length = len(body or '')
+        self.streaming = streaming
+        if not streaming:
+            self.body_length = len(body or '')
+        else:
+            self.body_length = 0
         self.adding_headers = adding_headers or {}
         self.forcing_headers = forcing_headers or {}
         self.status = int(status)
@@ -465,12 +470,11 @@ class Entry(object):
 
             content_length = headers.pop('Content-Length', self.body_length)
 
-            string_list.append(
-                'Content-Type: %s' % content_type)
-            string_list.append(
-                'Content-Length: %s' % content_length)
+            string_list.append('Content-Type: %s' % content_type)
+            if not self.streaming:
+                string_list.append('Content-Length: %s' % content_length)
 
-            string_list.append('Server: %s' % headers.pop('Server')),
+            string_list.append('Server: %s' % headers.pop('Server'))
 
         for k, v in headers.items():
             string_list.append(
@@ -479,8 +483,13 @@ class Entry(object):
 
         fk.write("\n".join(string_list))
         fk.write('\n\r\n')
+        
+        if self.streaming:
+            for chunk in self.body:
+                fk.write(utf8(chunk))
+        else:
+            fk.write(utf8(self.body))
 
-        fk.write(self.body)
         fk.seek(0)
 
 
@@ -614,12 +623,13 @@ class HTTPretty(object):
 
     @classmethod
     def Response(cls, body, adding_headers=None, forcing_headers=None,
-                 status=200, **headers):
+                 status=200, streaming=False, **headers):
 
-        headers['body'] = utf8(body)
+        headers['body'] = body
         headers['adding_headers'] = adding_headers
         headers['forcing_headers'] = forcing_headers
         headers['status'] = int(status)
+        headers['streaming'] = streaming
         return Entry(method=None, uri=None, **headers)
 
     @classmethod
