@@ -28,6 +28,7 @@ version = '0.5.4'
 import re
 import socket
 import functools
+import itertools
 import warnings
 import logging
 import traceback
@@ -485,7 +486,8 @@ class Entry(object):
         fk.write('\n\r\n')
 
         if self.streaming:
-            for chunk in self.body:
+            self.body, body = itertools.tee(self.body)
+            for chunk in body:
                 fk.write(utf8(chunk))
         else:
             fk.write(utf8(self.body))
