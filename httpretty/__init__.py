@@ -112,10 +112,6 @@ class FakeSockFile(StringIO):
             new_amount = self.len - self.tell()
 
         ret = StringIO.read(self, new_amount)
-        remaining = amount - new_amount - 1
-        if remaining > 0:
-            ret = ret + (" " * remaining)
-
         return ret
 
 
