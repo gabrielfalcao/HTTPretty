@@ -145,6 +145,45 @@ def test_rotating_responses():
     expect(response3.status_code).to.equal(202)
     expect(response3.text).to.equal('second and last response')
 ```
+## Expect a streaming response by registering a generator response body.
+
+```python
+import requests
+from sure import expect
+from httpretty import HTTPretty, httprettified
+
+# mock a streaming response body with a generator
+def mock_streaming_tweets(tweets):
+    from time import sleep
+    for t in tweets:
+        sleep(.5)
+        yield t
+
+@httprettified
+def test_twitter_api_integration(now):
+    twitter_response_lines = [
+        '{"text":"If @BarackObama requests to follow me one more time I\'m calling the police."}\r\n',
+        '\r\n',
+        '{"text":"Thanks for all your #FollowMe1D requests Directioners! We\u2019ll be following 10 people throughout the day starting NOW. G ..."}\r\n'
+    ]
+    
+    TWITTER_STREAMING_URL = "https://stream.twitter.com/1/statuses/filter.json"
+
+    # set the body to a generator and set `streaming=True` to mock a streaming response body
+    HTTPretty.register_uri(HTTPretty.POST, TWITTER_STREAMING_URL,
+                           body=mock_streaming_tweets(twitter_response_lines),
+                           streaming=True)
+
+    # taken from the requests docs
+    # http://docs.python-requests.org/en/latest/user/advanced/#streaming-requests
+    response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
+                            auth=('username','password'), prefetch=False)
+
+    #test iterating by line
+    line_iter = response.iter_lines()
+    for i in xrange(len(twitter_response_lines)):
+        expect(line_iter.next().strip()).to.equal(twitter_response_lines[i].strip())
+```
 
 ## expect for a response, and check the request got by the "server" to make sure it was fine.
 
