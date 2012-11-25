@@ -145,7 +145,9 @@ def test_rotating_responses():
     expect(response3.status_code).to.equal(202)
     expect(response3.text).to.equal('second and last response')
 ```
-## Expect a streaming response by registering a generator response body.
+## streaming responses
+
+Mock a streaming response by registering a generator response body.
 
 ```python
 import requests
