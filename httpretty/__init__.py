@@ -28,6 +28,7 @@ version = '0.5.4'
 import re
 import socket
 import functools
+import itertools
 import warnings
 import logging
 import traceback
@@ -111,10 +112,6 @@ class FakeSockFile(StringIO):
             new_amount = self.len - self.tell()
 
         ret = StringIO.read(self, new_amount)
-        remaining = amount - new_amount - 1
-        if remaining > 0:
-            ret = ret + (" " * remaining)
-
         return ret
 
 
@@ -485,7 +482,8 @@ class Entry(object):
         fk.write('\n\r\n')
 
         if self.streaming:
-            for chunk in self.body:
+            self.body, body = itertools.tee(self.body)
+            for chunk in body:
                 fk.write(utf8(chunk))
         else:
             fk.write(utf8(self.body))
