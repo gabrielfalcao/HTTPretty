@@ -26,7 +26,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 import requests
-from sure import that, within, microseconds, expect
+from sure import within, microseconds, expect
 from httpretty import HTTPretty, httprettified
 
 
@@ -39,9 +39,9 @@ def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
                            body="Find the best daily deals")
 
     response = requests.get('http://yipit.com')
-    assert that(response.text).equals('Find the best daily deals')
-    assert that(HTTPretty.last_request.method).equals('GET')
-    assert that(HTTPretty.last_request.path).equals('/')
+    expect(response.text).to.equal('Find the best daily deals')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/')
 
 
 @httprettified
@@ -54,9 +54,9 @@ def test_httpretty_should_mock_headers_requests(now):
                            status=201)
 
     response = requests.get('http://github.com')
-    assert that(response.status_code).equals(201)
+    expect(response.status_code).to.equal(201)
 
-    assert that(dict(response.headers)).equals({
+    expect(dict(response.headers)).to.equal({
         'content-type': 'text/plain; charset=utf-8',
         'connection': 'close',
         'content-length': '35',
@@ -81,7 +81,7 @@ def test_httpretty_should_allow_adding_and_overwritting_requests(now):
 
     response = requests.get('http://github.com/foo')
 
-    assert that(dict(response.headers)).equals({
+    expect(dict(response.headers)).to.equal({
         'content-type': 'application/json',
         'connection': 'close',
         'content-length': '27',
@@ -105,7 +105,7 @@ def test_httpretty_should_allow_forcing_headers_requests(now):
 
     response = requests.get('http://github.com/foo')
 
-    assert that(dict(response.headers)).equals({
+    expect(dict(response.headers)).to.equal({
         'content-type': 'application/xml',
         'content-length': '19',
     })
@@ -125,7 +125,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
 
     response = requests.get('http://github.com/foo')
 
-    assert that(dict(response.headers)).equals({
+    expect(dict(response.headers)).to.equal({
         'content-type': 'application/json',
         'connection': 'close',
         'content-length': '27',
@@ -150,20 +150,20 @@ def test_rotating_responses_with_requests(now):
     response1 = requests.get(
         'https://api.yahoo.com/test')
 
-    assert that(response1.status_code).equals(201)
-    assert that(response1.text).equals('first response')
+    expect(response1.status_code).to.equal(201)
+    expect(response1.text).to.equal('first response')
 
     response2 = requests.get(
         'https://api.yahoo.com/test')
 
-    assert that(response2.status_code).equals(202)
-    assert that(response2.text).equals('second and last response')
+    expect(response2.status_code).to.equal(202)
+    expect(response2.text).to.equal('second and last response')
 
     response3 = requests.get(
         'https://api.yahoo.com/test')
 
-    assert that(response3.status_code).equals(202)
-    assert that(response3.text).equals('second and last response')
+    expect(response3.status_code).to.equal(202)
+    expect(response3.text).to.equal('second and last response')
 
 
 @httprettified
@@ -182,14 +182,14 @@ def test_can_inspect_last_request(now):
         },
     )
 
-    assert that(HTTPretty.last_request.method).equals('POST')
-    assert that(HTTPretty.last_request.body).equals(
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.body).to.equal(
         '{"username": "gabrielfalcao"}',
     )
-    assert that(HTTPretty.last_request.headers['content-type']).equals(
+    expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    assert that(response.json).equals({"repositories": ["HTTPretty", "lettuce"]})
+    expect(response.json).to.equal({"repositories": ["HTTPretty", "lettuce"]})
 
 
 @httprettified
@@ -208,14 +208,14 @@ def test_can_inspect_last_request_with_ssl(now):
         },
     )
 
-    assert that(HTTPretty.last_request.method).equals('POST')
-    assert that(HTTPretty.last_request.body).equals(
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.body).to.equal(
         '{"username": "gabrielfalcao"}',
     )
-    assert that(HTTPretty.last_request.headers['content-type']).equals(
+    expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    assert that(response.json).equals({"repositories": ["HTTPretty", "lettuce"]})
+    expect(response.json).to.equal({"repositories": ["HTTPretty", "lettuce"]})
 
 
 @httprettified
@@ -261,7 +261,7 @@ def test_streaming_responses(now):
         '\r\n',
         '{"text":"RT @onedirection: Thanks for all your #FollowMe1D requests Directioners! We\u2019ll be following 10 people throughout the day starting NOW. G ..."}\r\n'
     ]
-    
+
     TWITTER_STREAMING_URL = "https://stream.twitter.com/1/statuses/filter.json"
 
     HTTPretty.register_uri(HTTPretty.POST, TWITTER_STREAMING_URL,
@@ -307,9 +307,7 @@ def test_streaming_responses(now):
                             auth=('username','password'), prefetch=False)
 
     with in_time(0.02, 'Iterating by large chunks is taking forever!'):
-        twitter_body = u''.join(c for c in 
+        twitter_body = u''.join(c for c in
                                 response.iter_content(chunk_size=1024))
 
     expect(twitter_body).to.equal(twitter_expected_response_body)
-
-

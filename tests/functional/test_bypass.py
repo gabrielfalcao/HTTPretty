@@ -26,7 +26,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 import urllib2
 from testserver import Server
-from sure import that, that_with_context
+from sure import expect, that_with_context
 from httpretty import HTTPretty, httprettified
 
 
@@ -56,14 +56,14 @@ def test_httpretty_bypasses_when_disabled(context):
     got1 = fd.read()
     fd.close()
 
-    assert that(got1).equals(
+    expect(got1).to.equal(
         '. o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o .')
 
     fd = urllib2.urlopen('http://localhost:9999/come-again/')
     got2 = fd.read()
     fd.close()
 
-    assert that(got2).equals('<- HELLO WORLD ->')
+    expect(got2).to.equal('<- HELLO WORLD ->')
 
     HTTPretty.enable()
 
@@ -71,7 +71,7 @@ def test_httpretty_bypasses_when_disabled(context):
     got3 = fd.read()
     fd.close()
 
-    assert that(got3).equals('glub glub')
+    expect(got3).to.equal('glub glub')
 
 
 @httprettified
@@ -87,10 +87,10 @@ def test_httpretty_bypasses_a_unregistered_request(context):
     got1 = fd.read()
     fd.close()
 
-    assert that(got1).equals('glub glub')
+    expect(got1).to.equal('glub glub')
 
     fd = urllib2.urlopen('http://localhost:9999/come-again/')
     got2 = fd.read()
     fd.close()
 
-    assert that(got2).equals('<- HELLO WORLD ->')
+    expect(got2).to.equal('<- HELLO WORLD ->')

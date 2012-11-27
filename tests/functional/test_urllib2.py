@@ -41,7 +41,7 @@ def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
     got = fd.read()
     fd.close()
 
-    assert that(got).equals('Find the best daily deals')
+    expect(got).to.equal('Find the best daily deals')
 
 
 @httprettified
@@ -58,8 +58,8 @@ def test_httpretty_should_mock_headers_urllib2(now):
     headers = dict(request.headers)
     request.close()
 
-    assert that(request.code).equals(201)
-    assert that(headers).equals({
+    expect(request.code).to.equal(201)
+    expect(headers).to.equal({
         'content-type': 'text/plain; charset=utf-8',
         'connection': 'close',
         'content-length': '35',
@@ -86,8 +86,8 @@ def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
     headers = dict(request.headers)
     request.close()
 
-    assert that(request.code).equals(200)
-    assert that(headers).equals({
+    expect(request.code).to.equal(200)
+    expect(headers).to.equal({
         'content-type': 'application/json',
         'connection': 'close',
         'content-length': '27',
@@ -112,7 +112,7 @@ def test_httpretty_should_allow_forcing_headers_urllib2():
     headers = dict(request.headers)
     request.close()
 
-    assert that(headers).equals({
+    expect(headers).to.equal({
         'content-type': 'application/xml',
     })
 
@@ -133,8 +133,8 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
     headers = dict(request.headers)
     request.close()
 
-    assert that(request.code).equals(200)
-    assert that(headers).equals({
+    expect(request.code).to.equal(200)
+    expect(headers).to.equal({
         'content-type': 'application/json',
         'connection': 'close',
         'content-length': '111111',
@@ -161,20 +161,20 @@ def test_httpretty_should_support_a_list_of_successive_responses_urllib2(now):
     body1 = request1.read()
     request1.close()
 
-    assert that(request1.code).equals(201)
-    assert that(body1).equals('first response')
+    expect(request1.code).to.equal(201)
+    expect(body1).to.equal('first response')
 
     request2 = urllib2.urlopen('https://api.yahoo.com/test')
     body2 = request2.read()
     request2.close()
-    assert that(request2.code).equals(202)
-    assert that(body2).equals('second and last response')
+    expect(request2.code).to.equal(202)
+    expect(body2).to.equal('second and last response')
 
     request3 = urllib2.urlopen('https://api.yahoo.com/test')
     body3 = request3.read()
     request3.close()
-    assert that(request3.code).equals(202)
-    assert that(body3).equals('second and last response')
+    expect(request3.code).to.equal(202)
+    expect(body3).to.equal('second and last response')
 
 
 @httprettified
@@ -196,14 +196,14 @@ def test_can_inspect_last_request(now):
     got = fd.read()
     fd.close()
 
-    assert that(HTTPretty.last_request.method).equals('POST')
-    assert that(HTTPretty.last_request.body).equals(
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.body).to.equal(
         '{"username": "gabrielfalcao"}',
     )
-    assert that(HTTPretty.last_request.headers['content-type']).equals(
+    expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    assert that(got).equals('{"repositories": ["HTTPretty", "lettuce"]}')
+    expect(got).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
 
 
 @httprettified
@@ -225,14 +225,14 @@ def test_can_inspect_last_request_with_ssl(now):
     got = fd.read()
     fd.close()
 
-    assert that(HTTPretty.last_request.method).equals('POST')
-    assert that(HTTPretty.last_request.body).equals(
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.body).to.equal(
         '{"username": "gabrielfalcao"}',
     )
-    assert that(HTTPretty.last_request.headers['content-type']).equals(
+    expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    assert that(got).equals('{"repositories": ["HTTPretty", "lettuce"]}')
+    expect(got).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
 
 
 @httprettified

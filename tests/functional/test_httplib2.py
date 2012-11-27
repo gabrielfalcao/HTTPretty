@@ -26,7 +26,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 import httplib2
-from sure import that, expect, within, microseconds
+from sure import expect, within, microseconds
 from httpretty import HTTPretty, httprettified
 
 
@@ -39,9 +39,9 @@ def test_httpretty_should_mock_a_simple_get_with_httplib2_read(now):
                            body="Find the best daily deals")
 
     _, got = httplib2.Http().request('http://yipit.com', 'GET')
-    assert that(got).equals('Find the best daily deals')
-    assert that(HTTPretty.last_request.method).equals('GET')
-    assert that(HTTPretty.last_request.path).equals('/')
+    expect(got).to.equal('Find the best daily deals')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/')
 
 
 @httprettified
@@ -54,8 +54,8 @@ def test_httpretty_should_mock_headers_httplib2(now):
                            status=201)
 
     headers, _ = httplib2.Http().request('http://github.com', 'GET')
-    assert that(headers['status']).equals('201')
-    assert that(dict(headers)).equals({
+    expect(headers['status']).to.equal('201')
+    expect(dict(headers)).to.equal({
         'content-type': 'text/plain; charset=utf-8',
         'connection': 'close',
         'content-length': '35',
@@ -80,7 +80,7 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2(now):
 
     headers, _ = httplib2.Http().request('http://github.com/foo', 'GET')
 
-    assert that(dict(headers)).equals({
+    expect(dict(headers)).to.equal({
         'content-type': 'application/json',
         'content-location': 'http://github.com/foo',
         'connection': 'close',
@@ -104,7 +104,7 @@ def test_httpretty_should_allow_forcing_headers_httplib2(now):
 
     headers, _ = httplib2.Http().request('http://github.com/foo', 'GET')
 
-    assert that(dict(headers)).equals({
+    expect(dict(headers)).to.equal({
         'content-location': 'http://github.com/foo',  # httplib2 FORCES
                                                    # content-location
                                                    # even if the
@@ -129,7 +129,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
 
     headers, _ = httplib2.Http().request('http://github.com/foo', 'GET')
 
-    assert that(dict(headers)).equals({
+    expect(dict(headers)).to.equal({
         'content-type': 'application/json',
         'content-location': 'http://github.com/foo',  # httplib2 FORCES
                                                    # content-location
@@ -159,20 +159,20 @@ def test_rotating_responses_with_httplib2(now):
     headers1, body1 = httplib2.Http().request(
         'https://api.yahoo.com/test', 'GET')
 
-    assert that(headers1['status']).equals('201')
-    assert that(body1).equals('first response')
+    expect(headers1['status']).to.equal('201')
+    expect(body1).to.equal('first response')
 
     headers2, body2 = httplib2.Http().request(
         'https://api.yahoo.com/test', 'GET')
 
-    assert that(headers2['status']).equals('202')
-    assert that(body2).equals('second and last response')
+    expect(headers2['status']).to.equal('202')
+    expect(body2).to.equal('second and last response')
 
     headers3, body3 = httplib2.Http().request(
         'https://api.yahoo.com/test', 'GET')
 
-    assert that(headers3['status']).equals('202')
-    assert that(body3).equals('second and last response')
+    expect(headers3['status']).to.equal('202')
+    expect(body3).to.equal('second and last response')
 
 
 @httprettified
@@ -191,14 +191,14 @@ def test_can_inspect_last_request(now):
         },
     )
 
-    assert that(HTTPretty.last_request.method).equals('POST')
-    assert that(HTTPretty.last_request.body).equals(
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.body).to.equal(
         '{"username": "gabrielfalcao"}',
     )
-    assert that(HTTPretty.last_request.headers['content-type']).equals(
+    expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    assert that(body).equals('{"repositories": ["HTTPretty", "lettuce"]}')
+    expect(body).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
 
 
 @httprettified
@@ -217,14 +217,14 @@ def test_can_inspect_last_request_with_ssl(now):
         },
     )
 
-    assert that(HTTPretty.last_request.method).equals('POST')
-    assert that(HTTPretty.last_request.body).equals(
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.body).to.equal(
         '{"username": "gabrielfalcao"}',
     )
-    assert that(HTTPretty.last_request.headers['content-type']).equals(
+    expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    assert that(body).equals('{"repositories": ["HTTPretty", "lettuce"]}')
+    expect(body).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
 
 
 @httprettified
