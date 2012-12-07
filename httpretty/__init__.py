@@ -252,7 +252,7 @@ class fakesock(object):
             # path might come with
             s = urlsplit(path)
 
-            headers, body = map(utf8, data.split('\r\n\r\n'))
+            headers, body = map(utf8, data.split('\r\n\r\n', 1))
 
             request = HTTPretty.historify_request(headers, body)
 
