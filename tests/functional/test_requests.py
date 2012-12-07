@@ -328,3 +328,4 @@ def test_multiline():
     expect(response.status_code).to.equal(200)
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/post')
+    expect(HTTPretty.last_request.body).to.equal('content=Im\r\na multiline\r\n\r\nsentence\r\n')
