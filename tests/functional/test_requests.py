@@ -311,3 +311,20 @@ def test_streaming_responses(now):
                                 response.iter_content(chunk_size=1024))
 
     expect(twitter_body).to.equal(twitter_expected_response_body)
+
+@httprettified
+def test_multiline():
+    url = 'http://httpbin.org/post'
+    data = 'content=Im\r\na multiline\r\n\r\nsentence\r\n'
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+        'Accept': 'text/plain',
+    }
+    HTTPretty.register_uri(
+        HTTPretty.POST,
+        url,
+    )
+    response = requests.post(url, data=data, headers=headers )
+    expect(response.status_code).to.equal(200)
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.path).to.equal('/post')

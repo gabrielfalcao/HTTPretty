@@ -76,6 +76,27 @@ def utf8(s):
     return str(s)
 
 
+def parse_requestline(s):
+    """
+    http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
+
+    >>> parse_requestline('GET / HTTP/1.0')
+    ('GET', '/', '1.0')
+    >>> parse_requestline('post /testurl htTP/1.1')
+    ('POST', '/testurl', '1.1')
+    >>> parse_requestline('Im not a RequestLine')
+    Traceback (most recent call last):
+        ...
+    ValueError: Not a Request-Line
+    """
+    methods = '|'.join(HTTPretty.METHODS)
+    m = re.match(r'('+methods+')\s+(.*)\s+HTTP/(1.[0|1])', s, re.I)
+    if m:
+        return m.group(1).upper(), m.group(2), m.group(3)
+    else:
+        raise ValueError('Not a Request-Line')
+
+
 class HTTPrettyRequest(BaseHTTPRequestHandler, object):
     def __init__(self, headers, body=''):
         self.body = utf8(body)
@@ -209,7 +230,8 @@ class fakesock(object):
             hostnames = [i.hostname for i in HTTPretty._entries.keys()]
             self.fd.seek(0)
             try:
-                verb, headers_string = data.split('\n', 1)
+                requestline, _ = data.split('\r\n', 1)
+                method, path, version = parse_requestline(requestline)
                 is_parsing_headers = True
             except ValueError:
                 is_parsing_headers = False
@@ -227,7 +249,6 @@ class fakesock(object):
                         logging.error(traceback.format_exc(e))
                         return self._true_sendall(data, *args, **kw)
 
-            method, path, version = re.split('\s+', verb.strip(), 3)
             # path might come with
             s = urlsplit(path)
 
@@ -579,6 +600,7 @@ class HTTPretty(object):
     DELETE = 'DELETE'
     HEAD = 'HEAD'
     PATCH = 'PATCH'
+    METHODS = (GET, PUT, POST, DELETE, HEAD, PATCH)
     last_request = HTTPrettyRequestEmpty()
 
     @classmethod
