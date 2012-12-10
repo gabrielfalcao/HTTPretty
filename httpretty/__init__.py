@@ -242,7 +242,7 @@ class fakesock(object):
                 if len(self._sent_data) > 1:
                     headers, body = map(utf8, self._sent_data[-2:])
                     try:
-                        return HTTPretty.historify_request(headers, body)
+                        return HTTPretty.historify_request(headers, body, False)
 
                     except Exception, e:
                         logging.error(traceback.format_exc(e))
@@ -603,10 +603,19 @@ class HTTPretty(object):
     last_request = HTTPrettyRequestEmpty()
 
     @classmethod
-    def historify_request(cls, headers, body=''):
+    def reset(cls):
+        cls._entries.clear()
+        cls.latest_requests = []
+        cls.last_request = HTTPrettyRequestEmpty()
+
+    @classmethod
+    def historify_request(cls, headers, body='', append=True):
         request = HTTPrettyRequest(headers, body)
         cls.last_request = request
-        cls.latest_requests.append(request)
+        if append:
+            cls.latest_requests.append(request)
+        else:
+            cls.latest_requests[-1] = request
         return request
 
     @classmethod
@@ -725,12 +734,10 @@ def httprettified(test):
     "A decorator tests that use HTTPretty"
     @functools.wraps(test)
     def wrapper(*args, **kw):
+        HTTPretty.reset()
         HTTPretty.enable()
-        HTTPretty._entries.clear()
-
         try:
             return test(*args, **kw)
         finally:
             HTTPretty.disable()
-
     return wrapper
