@@ -101,8 +101,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, object):
     def __init__(self, headers, body=''):
         self.body = utf8(body)
         self.raw_headers = utf8(headers)
-
-        self.rfile = StringIO(headers + body)
+        self.rfile = StringIO('\r\n\r\n'.join([headers.strip(), body]))
         self.raw_requestline = self.rfile.readline()
         self.error_code = self.error_message = None
         self.parse_request()
