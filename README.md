@@ -1,5 +1,5 @@
 # HTTPretty
-> Version 0.5.4
+> Version 0.5.5
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 
@@ -168,7 +168,7 @@ def test_twitter_api_integration(now):
         '\r\n',
         '{"text":"Thanks for all your #FollowMe1D requests Directioners! We\u2019ll be following 10 people throughout the day starting NOW. G ..."}\r\n'
     ]
-    
+
     TWITTER_STREAMING_URL = "https://stream.twitter.com/1/statuses/filter.json"
 
     # set the body to a generator and set `streaming=True` to mock a streaming response body
