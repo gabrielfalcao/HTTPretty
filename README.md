@@ -52,7 +52,7 @@ def test_one():
 
     assert response.text == "Find the best daily deals"
 
-    HTTPretty.disable()  # disable afterwards, so that you will have no problems in coda that uses that socket module
+    HTTPretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
 ```
 
 ## ohhhh, really? can that be easier?
