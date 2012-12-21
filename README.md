@@ -116,8 +116,11 @@ def test_some_api():
 
 ## rotating responses
 
-same URL, same request method, the first request return the first
-HTTPretty.Response, all the subsequent ones return the last (status 202)
+Same URL, same request method, the first request return the first
+HTTPretty.Response, all the subsequent ones return the last (status 202).
+
+Notice that the `responses` argument is a list and you can pass as
+many responses as you want.
 
 ```python
 import requests
