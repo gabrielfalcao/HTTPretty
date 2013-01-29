@@ -46,6 +46,21 @@ def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
 
 @httprettified
 @within(two=microseconds)
+def test_httpretty_provides_easy_access_to_querystrings(now):
+    u"HTTPretty should provide an easy access to the querystring"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
+                           body="Find the best daily deals")
+
+    requests.get('http://yipit.com/?foo=bar&foo=baz&chuck=norris')
+    expect(HTTPretty.last_request.querystring).to.equal({
+        'foo': ['bar', 'baz'],
+        'chuck': ['norris'],
+    })
+
+
+@httprettified
+@within(two=microseconds)
 def test_httpretty_should_mock_headers_requests(now):
     u"HTTPretty should mock basic headers with requests"
 
@@ -231,6 +246,7 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/?id=123')
 
+
 @httprettified
 @within(five=microseconds)
 def test_streaming_responses(now):
@@ -239,6 +255,7 @@ def test_streaming_responses(now):
     API.
     """
     from contextlib import contextmanager
+
     @contextmanager
     def in_time(time, message):
         """
@@ -247,13 +264,13 @@ def test_streaming_responses(now):
         raise an AssertionError.
         """
         import signal
+
         def handler(signum, frame):
             raise AssertionError(message)
         signal.signal(signal.SIGALRM, handler)
         signal.setitimer(signal.ITIMER_REAL, time)
         yield
         signal.setitimer(signal.ITIMER_REAL, 0)
-
 
     #XXX this obviously isn't a fully functional twitter streaming client!
     twitter_response_lines = [
@@ -269,9 +286,9 @@ def test_streaming_responses(now):
                            streaming=True)
 
     # taken from the requests docs
-    # http://docs.python-requests.org/en/latest/user/advanced/#streaming-requests
-    response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
-                            auth=('username','password'), prefetch=False)
+    # Http://docs.python-requests.org/en/latest/user/advanced/#streaming-requests
+    response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
+                             auth=('username', 'password'), prefetch=False)
 
     #test iterating by line
     line_iter = response.iter_lines()
@@ -281,8 +298,8 @@ def test_streaming_responses(now):
                 twitter_response_lines[i].strip())
 
     #test iterating by line after a second request
-    response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
-                            auth=('username','password'), prefetch=False)
+    response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
+                            auth=('username', 'password'), prefetch=False)
 
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever the second time '
@@ -292,8 +309,8 @@ def test_streaming_responses(now):
                 twitter_response_lines[i].strip())
 
     #test iterating by char
-    response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
-                            auth=('username','password'), prefetch=False)
+    response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
+                            auth=('username', 'password'), prefetch=False)
 
     twitter_expected_response_body = ''.join(twitter_response_lines)
     with in_time(0.02, 'Iterating by char is taking forever!'):
@@ -303,14 +320,15 @@ def test_streaming_responses(now):
 
     #test iterating by chunks larger than the stream
 
-    response = requests.post(TWITTER_STREAMING_URL, data={'track':'requests'},
-                            auth=('username','password'), prefetch=False)
+    response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
+                             auth=('username', 'password'), prefetch=False)
 
     with in_time(0.02, 'Iterating by large chunks is taking forever!'):
         twitter_body = u''.join(c for c in
                                 response.iter_content(chunk_size=1024))
 
     expect(twitter_body).to.equal(twitter_expected_response_body)
+
 
 @httprettified
 def test_multiline():
@@ -324,7 +342,8 @@ def test_multiline():
         HTTPretty.POST,
         url,
     )
-    response = requests.post(url, data=data, headers=headers )
+    response = requests.post(url, data=data, headers=headers)
+
     expect(response.status_code).to.equal(200)
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/post')
@@ -332,6 +351,7 @@ def test_multiline():
     expect(HTTPretty.last_request.headers['content-length']).to.equal('37')
     expect(HTTPretty.last_request.headers['content-type']).to.equal('application/x-www-form-urlencoded; charset=utf-8')
     expect(len(HTTPretty.latest_requests)).to.equal(1)
+
 
 @httprettified
 def test_multipart():
@@ -342,7 +362,7 @@ def test_multipart():
         HTTPretty.POST,
         url,
     )
-    response = requests.post(url, data=data, headers=headers )
+    response = requests.post(url, data=data, headers=headers)
     expect(response.status_code).to.equal(200)
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/post')

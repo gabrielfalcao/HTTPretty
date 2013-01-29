@@ -36,7 +36,7 @@ import traceback
 from datetime import datetime
 from datetime import timedelta
 from StringIO import StringIO
-from urlparse import urlsplit
+from urlparse import urlsplit, parse_qs
 
 from BaseHTTPServer import BaseHTTPRequestHandler
 
@@ -106,6 +106,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, object):
         self.error_code = self.error_message = None
         self.parse_request()
         self.method = self.command
+        self.querystring = parse_qs(self.path.split("?", 1)[-1])
 
     def __repr__(self):
         return 'HTTPrettyRequest(headers={0}, body="{1}")'.format(

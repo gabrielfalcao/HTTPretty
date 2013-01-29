@@ -46,6 +46,24 @@ def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
 
 @httprettified
 @within(two=microseconds)
+def test_httpretty_provides_easy_access_to_querystrings(now):
+    u"HTTPretty should provide an easy access to the querystring"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
+                           body="Find the best daily deals")
+
+    fd = urllib2.urlopen('http://yipit.com/?foo=bar&foo=baz&chuck=norris')
+    fd.read()
+    fd.close()
+
+    expect(HTTPretty.last_request.querystring).to.equal({
+        'foo': ['bar', 'baz'],
+        'chuck': ['norris'],
+    })
+
+
+@httprettified
+@within(two=microseconds)
 def test_httpretty_should_mock_headers_urllib2(now):
     u"HTTPretty should mock basic headers with urllib2"
 

@@ -55,6 +55,28 @@ def test_one():
     HTTPretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
 ```
 
+## testing query strings
+
+```python
+import requests
+from sure import expect
+from httpretty import HTTPretty
+
+def test_one():
+    HTTPretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
+    HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/login",
+                           body="Find the best daily deals")
+
+    requests.get('http://yipit.com/login?email=user@github.com&password=foobar123')
+    expect(HTTPretty.last_request).to.have.property("querystring").being.equal({
+        "email": "user@github.com",
+        "password": "foobar123",
+    })
+
+    HTTPretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
+```
+
+
 ## ohhhh, really? can that be easier?
 
 **YES** we've got a decorator
