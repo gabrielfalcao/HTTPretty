@@ -27,7 +27,7 @@ def test_yipit_api_returning_deals():
 
     response = requests.get('http://api.yipit.com/v1/deals/')
 
-    expect(response.json).to.equal([{"title": "Test Deal"}])
+    expect(response.json()).to.equal([{"title": "Test Deal"}])
 ```
 
 # A more technical description
@@ -132,7 +132,7 @@ def test_some_api():
 
     response = requests.get('http://foo-api.com/gabrielfalcao')
 
-    expect(response.json).to.equal({'success': False})
+    expect(response.json()).to.equal({'success': False})
     expect(response.status_code).to.equal(500)
 ```
 
