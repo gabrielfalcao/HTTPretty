@@ -511,9 +511,6 @@ class Entry(object):
             self.body, body = itertools.tee(self.body)
             for chunk in body:
                 fk.write(utf8(chunk))
-        # elif isinstance(self.body, types.FunctionType):
-        #     body_response = self.body(self.method, self.uri, headers)
-        #     fk.write(utf8(body_response))
         else:
             fk.write(utf8(self.body))
 
