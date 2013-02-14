@@ -43,7 +43,7 @@ if PY3:
 
     class Compat_Repr(object):
         def __repr__(self):
-            return self.__unicode__()
+            return self.__str__()
 else:
     text_type = unicode
     binary_type = str
@@ -52,7 +52,7 @@ else:
 
     class Compat_Repr(object):
         def __repr__(self):
-            return self.__unicode__().encode('utf-8')
+            return self.__str__().encode('utf-8')
 
 from datetime import datetime
 from datetime import timedelta
@@ -134,7 +134,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, Compat_Repr, object):
         self.parse_request()
         self.method = self.command
 
-    def __unicode__(self):
+    def __str__(self):
         return 'HTTPrettyRequest(headers={0}, body="{1}")'.format(
             self.headers,
             self.body,
@@ -471,7 +471,7 @@ class Entry(Compat_Repr, object):
                     )
                 )
 
-    def __unicode__(self):
+    def __str__(self):
         return r'<Entry %s %s getting %d>' % (
             self.method, self.uri, self.status)
 
@@ -583,7 +583,7 @@ class URIInfo(Compat_Repr, object):
             self.current_entry += 1
         return entry
 
-    def __unicode__(self):
+    def __str__(self):
         attrs = (
             'username',
             'password',
@@ -671,7 +671,7 @@ class HTTPretty(Compat_Repr, object):
 
         cls._entries[info] = entries_for_this_uri
 
-    def __unicode__(self):
+    def __str__(self):
         return u'<HTTPretty with %d URI entries>' % len(self._entries)
 
     @classmethod
