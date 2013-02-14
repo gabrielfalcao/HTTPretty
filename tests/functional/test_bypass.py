@@ -24,6 +24,8 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+from __future__ import unicode_literals
+
 import urllib2
 from testserver import Server
 from sure import expect, that_with_context

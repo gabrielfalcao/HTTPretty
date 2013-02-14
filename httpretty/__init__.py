@@ -31,14 +31,40 @@ import functools
 import itertools
 import warnings
 import logging
+import sys
 import traceback
+
+PY3 = sys.version_info[0] == 3
+if PY3:
+    text_type = str
+    binary_type = bytes
+    import io
+    StringIO = io.StringIO
+
+    class Compat_Repr(object):
+        def __repr__(self):
+            return self.__unicode__()
+else:
+    text_type = unicode
+    binary_type = str
+    import StringIO
+    StringIO = StringIO.StringIO
+
+    class Compat_Repr(object):
+        def __repr__(self):
+            return self.__unicode__().encode('utf-8')
 
 from datetime import datetime
 from datetime import timedelta
-from StringIO import StringIO
-from urlparse import urlsplit
+try:
+    from urllib.parse import urlsplit
+except ImportError:
+    from urlparse import urlsplit
 
-from BaseHTTPServer import BaseHTTPRequestHandler
+try:
+    from http.server import BaseHTTPRequestHandler
+except ImportError:
+    from BaseHTTPServer import BaseHTTPRequestHandler
 
 old_socket = socket.socket
 old_create_connection = socket.create_connection
@@ -59,7 +85,8 @@ except ImportError:
 try:
     import ssl
     old_ssl_wrap_socket = ssl.wrap_socket
-    old_sslwrap_simple = ssl.sslwrap_simple
+    if not PY3:
+        old_sslwrap_simple = ssl.sslwrap_simple
     old_sslsocket = ssl.SSLSocket
 except ImportError:
     ssl = None
@@ -70,10 +97,10 @@ class HTTPrettyError(Exception):
 
 
 def utf8(s):
-    if isinstance(s, unicode):
+    if isinstance(s, text_type):
         s = s.encode('utf-8')
 
-    return str(s)
+    return binary_type(s)
 
 
 def parse_requestline(s):
@@ -97,7 +124,7 @@ def parse_requestline(s):
         raise ValueError('Not a Request-Line')
 
 
-class HTTPrettyRequest(BaseHTTPRequestHandler, object):
+class HTTPrettyRequest(BaseHTTPRequestHandler, Compat_Repr, object):
     def __init__(self, headers, body=''):
         self.body = utf8(body)
         self.raw_headers = utf8(headers)
@@ -107,7 +134,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, object):
         self.parse_request()
         self.method = self.command
 
-    def __repr__(self):
+    def __unicode__(self):
         return 'HTTPrettyRequest(headers={0}, body="{1}")'.format(
             self.headers,
             self.body,
@@ -229,6 +256,7 @@ class fakesock(object):
             hostnames = [i.hostname for i in HTTPretty._entries.keys()]
             self.fd.seek(0)
             try:
+                print("data", data)
                 requestline, _ = data.split('\r\n', 1)
                 method, path, version = parse_requestline(requestline)
                 is_parsing_headers = True
@@ -244,7 +272,7 @@ class fakesock(object):
                     try:
                         return HTTPretty.historify_request(headers, body, False)
 
-                    except Exception, e:
+                    except Exception as e:
                         logging.error(traceback.format_exc(e))
                         return self._true_sendall(data, *args, **kw)
 
@@ -390,7 +418,7 @@ STATUSES = {
 }
 
 
-class Entry(object):
+class Entry(Compat_Repr, object):
     def __init__(self, method, uri, body,
                  adding_headers=None,
                  forcing_headers=None,
@@ -443,7 +471,7 @@ class Entry(object):
                     )
                 )
 
-    def __repr__(self):
+    def __unicode__(self):
         return r'<Entry %s %s getting %d>' % (
             self.method, self.uri, self.status)
 
@@ -511,7 +539,7 @@ class Entry(object):
         fk.seek(0)
 
 
-class URIInfo(object):
+class URIInfo(Compat_Repr, object):
     def __init__(self,
                  username='',
                  password='',
@@ -564,16 +592,13 @@ class URIInfo(object):
             'path',
         )
         fmt = ", ".join(['%s="%s"' % (k, getattr(self, k, '')) for k in attrs])
-        return ur'<httpretty.URIInfo(%s)>' % fmt
-
-    def __repr__(self):
-        return unicode(self)
+        return r'<httpretty.URIInfo(%s)>' % fmt
 
     def __hash__(self):
-        return hash(unicode(self))
+        return hash(text_type(self))
 
     def __eq__(self, other):
-        return unicode(self) == unicode(other)
+        return text_type(self) == text_type(other)
 
     @classmethod
     def from_uri(cls, uri, entry):
@@ -589,7 +614,7 @@ class URIInfo(object):
                    entry)
 
 
-class HTTPretty(object):
+class HTTPretty(Compat_Repr, object):
     u"""The URI registration class"""
     _entries = {}
     latest_requests = []
@@ -646,7 +671,7 @@ class HTTPretty(object):
 
         cls._entries[info] = entries_for_this_uri
 
-    def __repr__(self):
+    def __unicode__(self):
         return u'<HTTPretty with %d URI entries>' % len(self._entries)
 
     @classmethod
@@ -688,11 +713,13 @@ class HTTPretty(object):
 
         if ssl:
             ssl.wrap_socket = old_ssl_wrap_socket
-            ssl.sslwrap_simple = old_sslwrap_simple
             ssl.SSLSocket = old_sslsocket
             ssl.__dict__['wrap_socket'] = old_ssl_wrap_socket
-            ssl.__dict__['sslwrap_simple'] = old_sslwrap_simple
             ssl.__dict__['SSLSocket'] = old_sslsocket
+
+            if not PY3:
+                ssl.sslwrap_simple = old_sslwrap_simple
+                ssl.__dict__['sslwrap_simple'] = old_sslwrap_simple
 
     @classmethod
     def enable(cls):
@@ -722,12 +749,14 @@ class HTTPretty(object):
 
         if ssl:
             ssl.wrap_socket = fake_wrap_socket
-            ssl.sslwrap_simple = fake_wrap_socket
             ssl.SSLSocket = FakeSSLSocket
 
             ssl.__dict__['wrap_socket'] = fake_wrap_socket
-            ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
             ssl.__dict__['SSLSocket'] = FakeSSLSocket
+
+            if not PY3:
+                ssl.sslwrap_simple = fake_wrap_socket
+                ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
 
 
 def httprettified(test):
