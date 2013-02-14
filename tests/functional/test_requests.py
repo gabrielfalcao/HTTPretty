@@ -350,3 +350,32 @@ def test_multipart():
     expect(HTTPretty.last_request.headers['content-length']).to.equal('495')
     expect(HTTPretty.last_request.headers['content-type']).to.equal('multipart/form-data; boundary=xXXxXXyYYzzz')
     expect(len(HTTPretty.latest_requests)).to.equal(1)
+
+
+@httprettified
+@within(two=microseconds)
+def test_callback_response(now):
+    (u"HTTPretty should all a callback function to be set as the body with"
+      " requests")
+
+    def request_callback(method, uri, headers):
+        return "The {} response from {}".format(method, uri)
+
+    HTTPretty.register_uri(
+        HTTPretty.GET, "https://api.yahoo.com/test",
+        body=request_callback)
+
+    response = requests.get('https://api.yahoo.com/test')
+
+    expect(response.text).to.equal('The GET response from https://api.yahoo.com/test')
+
+    HTTPretty.register_uri(
+        HTTPretty.POST, "https://api.yahoo.com/test_post",
+        body=request_callback)
+
+    response = requests.post(
+        "https://api.yahoo.com/test_post",
+        {"username": "gabrielfalcao"}
+    )
+
+    expect(response.text).to.equal("The POST response from https://api.yahoo.com/test_post")

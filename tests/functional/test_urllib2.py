@@ -250,3 +250,40 @@ def test_httpretty_ignores_querystrings_from_registered_uri():
     expect(got).to.equal('Find the best daily deals')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/?id=123')
+
+
+@httprettified
+@within(two=microseconds)
+def test_callback_response(now):
+    (u"HTTPretty should all a callback function to be set as the body with"
+      " urllib2")
+
+    def request_callback(method, uri, headers):
+        return "The {} response from {}".format(method, uri)
+
+    HTTPretty.register_uri(
+        HTTPretty.GET, "https://api.yahoo.com/test",
+        body=request_callback)
+
+    fd = urllib2.urlopen('https://api.yahoo.com/test')
+    got = fd.read()
+    fd.close()
+
+    expect(got).to.equal('The GET response from https://api.yahoo.com/test')
+
+    HTTPretty.register_uri(
+        HTTPretty.POST, "https://api.yahoo.com/test_post",
+        body=request_callback)
+
+    request = urllib2.Request(
+        "https://api.yahoo.com/test_post",
+        '{"username": "gabrielfalcao"}',
+        {
+            'content-type': 'text/json',
+        },
+    )
+    fd = urllib2.urlopen(request)
+    got = fd.read()
+    fd.close()
+
+    expect(got).to.equal("The POST response from https://api.yahoo.com/test_post")
