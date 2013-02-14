@@ -23,9 +23,10 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-version = '0.5.6'
+version = '0.5.7'
 
 import re
+import inspect
 import socket
 import functools
 import itertools
@@ -38,7 +39,7 @@ import types
 PY3 = sys.version_info[0] == 3
 if PY3:
     text_type = str
-    binary_type = bytes
+    byte_type = bytes
     import io
     StringIO = io.StringIO
 
@@ -47,7 +48,7 @@ if PY3:
             return self.__str__()
 else:
     text_type = unicode
-    binary_type = str
+    byte_type = str
     import StringIO
     StringIO = StringIO.StringIO
 
@@ -101,7 +102,7 @@ def utf8(s):
     if isinstance(s, text_type):
         s = s.encode('utf-8')
 
-    return binary_type(s)
+    return byte_type(s)
 
 
 def parse_requestline(s):
@@ -306,7 +307,17 @@ class fakesock(object):
                 self._entry = entry
 
         def debug(*a, **kw):
-            import debug
+            frame = inspect.stack()[0][0]
+            lines = map(utf8, traceback.format_stack(frame))
+
+            message = [
+                "HTTPretty intercepted and unexpected socket method call.",
+                ("Please open an issue at "
+                 "'https://github.com/gabrielfalcao/HTTPretty/issues'"),
+                "And paste the following traceback:\n",
+                "".join(lines),
+            ]
+            raise RuntimeError("\n".join(message))
 
         def settimeout(self, new_timeout):
             self.timeout = new_timeout
