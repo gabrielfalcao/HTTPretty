@@ -1,5 +1,5 @@
 # HTTPretty
-> Version 0.5.7
+> Version 0.5.8
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 
