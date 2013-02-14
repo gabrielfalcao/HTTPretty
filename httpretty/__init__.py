@@ -32,6 +32,7 @@ import itertools
 import warnings
 import logging
 import traceback
+import types
 
 from datetime import datetime
 from datetime import timedelta
@@ -401,10 +402,15 @@ class Entry(object):
 
         self.method = method
         self.uri = uri
-        self.body = body
+
+        if isinstance(body, types.FunctionType):
+            self.body = body(method, uri, headers)
+        else:
+            self.body = body
+
         self.streaming = streaming
         if not streaming:
-            self.body_length = len(body or '')
+            self.body_length = len(self.body or '')
         else:
             self.body_length = 0
         self.adding_headers = adding_headers or {}
@@ -635,7 +641,7 @@ class HTTPretty(object):
             headers['status'] = status
 
             entries_for_this_uri = [
-                cls.Response(**headers),
+                cls.Response(method=method, uri=uri, **headers),
             ]
 
         map(lambda e: setattr(e, 'uri', uri) or setattr(e, 'method', method),
@@ -651,7 +657,7 @@ class HTTPretty(object):
         return u'<HTTPretty with %d URI entries>' % len(self._entries)
 
     @classmethod
-    def Response(cls, body, adding_headers=None, forcing_headers=None,
+    def Response(cls, body, method=None, uri=None, adding_headers=None, forcing_headers=None,
                  status=200, streaming=False, **headers):
 
         headers['body'] = body
@@ -659,7 +665,7 @@ class HTTPretty(object):
         headers['forcing_headers'] = forcing_headers
         headers['status'] = int(status)
         headers['streaming'] = streaming
-        return Entry(method=None, uri=None, **headers)
+        return Entry(method, uri, **headers)
 
     @classmethod
     def disable(cls):
