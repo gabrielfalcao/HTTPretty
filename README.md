@@ -212,6 +212,30 @@ def test_twitter_api_integration(now):
         expect(line_iter.next().strip()).to.equal(twitter_response_lines[i].strip())
 ```
 
+## dynamic responses through callbacks
+
+Set a callback to allow for dynamic responses based on the request.
+
+```python
+import requests
+from sure import expect
+from httpretty import HTTPretty, httprettified
+
+@httprettified
+def test_response_callbacks():
+
+    def request_callback(method, uri, headers):
+        return "The {} response from {}".format(method, uri)
+
+    HTTPretty.register_uri(
+        HTTPretty.GET, "https://api.yahoo.com/test",
+        body=request_callback)
+
+    response = requests.get('https://api.yahoo.com/test')
+
+    expect(response.text).to.equal('The GET response from https://api.yahoo.com/test')
+```
+
 ## expect for a response, and check the request got by the "server" to make sure it was fine.
 
 ```python
