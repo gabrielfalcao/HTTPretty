@@ -11,15 +11,17 @@ check_dependencies:
 		python -c "import $$dependency" 2>/dev/null || (echo "You must install $$dependency in order to run httpretty's tests" && exit 3) ; \
 		done
 
-unit: clean
+test: unit functional doctests
+
+unit:
 	@echo "Running unit tests ..."
 	@nosetests -s --verbosity=2 --with-coverage --cover-erase --cover-inclusive tests/unit --cover-package=httpretty
 
-functional: clean
+functional:
 	@echo "Running functional tests ..."
 	@nosetests -s --verbosity=2 --with-coverage --cover-erase --cover-inclusive tests/functional --cover-package=httpretty
 
-doctests: clean
+doctests:
 	@echo "Running documentation tests tests ..."
 	@steadymark README.md
 

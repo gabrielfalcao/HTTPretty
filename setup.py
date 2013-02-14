@@ -42,11 +42,20 @@ def get_packages():
 
     return packages
 
+
+def test_packages():
+    test_reqs = os.path.join(os.getcwd(), 'requirements.pip')
+    tests_require = [
+            line.strip() for line in open(test_reqs).readlines()
+            if not line.startswith("#")
+        ]
+
 setup(name='httpretty',
     version=version,
     description='HTTP client mock for Python',
     author=u'Gabriel Falcao',
     author_email='gabriel@nacaolivre.org',
     url='http://github.com/gabrielfalcao/httpretty',
-    packages=get_packages()
+    packages=get_packages(),
+    tests_require=test_packages()
 )

@@ -24,6 +24,7 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+from __future__ import unicode_literals
 
 import requests
 from sure import within, microseconds, expect
@@ -239,7 +240,7 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
     u"HTTPretty should ignore querystrings from the registered uri (requests library)"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/?id=123",
-                           body="Find the best daily deals")
+                           body=b"Find the best daily deals")
 
     response = requests.get('http://yipit.com/', params={'id': 123})
     expect(response.text).to.equal('Find the best daily deals')
@@ -274,9 +275,9 @@ def test_streaming_responses(now):
 
     #XXX this obviously isn't a fully functional twitter streaming client!
     twitter_response_lines = [
-        '{"text":"If \\"for the boobs\\" requests to follow me one more time I\'m calling the police. http://t.co/a0mDEAD8"}\r\n',
-        '\r\n',
-        '{"text":"RT @onedirection: Thanks for all your #FollowMe1D requests Directioners! We\u2019ll be following 10 people throughout the day starting NOW. G ..."}\r\n'
+        b'{"text":"If \\"for the boobs\\" requests to follow me one more time I\'m calling the police. http://t.co/a0mDEAD8"}\r\n',
+        b'\r\n',
+        b'{"text":"RT @onedirection: Thanks for all your #FollowMe1D requests Directioners! We\u2019ll be following 10 people throughout the day starting NOW. G ..."}\r\n'
     ]
 
     TWITTER_STREAMING_URL = "https://stream.twitter.com/1/statuses/filter.json"

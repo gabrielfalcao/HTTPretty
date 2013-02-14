@@ -24,7 +24,15 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-import urllib2
+from __future__ import unicode_literals
+
+try:
+    from urllib.request import urlopen
+    import urllib as urllib2
+except ImportError:
+    import urllib2
+    urlopen = urllib2.urlopen
+
 from sure import *
 from httpretty import HTTPretty, httprettified
 
@@ -37,7 +45,7 @@ def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
                            body="Find the best daily deals")
 
-    fd = urllib2.urlopen('http://yipit.com')
+    fd = urlopen('http://yipit.com')
     got = fd.read()
     fd.close()
 
@@ -71,7 +79,7 @@ def test_httpretty_should_mock_headers_urllib2(now):
                            body="this is supposed to be the response",
                            status=201)
 
-    request = urllib2.urlopen('http://github.com')
+    request = urlopen('http://github.com')
 
     headers = dict(request.headers)
     request.close()
@@ -100,7 +108,7 @@ def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
                                'Content-Type': 'application/json',
                            })
 
-    request = urllib2.urlopen('http://github.com')
+    request = urlopen('http://github.com')
     headers = dict(request.headers)
     request.close()
 
@@ -126,7 +134,7 @@ def test_httpretty_should_allow_forcing_headers_urllib2():
                                'Content-Type': 'application/xml',
                            })
 
-    request = urllib2.urlopen('http://github.com')
+    request = urlopen('http://github.com')
     headers = dict(request.headers)
     request.close()
 
@@ -147,7 +155,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
                            content_length='111111',
                            content_type='application/json')
 
-    request = urllib2.urlopen('http://github.com')
+    request = urlopen('http://github.com')
     headers = dict(request.headers)
     request.close()
 
@@ -175,20 +183,20 @@ def test_httpretty_should_support_a_list_of_successive_responses_urllib2(now):
             HTTPretty.Response(body='second and last response', status=202),
         ])
 
-    request1 = urllib2.urlopen('https://api.yahoo.com/test')
+    request1 = urlopen('https://api.yahoo.com/test')
     body1 = request1.read()
     request1.close()
 
     expect(request1.code).to.equal(201)
     expect(body1).to.equal('first response')
 
-    request2 = urllib2.urlopen('https://api.yahoo.com/test')
+    request2 = urlopen('https://api.yahoo.com/test')
     body2 = request2.read()
     request2.close()
     expect(request2.code).to.equal(202)
     expect(body2).to.equal('second and last response')
 
-    request3 = urllib2.urlopen('https://api.yahoo.com/test')
+    request3 = urlopen('https://api.yahoo.com/test')
     body3 = request3.read()
     request3.close()
     expect(request3.code).to.equal(202)
@@ -210,7 +218,7 @@ def test_can_inspect_last_request(now):
             'content-type': 'text/json',
         },
     )
-    fd = urllib2.urlopen(request)
+    fd = urlopen(request)
     got = fd.read()
     fd.close()
 
@@ -239,7 +247,7 @@ def test_can_inspect_last_request_with_ssl(now):
             'content-type': 'text/json',
         },
     )
-    fd = urllib2.urlopen(request)
+    fd = urlopen(request)
     got = fd.read()
     fd.close()
 
@@ -261,7 +269,7 @@ def test_httpretty_ignores_querystrings_from_registered_uri():
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/?id=123",
                            body="Find the best daily deals")
 
-    fd = urllib2.urlopen('http://yipit.com/?id=123')
+    fd = urlopen('http://yipit.com/?id=123')
     got = fd.read()
     fd.close()
 
