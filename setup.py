@@ -42,6 +42,9 @@ def get_packages():
 
     return packages
 
+with open('requirements.pip') as open_file:
+    requirements = [requirement.strip() for requirement in open_file.readlines()]
+
 setup(name='httpretty',
     version=version,
     description='HTTP client mock for Python',
@@ -49,4 +52,5 @@ setup(name='httpretty',
     author_email='gabriel@nacaolivre.org',
     url='http://github.com/gabrielfalcao/httpretty',
     packages=get_packages()
+    install_requires=requirements
 )
