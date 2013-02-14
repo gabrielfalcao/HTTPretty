@@ -236,6 +236,29 @@ def test_response_callbacks():
     expect(response.text).to.equal('The GET response from https://api.yahoo.com/test')
 ```
 
+## matching regular expressions
+
+You can register a
+[compiled regex](http://docs.python.org/2/library/re.html#re.compile)
+and it will be matched against the requested urls.
+
+```python
+@httprettified
+def test_httpretty_should_allow_registering_regexes():
+    u"HTTPretty should allow registering regexes"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("api.yipit.com/v2/deal;brand=(\w+)"),
+        body="Found brand",
+    )
+
+    response = requests.get('https://api.yipit.com/v2/deal;brand=GAP')
+    expect(response.text).to.equal('Found brand')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=GAP')
+```
+
 ## expect for a response, and check the request got by the "server" to make sure it was fine.
 
 ```python

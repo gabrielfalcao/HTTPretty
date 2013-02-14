@@ -313,3 +313,23 @@ def test_callback_response(now):
     fd.close()
 
     expect(got).to.equal("The POST response from https://api.yahoo.com/test_post")
+
+
+@httprettified
+def test_httpretty_should_allow_registering_regexes():
+    u"HTTPretty should allow registering regexes with urllib2"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
+        body="Found brand",
+    )
+
+    request = urllib2.Request(
+        "https://api.yipit.com/v1/deal;brand=GAP",
+    )
+    fd = urllib2.urlopen(request)
+    got = fd.read()
+    fd.close()
+
+    expect(got).to.equal("Found brand")

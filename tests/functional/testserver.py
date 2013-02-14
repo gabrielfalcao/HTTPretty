@@ -35,22 +35,27 @@ except ImportError:
     import StringIO
     StringIO = StringIO.StringIO
 
+import time
 from tornado.web import Application
 from tornado.web import RequestHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from multiprocessing import Process
 
+
 class BubblesHandler(RequestHandler):
     def get(self):
         self.write(". o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o .")
+
 
 class ComeHandler(RequestHandler):
     def get(self):
         self.write("<- HELLO WORLD ->")
 
+
 class Server(object):
     is_running = False
+
     def __init__(self, port):
         self.port = int(port)
         self.process = None
@@ -76,7 +81,6 @@ class Server(object):
         args = (app, self.port, data)
         self.process = Process(target=go, args=args)
         self.process.start()
-        import time;
         time.sleep(0.4)
 
     def stop(self):

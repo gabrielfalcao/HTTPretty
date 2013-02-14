@@ -26,6 +26,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
+import re
 import httplib2
 from sure import expect, within, microseconds
 from httpretty import HTTPretty, httprettified
@@ -285,3 +286,19 @@ def test_callback_response(now):
         'https://api.yahoo.com/test_post', 'POST')
 
     expect(body2).to.equal('The POST response from https://api.yahoo.com/test_post')
+
+
+@httprettified
+def test_httpretty_should_allow_registering_regexes():
+    u"HTTPretty should allow registering regexes with httplib2"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
+        body="Found brand",
+    )
+
+    response, body = httplib2.Http().request('https://api.yipit.com/v1/deal;brand=gap', 'GET')
+    expect(body).to.equal('Found brand')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap')

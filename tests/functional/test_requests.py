@@ -24,8 +24,11 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+
 from __future__ import unicode_literals
 
+
+import re
 import requests
 from sure import within, microseconds, expect
 from httpretty import HTTPretty, httprettified
@@ -377,7 +380,7 @@ def test_multipart():
 @within(two=microseconds)
 def test_callback_response(now):
     (u"HTTPretty should all a callback function to be set as the body with"
-      " requests")
+     " requests")
 
     def request_callback(method, uri, headers):
         return "The {0} response from {1}".format(method, uri)
@@ -400,3 +403,20 @@ def test_callback_response(now):
     )
 
     expect(response.text).to.equal("The POST response from https://api.yahoo.com/test_post")
+
+
+@httprettified
+def test_httpretty_should_allow_registering_regexes():
+    u"HTTPretty should allow registering regexes with requests"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
+        body="Found brand",
+    )
+
+    response = requests.get('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris'
+                            )
+    expect(response.text).to.equal('Found brand')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')

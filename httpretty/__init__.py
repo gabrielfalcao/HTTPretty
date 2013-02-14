@@ -43,7 +43,7 @@ if PY3:
     import io
     StringIO = io.StringIO
 
-    class Compat_Repr(object):
+    class Py3kObject(object):
         def __repr__(self):
             return self.__str__()
 else:
@@ -52,9 +52,14 @@ else:
     import StringIO
     StringIO = StringIO.StringIO
 
-    class Compat_Repr(object):
-        def __repr__(self):
-            return self.__str__().encode('utf-8')
+
+class Py3kObject(object):
+    def __repr__(self):
+        ret = self.__str__()
+        if PY3:
+            return ret
+        else:
+            ret.encode('utf-8')
 
 from datetime import datetime
 from datetime import timedelta
@@ -126,7 +131,7 @@ def parse_requestline(s):
         raise ValueError('Not a Request-Line')
 
 
-class HTTPrettyRequest(BaseHTTPRequestHandler, Compat_Repr, object):
+class HTTPrettyRequest(BaseHTTPRequestHandler, Py3kObject):
     def __init__(self, headers, body=''):
         self.body = utf8(body)
         self.raw_headers = utf8(headers)
@@ -256,7 +261,7 @@ class fakesock(object):
         def sendall(self, data, *args, **kw):
 
             self._sent_data.append(data)
-            hostnames = [i.hostname for i in HTTPretty._entries.keys()]
+            hostnames = [getattr(i.info, 'hostname', None) for i in HTTPretty._entries.keys()]
             self.fd.seek(0)
             try:
                 print("data", data)
@@ -292,17 +297,18 @@ class fakesock(object):
                            last_request=request)
 
             entries = []
-            for key, value in HTTPretty._entries.items():
-                if key == info:
+
+            for matcher, value in HTTPretty._entries.items():
+                if matcher.matches(info):
                     entries = value
-                    info = key
+                    info = matcher.info
                     break
 
             if not entries:
                 self._true_sendall(data)
                 return
 
-            entry = info.get_next_entry()
+            entry = matcher.get_next_entry()
             if entry.method == method:
                 self._entry = entry
 
@@ -431,7 +437,7 @@ STATUSES = {
 }
 
 
-class Entry(Compat_Repr, object):
+class Entry(Py3kObject):
     def __init__(self, method, uri, body,
                  adding_headers=None,
                  forcing_headers=None,
@@ -557,7 +563,7 @@ class Entry(Compat_Repr, object):
         fk.seek(0)
 
 
-class URIInfo(Compat_Repr, object):
+class URIInfo(Py3kObject):
     def __init__(self,
                  username='',
                  password='',
@@ -567,7 +573,6 @@ class URIInfo(Compat_Repr, object):
                  query='',
                  fragment='',
                  scheme='',
-                 entries=None,
                  last_request=None):
 
         self.username = username or ''
@@ -583,23 +588,9 @@ class URIInfo(Compat_Repr, object):
         self.port = port or 80
         self.path = path or ''
         self.query = query or ''
-        self.scheme = scheme
+        self.scheme = scheme or (self.port is 80 and "http" or "https")
         self.fragment = fragment or ''
-        self.entries = entries
-        self.current_entry = 0
         self.last_request = last_request
-
-    def get_next_entry(self):
-        if self.current_entry >= len(self.entries):
-            self.current_entry = -1
-
-        if not self.entries:
-            raise ValueError('I have no entries: %s' % self)
-
-        entry = self.entries[self.current_entry]
-        if self.current_entry != -1:
-            self.current_entry += 1
-        return entry
 
     def __str__(self):
         attrs = (
@@ -618,6 +609,24 @@ class URIInfo(Compat_Repr, object):
     def __eq__(self, other):
         return text_type(self) == text_type(other)
 
+    def full_url(self):
+        credentials = ""
+        if self.password:
+            credentials = "{0}:{1}@".format(
+                self.username, self.password)
+
+        query = ""
+        if self.query:
+            query = "?{0}".format(self.query)
+
+        return "{scheme}://{credentials}{host}{path}{query}".format(
+            scheme=self.scheme,
+            credentials=credentials,
+            host=self.hostname,
+            path=self.path,
+            query=query
+        )
+
     @classmethod
     def from_uri(cls, uri, entry):
         result = urlsplit(uri)
@@ -632,7 +641,52 @@ class URIInfo(Compat_Repr, object):
                    entry)
 
 
-class HTTPretty(Compat_Repr, object):
+class URIMatcher(object):
+    regex = None
+    info = None
+
+    def __init__(self, uri, entries):
+        if uri.__class__.__name__ == 'SRE_Pattern':
+            self.regex = uri
+        else:
+            self.info = URIInfo.from_uri(uri, entries)
+
+        self.entries = entries
+        self.current_entry = 0
+
+    def matches(self, info):
+        if self.info:
+            return self.info == info
+        else:
+            return self.regex.search(info.full_url())
+
+    def __str__(self):
+        wrap = 'URLMatcher({0})'
+        if self.info:
+            return wrap.format(text_type(self.info))
+        else:
+            return wrap.format(self.regex.pattern)
+
+    def get_next_entry(self):
+        if self.current_entry >= len(self.entries):
+            self.current_entry = -1
+
+        if not self.entries:
+            raise ValueError('I have no entries: %s' % self)
+
+        entry = self.entries[self.current_entry]
+        if self.current_entry != -1:
+            self.current_entry += 1
+        return entry
+
+    def __hash__(self):
+        return hash(text_type(self))
+
+    def __eq__(self, other):
+        return text_type(self) == text_type(other)
+
+
+class HTTPretty(Py3kObject):
     u"""The URI registration class"""
     _entries = {}
     latest_requests = []
@@ -683,11 +737,11 @@ class HTTPretty(Compat_Repr, object):
         map(lambda e: setattr(e, 'uri', uri) or setattr(e, 'method', method),
             entries_for_this_uri)
 
-        info = URIInfo.from_uri(uri, entries_for_this_uri)
-        if info in cls._entries:
-            del cls._entries[info]
+        matcher = URIMatcher(uri, entries_for_this_uri)
+        if matcher in cls._entries:
+            del cls._entries[matcher]
 
-        cls._entries[info] = entries_for_this_uri
+        cls._entries[matcher] = entries_for_this_uri
 
     def __str__(self):
         return u'<HTTPretty with %d URI entries>' % len(self._entries)
