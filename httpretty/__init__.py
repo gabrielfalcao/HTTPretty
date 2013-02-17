@@ -646,7 +646,7 @@ class URIMatcher(object):
     info = None
 
     def __init__(self, uri, entries):
-        if uri.__class__.__name__ == 'SRE_Pattern':
+        if type(uri).__name__ == 'SRE_Pattern':
             self.regex = uri
         else:
             self.info = URIInfo.from_uri(uri, entries)
