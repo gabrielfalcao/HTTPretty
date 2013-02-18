@@ -449,4 +449,4 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
 
     for method in methods:
         request_action = getattr(requests, method.lower())
-        expect(request_action(url).content).to.equal(method)
+        expect(request_action(url).text).to.equal(method)
