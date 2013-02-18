@@ -310,9 +310,7 @@ class fakesock(object):
                 self._true_sendall(data)
                 return
 
-            entry = matcher.get_next_entry()
-            if entry.method == method:
-                self._entry = entry
+            self._entry = matcher.get_next_entry(method)
 
         def debug(*a, **kw):
             frame = inspect.stack()[0][0]
@@ -659,7 +657,9 @@ class URIMatcher(object):
             self.info = URIInfo.from_uri(uri, entries)
 
         self.entries = entries
-        self.current_entry = 0
+
+        #hash of current_entry pointers, per method.
+        self.current_entries = {}
 
     def matches(self, info):
         if self.info:
@@ -674,16 +674,26 @@ class URIMatcher(object):
         else:
             return wrap.format(self.regex.pattern)
 
-    def get_next_entry(self):
-        if self.current_entry >= len(self.entries):
-            self.current_entry = -1
+    def get_next_entry(self, method='GET'):
+        """Cycle through available responses, but only once.
+        Any subsequent requests will receive the last response"""
 
-        if not self.entries:
-            raise ValueError('I have no entries: %s' % self)
+        if method not in self.current_entries:
+            self.current_entries[method] = 0
 
-        entry = self.entries[self.current_entry]
-        if self.current_entry != -1:
-            self.current_entry += 1
+        #restrict selection to entries that match the requested method
+        entries_for_method = [e for e in self.entries if e.method == method]
+
+        if self.current_entries[method] >= len(entries_for_method):
+            self.current_entries[method] = -1
+
+        if not self.entries or not entries_for_method:
+            raise ValueError('I have no entries for method %s: %s'
+                             % (method, self))
+
+        entry = entries_for_method[self.current_entries[method]]
+        if self.current_entries != -1:
+            self.current_entries[method] += 1
         return entry
 
     def __hash__(self):
@@ -746,6 +756,7 @@ class HTTPretty(Py3kObject):
 
         matcher = URIMatcher(uri, entries_for_this_uri)
         if matcher in cls._entries:
+            matcher.entries.extend(cls._entries[matcher])
             del cls._entries[matcher]
 
         cls._entries[matcher] = entries_for_this_uri
