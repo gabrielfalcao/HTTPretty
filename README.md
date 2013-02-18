@@ -1,10 +1,10 @@
 # HTTPretty
-> Version 0.5.8
+> Version 0.5.9
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 
 
-# New in version 0.5.8
+# New in version 0.5.9
 
 * Support to [register regular expressions to match urls](#matching-regular-expressions)
 * [Body callback](#dynamic-responses-through-callbacks) suppport
