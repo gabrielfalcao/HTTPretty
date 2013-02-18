@@ -432,3 +432,21 @@ def test_httpretty_should_allow_registering_regexes():
     expect(response.text).to.equal('Found brand')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
+
+@httprettified
+def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
+    u"HTTPretty should allow registering multiple methods for the same uri"
+
+    url = 'http://test.com/test'
+    methods = ['GET', 'POST', 'PUT']
+    for method in methods:
+        HTTPretty.register_uri(
+            getattr(HTTPretty, method),
+            url,
+            method
+        )
+
+    for method in methods:
+        request_action = getattr(requests, method.lower())
+        expect(request_action(url).content).to.equal(method)
