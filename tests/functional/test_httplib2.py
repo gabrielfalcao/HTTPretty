@@ -29,7 +29,7 @@ from __future__ import unicode_literals
 import re
 import httplib2
 from sure import expect, within, microseconds
-from httpretty import HTTPretty, httprettified
+from httpretty import HTTPretty, httprettified, decode_utf8
 
 
 @httprettified
@@ -41,7 +41,7 @@ def test_httpretty_should_mock_a_simple_get_with_httplib2_read(now):
                            body="Find the best daily deals")
 
     _, got = httplib2.Http().request('http://yipit.com', 'GET')
-    expect(got).to.equal('Find the best daily deals')
+    expect(got).to.equal(b'Find the best daily deals')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/')
 
@@ -178,19 +178,19 @@ def test_rotating_responses_with_httplib2(now):
         'https://api.yahoo.com/test', 'GET')
 
     expect(headers1['status']).to.equal('201')
-    expect(body1).to.equal('first response')
+    expect(body1).to.equal(b'first response')
 
     headers2, body2 = httplib2.Http().request(
         'https://api.yahoo.com/test', 'GET')
 
     expect(headers2['status']).to.equal('202')
-    expect(body2).to.equal('second and last response')
+    expect(body2).to.equal(b'second and last response')
 
     headers3, body3 = httplib2.Http().request(
         'https://api.yahoo.com/test', 'GET')
 
     expect(headers3['status']).to.equal('202')
-    expect(body3).to.equal('second and last response')
+    expect(body3).to.equal(b'second and last response')
 
 
 @httprettified
@@ -211,12 +211,12 @@ def test_can_inspect_last_request(now):
 
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.body).to.equal(
-        '{"username": "gabrielfalcao"}',
+        b'{"username": "gabrielfalcao"}',
     )
     expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    expect(body).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
+    expect(body).to.equal(b'{"repositories": ["HTTPretty", "lettuce"]}')
 
 
 @httprettified
@@ -237,12 +237,12 @@ def test_can_inspect_last_request_with_ssl(now):
 
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.body).to.equal(
-        '{"username": "gabrielfalcao"}',
+        b'{"username": "gabrielfalcao"}',
     )
     expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    expect(body).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
+    expect(body).to.equal(b'{"repositories": ["HTTPretty", "lettuce"]}')
 
 
 @httprettified
@@ -255,7 +255,7 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
 
     _, got = httplib2.Http().request('http://yipit.com/?id=123', 'GET')
 
-    expect(got).to.equal('Find the best daily deals')
+    expect(got).to.equal(b'Find the best daily deals')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/?id=123')
 
@@ -267,7 +267,7 @@ def test_callback_response(now):
       " httplib2")
 
     def request_callback(method, uri, headers):
-        return "The {0} response from {1}".format(method, uri)
+        return "The {0} response from {1}".format(decode_utf8(method), uri)
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -276,7 +276,7 @@ def test_callback_response(now):
     headers1, body1 = httplib2.Http().request(
         'https://api.yahoo.com/test', 'GET')
 
-    expect(body1).to.equal('The GET response from https://api.yahoo.com/test')
+    expect(body1).to.equal(b"The GET response from https://api.yahoo.com/test")
 
     HTTPretty.register_uri(
         HTTPretty.POST, "https://api.yahoo.com/test_post",
@@ -285,7 +285,7 @@ def test_callback_response(now):
     headers2, body2 = httplib2.Http().request(
         'https://api.yahoo.com/test_post', 'POST')
 
-    expect(body2).to.equal('The POST response from https://api.yahoo.com/test_post')
+    expect(body2).to.equal(b"The POST response from https://api.yahoo.com/test_post")
 
 
 @httprettified
@@ -299,6 +299,6 @@ def test_httpretty_should_allow_registering_regexes():
     )
 
     response, body = httplib2.Http().request('https://api.yipit.com/v1/deal;brand=gap', 'GET')
-    expect(body).to.equal('Found brand')
+    expect(body).to.equal(b'Found brand')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap')

@@ -23,6 +23,8 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+from __future__ import unicode_literals
+
 version = '0.5.8'
 
 import re
@@ -41,7 +43,7 @@ if PY3:
     text_type = str
     byte_type = bytes
     import io
-    StringIO = io.StringIO
+    StringIO = io.BytesIO
 
     class Py3kObject(object):
         def __repr__(self):
@@ -110,6 +112,13 @@ def utf8(s):
     return byte_type(s)
 
 
+def decode_utf8(s):
+    if isinstance(s, byte_type):
+        s = s.decode("utf-8")
+
+    return text_type(s)
+
+
 def parse_requestline(s):
     """
     http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
@@ -123,8 +132,8 @@ def parse_requestline(s):
         ...
     ValueError: Not a Request-Line
     """
-    methods = '|'.join(HTTPretty.METHODS)
-    m = re.match(r'('+methods+')\s+(.*)\s+HTTP/(1.[0|1])', s, re.I)
+    methods = b'|'.join(HTTPretty.METHODS)
+    m = re.match(br'(' + methods + b')\s+(.*)\s+HTTP/(1.[0|1])', s, re.I)
     if m:
         return m.group(1).upper(), m.group(2), m.group(3)
     else:
@@ -135,7 +144,9 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, Py3kObject):
     def __init__(self, headers, body=''):
         self.body = utf8(body)
         self.raw_headers = utf8(headers)
-        self.rfile = StringIO('\r\n\r\n'.join([headers.strip(), body]))
+        self.client_address = ['10.0.0.1']
+        self.rfile = StringIO(b'\r\n\r\n'.join([headers.strip(), body]))
+        self.wfile = StringIO()
         self.raw_requestline = self.rfile.readline()
         self.error_code = self.error_message = None
         self.parse_request()
@@ -159,15 +170,7 @@ class HTTPrettyRequestEmpty(object):
 
 
 class FakeSockFile(StringIO):
-    def read(self, amount=None):
-        amount = amount or self.len
-        new_amount = amount
-
-        if amount > self.len:
-            new_amount = self.len - self.tell()
-
-        ret = StringIO.read(self, new_amount)
-        return ret
+    pass
 
 
 class FakeSSLSocket(object):
@@ -264,8 +267,7 @@ class fakesock(object):
             hostnames = [getattr(i.info, 'hostname', None) for i in HTTPretty._entries.keys()]
             self.fd.seek(0)
             try:
-
-                requestline, _ = data.split('\r\n', 1)
+                requestline, _ = data.split(b'\r\n', 1)
                 method, path, version = parse_requestline(requestline)
                 is_parsing_headers = True
             except ValueError:
@@ -287,7 +289,7 @@ class fakesock(object):
             # path might come with
             s = urlsplit(path)
 
-            headers, body = map(utf8, data.split('\r\n\r\n', 1))
+            headers, body = map(utf8, data.split(b'\r\n\r\n', 1))
 
             request = HTTPretty.historify_request(headers, body)
 
@@ -321,7 +323,7 @@ class fakesock(object):
                 ("Please open an issue at "
                  "'https://github.com/gabrielfalcao/HTTPretty/issues'"),
                 "And paste the following traceback:\n",
-                "".join(lines),
+                "".join(decode_utf8(lines)),
             ]
             raise RuntimeError("\n".join(message))
 
@@ -502,7 +504,7 @@ class Entry(Py3kObject):
     def normalize_headers(self, headers):
         new = {}
         for k in headers:
-            new_k = '-'.join([s.title() for s in k.split('-')])
+            new_k = '-'.join([s.lower() for s in k.split('-')])
             new[new_k] = headers[k]
 
         return new
@@ -511,47 +513,49 @@ class Entry(Py3kObject):
         now = datetime.utcnow()
 
         headers = {
-            'Status': self.status,
-            'Date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
-            'Server': 'Python/HTTPretty',
-            'Connection': 'close',
+            'status': self.status,
+            'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+            'server': 'Python/HTTPretty',
+            'connection': 'close',
         }
 
         if self.forcing_headers:
             headers = self.forcing_headers
 
         if self.adding_headers:
-            headers.update(self.adding_headers)
+            headers.update(self.normalize_headers(self.adding_headers))
 
         headers = self.normalize_headers(headers)
 
-        status = headers.get('Status', self.status)
+        status = headers.get('status', self.status)
         string_list = [
             'HTTP/1.1 %d %s' % (status, STATUSES[status]),
         ]
 
-        if 'Date' in headers:
-            string_list.append('Date: %s' % headers.pop('Date'))
+        if 'date' in headers:
+            string_list.append('date: %s' % headers.pop('date'))
 
         if not self.forcing_headers:
-            content_type = headers.pop('Content-Type',
+            content_type = headers.pop('content-type',
                                        'text/plain; charset=utf-8')
 
-            content_length = headers.pop('Content-Length', self.body_length)
+            content_length = headers.pop('content-length', self.body_length)
 
-            string_list.append('Content-Type: %s' % content_type)
+            string_list.append('content-type: %s' % content_type)
             if not self.streaming:
-                string_list.append('Content-Length: %s' % content_length)
+                string_list.append('content-length: %s' % content_length)
 
-            string_list.append('Server: %s' % headers.pop('Server'))
+            string_list.append('server: %s' % headers.pop('server'))
 
         for k, v in headers.items():
             string_list.append(
-                '%s: %s' % (k, utf8(v)),
+                '{0}: {1}'.format(k, v),
             )
 
-        fk.write("\n".join(string_list))
-        fk.write('\n\r\n')
+        for item in string_list:
+            fk.write(utf8(item) + b'\n')
+
+        fk.write(b'\r\n')
 
         if self.streaming:
             self.body, body = itertools.tee(self.body)
@@ -607,7 +611,9 @@ class URIInfo(Py3kObject):
         return hash(text_type(self))
 
     def __eq__(self, other):
-        return text_type(self) == text_type(other)
+        self_tuple = (self.port, decode_utf8(self.hostname), decode_utf8(self.path))
+        other_tuple = (other.port, decode_utf8(other.hostname), decode_utf8(other.path))
+        return self_tuple == other_tuple
 
     def full_url(self):
         credentials = ""
@@ -617,15 +623,16 @@ class URIInfo(Py3kObject):
 
         query = ""
         if self.query:
-            query = "?{0}".format(self.query)
+            query = "?{0}".format(decode_utf8(self.query))
 
-        return "{scheme}://{credentials}{host}{path}{query}".format(
+        result = "{scheme}://{credentials}{host}{path}{query}".format(
             scheme=self.scheme,
             credentials=credentials,
-            host=self.hostname,
-            path=self.path,
+            host=decode_utf8(self.hostname),
+            path=decode_utf8(self.path),
             query=query
         )
+        return result
 
     @classmethod
     def from_uri(cls, uri, entry):
@@ -690,12 +697,12 @@ class HTTPretty(Py3kObject):
     u"""The URI registration class"""
     _entries = {}
     latest_requests = []
-    GET = 'GET'
-    PUT = 'PUT'
-    POST = 'POST'
-    DELETE = 'DELETE'
-    HEAD = 'HEAD'
-    PATCH = 'PATCH'
+    GET = b'GET'
+    PUT = b'PUT'
+    POST = b'POST'
+    DELETE = b'DELETE'
+    HEAD = b'HEAD'
+    PATCH = b'PATCH'
     METHODS = (GET, PUT, POST, DELETE, HEAD, PATCH)
     last_request = HTTPrettyRequestEmpty()
 
@@ -723,6 +730,9 @@ class HTTPretty(Py3kObject):
                      responses=None, **headers):
 
         if isinstance(responses, list) and len(responses) > 0:
+            for response in responses:
+                response.uri = uri
+                response.method = method
             entries_for_this_uri = responses
         else:
             headers['body'] = body
@@ -733,9 +743,6 @@ class HTTPretty(Py3kObject):
             entries_for_this_uri = [
                 cls.Response(method=method, uri=uri, **headers),
             ]
-
-        map(lambda e: setattr(e, 'uri', uri) or setattr(e, 'method', method),
-            entries_for_this_uri)
 
         matcher = URIMatcher(uri, entries_for_this_uri)
         if matcher in cls._entries:

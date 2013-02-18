@@ -26,8 +26,12 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-import urllib2
-from testserver import Server
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
+
+from .testserver import Server
 from sure import expect, that_with_context
 from httpretty import HTTPretty, httprettified
 
@@ -59,13 +63,13 @@ def test_httpretty_bypasses_when_disabled(context):
     fd.close()
 
     expect(got1).to.equal(
-        '. o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o .')
+        b'. o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o .')
 
     fd = urllib2.urlopen('http://localhost:9999/come-again/')
     got2 = fd.read()
     fd.close()
 
-    expect(got2).to.equal('<- HELLO WORLD ->')
+    expect(got2).to.equal(b'<- HELLO WORLD ->')
 
     HTTPretty.enable()
 
@@ -73,7 +77,7 @@ def test_httpretty_bypasses_when_disabled(context):
     got3 = fd.read()
     fd.close()
 
-    expect(got3).to.equal('glub glub')
+    expect(got3).to.equal(b'glub glub')
 
 
 @httprettified
@@ -89,10 +93,10 @@ def test_httpretty_bypasses_a_unregistered_request(context):
     got1 = fd.read()
     fd.close()
 
-    expect(got1).to.equal('glub glub')
+    expect(got1).to.equal(b'glub glub')
 
     fd = urllib2.urlopen('http://localhost:9999/come-again/')
     got2 = fd.read()
     fd.close()
 
-    expect(got2).to.equal('<- HELLO WORLD ->')
+    expect(got2).to.equal(b'<- HELLO WORLD ->')

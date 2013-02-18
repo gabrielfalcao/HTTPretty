@@ -31,7 +31,19 @@ from __future__ import unicode_literals
 import re
 import requests
 from sure import within, microseconds, expect
-from httpretty import HTTPretty, httprettified
+from httpretty import HTTPretty, httprettified, decode_utf8
+
+try:
+    xrange = xrange
+except NameError:
+    xrange = range
+
+try:
+    advance_iterator = next
+except NameError:
+    def advance_iterator(it):
+        return it.next()
+next = advance_iterator
 
 
 @httprettified
@@ -162,8 +174,8 @@ def test_rotating_responses_with_requests(now):
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
         responses=[
-            HTTPretty.Response(body="first response", status=201),
-            HTTPretty.Response(body='second and last response', status=202),
+            HTTPretty.Response(body=b"first response", status=201),
+            HTTPretty.Response(body=b'second and last response', status=202),
         ])
 
     response1 = requests.get(
@@ -203,12 +215,12 @@ def test_can_inspect_last_request(now):
 
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.body).to.equal(
-        '{"username": "gabrielfalcao"}',
+        b'{"username": "gabrielfalcao"}',
     )
     expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    expect(response.json).to.equal({"repositories": ["HTTPretty", "lettuce"]})
+    expect(response.json()).to.equal({"repositories": ["HTTPretty", "lettuce"]})
 
 
 @httprettified
@@ -229,12 +241,12 @@ def test_can_inspect_last_request_with_ssl(now):
 
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.body).to.equal(
-        '{"username": "gabrielfalcao"}',
+        b'{"username": "gabrielfalcao"}',
     )
     expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    expect(response.json).to.equal({"repositories": ["HTTPretty", "lettuce"]})
+    expect(response.json()).to.equal({"repositories": ["HTTPretty", "lettuce"]})
 
 
 @httprettified
@@ -292,43 +304,43 @@ def test_streaming_responses(now):
     # taken from the requests docs
     # Http://docs.python-requests.org/en/latest/user/advanced/#streaming-requests
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
-                             auth=('username', 'password'), prefetch=False)
+                             auth=('username', 'password'), stream=True)
 
     #test iterating by line
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever!'):
         for i in xrange(len(twitter_response_lines)):
-            expect(line_iter.next().strip()).to.equal(
+            expect(next(line_iter).strip()).to.equal(
                 twitter_response_lines[i].strip())
 
     #test iterating by line after a second request
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
-                            auth=('username', 'password'), prefetch=False)
+                            auth=('username', 'password'), stream=True)
 
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever the second time '
                        'around!'):
         for i in xrange(len(twitter_response_lines)):
-            expect(line_iter.next().strip()).to.equal(
+            expect(next(line_iter).strip()).to.equal(
                 twitter_response_lines[i].strip())
 
     #test iterating by char
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
-                            auth=('username', 'password'), prefetch=False)
+                            auth=('username', 'password'), stream=True)
 
-    twitter_expected_response_body = ''.join(twitter_response_lines)
+    twitter_expected_response_body = b''.join(twitter_response_lines)
     with in_time(0.02, 'Iterating by char is taking forever!'):
-        twitter_body = u''.join(c for c in response.iter_content(chunk_size=1))
+        twitter_body = b''.join(c for c in response.iter_content(chunk_size=1))
 
     expect(twitter_body).to.equal(twitter_expected_response_body)
 
     #test iterating by chunks larger than the stream
 
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
-                             auth=('username', 'password'), prefetch=False)
+                             auth=('username', 'password'), stream=True)
 
     with in_time(0.02, 'Iterating by large chunks is taking forever!'):
-        twitter_body = u''.join(c for c in
+        twitter_body = b''.join(c for c in
                                 response.iter_content(chunk_size=1024))
 
     expect(twitter_body).to.equal(twitter_expected_response_body)
@@ -337,7 +349,7 @@ def test_streaming_responses(now):
 @httprettified
 def test_multiline():
     url = 'http://httpbin.org/post'
-    data = 'content=Im\r\na multiline\r\n\r\nsentence\r\n'
+    data = b'content=Im\r\na multiline\r\n\r\nsentence\r\n'
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
         'Accept': 'text/plain',
@@ -360,7 +372,7 @@ def test_multiline():
 @httprettified
 def test_multipart():
     url = 'http://httpbin.org/post'
-    data = '--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="content"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 68\r\n\r\nAction: comment\nText: Comment with attach\nAttachment: x1.txt, x2.txt\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_2"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_1"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz--\r\n'
+    data = b'--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="content"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 68\r\n\r\nAction: comment\nText: Comment with attach\nAttachment: x1.txt, x2.txt\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_2"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_1"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz--\r\n'
     headers = {'Content-Length': '495', 'Content-Type': 'multipart/form-data; boundary=xXXxXXyYYzzz', 'Accept': 'text/plain'}
     HTTPretty.register_uri(
         HTTPretty.POST,
@@ -383,7 +395,7 @@ def test_callback_response(now):
      " requests")
 
     def request_callback(method, uri, headers):
-        return "The {0} response from {1}".format(method, uri)
+        return "The {0} response from {1}".format(decode_utf8(method), uri)
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -391,7 +403,7 @@ def test_callback_response(now):
 
     response = requests.get('https://api.yahoo.com/test')
 
-    expect(response.text).to.equal('The GET response from https://api.yahoo.com/test')
+    expect(response.text).to.equal("The GET response from https://api.yahoo.com/test")
 
     HTTPretty.register_uri(
         HTTPretty.POST, "https://api.yahoo.com/test_post",
