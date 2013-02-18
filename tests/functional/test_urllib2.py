@@ -28,13 +28,13 @@ from __future__ import unicode_literals
 
 try:
     from urllib.request import urlopen
-    import urllib as urllib2
+    import urllib.request as urllib2
 except ImportError:
     import urllib2
     urlopen = urllib2.urlopen
 
 from sure import *
-from httpretty import HTTPretty, httprettified
+from httpretty import HTTPretty, httprettified, decode_utf8
 
 
 @httprettified
@@ -49,7 +49,7 @@ def test_httpretty_should_mock_a_simple_get_with_urllib2_read():
     got = fd.read()
     fd.close()
 
-    expect(got).to.equal('Find the best daily deals')
+    expect(got).to.equal(b'Find the best daily deals')
 
 
 @httprettified
@@ -188,19 +188,19 @@ def test_httpretty_should_support_a_list_of_successive_responses_urllib2(now):
     request1.close()
 
     expect(request1.code).to.equal(201)
-    expect(body1).to.equal('first response')
+    expect(body1).to.equal(b'first response')
 
     request2 = urlopen('https://api.yahoo.com/test')
     body2 = request2.read()
     request2.close()
     expect(request2.code).to.equal(202)
-    expect(body2).to.equal('second and last response')
+    expect(body2).to.equal(b'second and last response')
 
     request3 = urlopen('https://api.yahoo.com/test')
     body3 = request3.read()
     request3.close()
     expect(request3.code).to.equal(202)
-    expect(body3).to.equal('second and last response')
+    expect(body3).to.equal(b'second and last response')
 
 
 @httprettified
@@ -213,7 +213,7 @@ def test_can_inspect_last_request(now):
 
     request = urllib2.Request(
         'http://api.github.com',
-        '{"username": "gabrielfalcao"}',
+        b'{"username": "gabrielfalcao"}',
         {
             'content-type': 'text/json',
         },
@@ -224,12 +224,12 @@ def test_can_inspect_last_request(now):
 
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.body).to.equal(
-        '{"username": "gabrielfalcao"}',
+        b'{"username": "gabrielfalcao"}',
     )
     expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    expect(got).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
+    expect(got).to.equal(b'{"repositories": ["HTTPretty", "lettuce"]}')
 
 
 @httprettified
@@ -242,7 +242,7 @@ def test_can_inspect_last_request_with_ssl(now):
 
     request = urllib2.Request(
         'https://secure.github.com',
-        '{"username": "gabrielfalcao"}',
+        b'{"username": "gabrielfalcao"}',
         {
             'content-type': 'text/json',
         },
@@ -253,12 +253,12 @@ def test_can_inspect_last_request_with_ssl(now):
 
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.body).to.equal(
-        '{"username": "gabrielfalcao"}',
+        b'{"username": "gabrielfalcao"}',
     )
     expect(HTTPretty.last_request.headers['content-type']).to.equal(
         'text/json',
     )
-    expect(got).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
+    expect(got).to.equal(b'{"repositories": ["HTTPretty", "lettuce"]}')
 
 
 @httprettified
@@ -273,7 +273,7 @@ def test_httpretty_ignores_querystrings_from_registered_uri():
     got = fd.read()
     fd.close()
 
-    expect(got).to.equal('Find the best daily deals')
+    expect(got).to.equal(b'Find the best daily deals')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/?id=123')
 
@@ -285,7 +285,7 @@ def test_callback_response(now):
       " urllib2")
 
     def request_callback(method, uri, headers):
-        return "The {0} response from {1}".format(method, uri)
+        return "The {0} response from {1}".format(decode_utf8(method), uri)
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -295,7 +295,7 @@ def test_callback_response(now):
     got = fd.read()
     fd.close()
 
-    expect(got).to.equal('The GET response from https://api.yahoo.com/test')
+    expect(got).to.equal(b"The GET response from https://api.yahoo.com/test")
 
     HTTPretty.register_uri(
         HTTPretty.POST, "https://api.yahoo.com/test_post",
@@ -303,7 +303,7 @@ def test_callback_response(now):
 
     request = urllib2.Request(
         "https://api.yahoo.com/test_post",
-        '{"username": "gabrielfalcao"}',
+        b'{"username": "gabrielfalcao"}',
         {
             'content-type': 'text/json',
         },
@@ -312,7 +312,7 @@ def test_callback_response(now):
     got = fd.read()
     fd.close()
 
-    expect(got).to.equal("The POST response from https://api.yahoo.com/test_post")
+    expect(got).to.equal(b"The POST response from https://api.yahoo.com/test_post")
 
 
 @httprettified
@@ -332,4 +332,4 @@ def test_httpretty_should_allow_registering_regexes():
     got = fd.read()
     fd.close()
 
-    expect(got).to.equal("Found brand")
+    expect(got).to.equal(b"Found brand")

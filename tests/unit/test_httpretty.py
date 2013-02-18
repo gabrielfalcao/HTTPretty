@@ -27,7 +27,7 @@
 from __future__ import unicode_literals
 
 from sure import expect
-from httpretty import HTTPretty, HTTPrettyError, STATUSES
+from httpretty import HTTPretty, HTTPrettyError, STATUSES, URIInfo
 
 
 def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
@@ -49,6 +49,7 @@ def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
 
 def test_does_not_have_last_request_by_default():
     u'HTTPretty.last_request is a dummy object by default'
+    HTTPretty.reset()
 
     expect(HTTPretty.last_request.headers).to.be.empty
     expect(HTTPretty.last_request.body).to.be.empty
@@ -134,3 +135,21 @@ def test_status_codes():
         598: "Network read timeout error",
         599: "Network connect timeout error",
     })
+
+
+def test_uri_info_full_url():
+    uri_info = URIInfo(
+            username='johhny',
+            password='password',
+            hostname=b'google.com',
+            port=80,
+            path=b'/',
+            query=b'foo=bar&baz=test',
+            fragment='',
+            scheme='',
+        )
+
+    expect(uri_info.full_url()).to.equal(
+        "http://johhny:password@google.com/?foo=bar&baz=test"
+    )
+
