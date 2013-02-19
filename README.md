@@ -1,10 +1,18 @@
 # HTTPretty
-> Version 0.5.9
+> Version 0.5.10
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 
 
+# New in version 0.5.10
+
+* Support to multiple methods per registered URL. Thanks @hughsaunders
+
 # New in version 0.5.9
+
+* Fixed python 3 support. Thanks @spulec
+
+# New in version 0.5.8
 
 * Support to [register regular expressions to match urls](#matching-regular-expressions)
 * [Body callback](#dynamic-responses-through-callbacks) suppport
@@ -363,7 +371,7 @@ make unit functional
 # License
 
     <HTTPretty - HTTP client mock for Python>
-    Copyright (C) <2011-2012>  Gabriel Falcão <gabriel@nacaolivre.org>
+    Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -385,3 +393,13 @@ make unit functional
     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     OTHER DEALINGS IN THE SOFTWARE.
+
+
+# Main contributors
+
+There folks made a remarkable contribution to HTTPretty:
+
+* Steve Pulec ~> @spulec
+* Hugh Saunders ~> @hughsaunders
+* Matt Luongo ~> @mhluongo
+* James Rowe ~> @JNRowe
