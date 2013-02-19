@@ -450,3 +450,35 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
     for method in methods:
         request_action = getattr(requests, method.lower())
         expect(request_action(url).text).to.equal(method)
+
+
+@httprettified
+def test_httpretty_should_allow_multiple_responses_with_multiple_methods():
+    u"HTTPretty should allow multiple responses when binding multiple methods to the same uri"
+
+    url = 'http://test.com/list'
+
+    #add get responses
+    HTTPretty.register_uri(HTTPretty.GET, url,
+                           responses=[HTTPretty.Response(body='a'),
+                                      HTTPretty.Response(body='b')
+                           ]
+    )
+
+    #add post responses
+    HTTPretty.register_uri(HTTPretty.POST, url,
+                           responses=[HTTPretty.Response(body='c'),
+                                      HTTPretty.Response(body='d')
+                           ]
+    )
+
+    expect(requests.get(url).text).to.equal('a')
+    expect(requests.post(url).text).to.equal('c')
+
+    expect(requests.get(url).text).to.equal('b')
+    expect(requests.get(url).text).to.equal('b')
+    expect(requests.get(url).text).to.equal('b')
+
+    expect(requests.post(url).text).to.equal('d')
+    expect(requests.post(url).text).to.equal('d')
+    expect(requests.post(url).text).to.equal('d')
