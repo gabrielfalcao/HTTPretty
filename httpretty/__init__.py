@@ -692,7 +692,7 @@ class URIMatcher(object):
                              % (method, self))
 
         entry = entries_for_method[self.current_entries[method]]
-        if self.current_entries != -1:
+        if self.current_entries[method] != -1:
             self.current_entries[method] += 1
         return entry
 
