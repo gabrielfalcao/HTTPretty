@@ -101,6 +101,11 @@ except ImportError:
     ssl = None
 
 
+ClassTypes = (type,)
+if not PY3:
+    ClassTypes = (type, types.ClassType)
+
+
 class HTTPrettyError(Exception):
     pass
 
@@ -851,12 +856,29 @@ class HTTPretty(Py3kObject):
 
 def httprettified(test):
     "A decorator tests that use HTTPretty"
-    @functools.wraps(test)
-    def wrapper(*args, **kw):
-        HTTPretty.reset()
-        HTTPretty.enable()
-        try:
-            return test(*args, **kw)
-        finally:
-            HTTPretty.disable()
-    return wrapper
+    def decorate_class(klass):
+        for attr in dir(klass):
+            if not attr.startswith('test_'):
+                continue
+
+            attr_value = getattr(klass, attr)
+            if not hasattr(attr_value, "__call__"):
+                continue
+
+            setattr(klass, attr, decorate_callable(attr_value))
+        return klass
+
+    def decorate_callable(test):
+        @functools.wraps(test)
+        def wrapper(*args, **kw):
+            HTTPretty.reset()
+            HTTPretty.enable()
+            try:
+                return test(*args, **kw)
+            finally:
+                HTTPretty.disable()
+        return wrapper
+
+    if isinstance(test, ClassTypes):
+        return decorate_class(test)
+    return decorate_callable(test)
