@@ -139,17 +139,24 @@ def test_status_codes():
 
 def test_uri_info_full_url():
     uri_info = URIInfo(
-            username='johhny',
-            password='password',
-            hostname=b'google.com',
-            port=80,
-            path=b'/',
-            query=b'foo=bar&baz=test',
-            fragment='',
-            scheme='',
-        )
+        username='johhny',
+        password='password',
+        hostname=b'google.com',
+        port=80,
+        path=b'/',
+        query=b'foo=bar&baz=test',
+        fragment='',
+        scheme='',
+    )
 
     expect(uri_info.full_url()).to.equal(
         "http://johhny:password@google.com/?foo=bar&baz=test"
     )
 
+
+def test_global_boolean_enabled():
+    expect(HTTPretty.is_enabled()).to.be.falsy
+    HTTPretty.enable()
+    expect(HTTPretty.is_enabled()).to.be.truthy
+    HTTPretty.disable()
+    expect(HTTPretty.is_enabled()).to.be.falsy

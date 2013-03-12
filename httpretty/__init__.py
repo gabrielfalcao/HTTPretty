@@ -720,6 +720,7 @@ class HTTPretty(Py3kObject):
     PATCH = b'PATCH'
     METHODS = (GET, PUT, POST, DELETE, HEAD, PATCH)
     last_request = HTTPrettyRequestEmpty()
+    _is_enabled = False
 
     @classmethod
     def reset(cls):
@@ -782,6 +783,7 @@ class HTTPretty(Py3kObject):
 
     @classmethod
     def disable(cls):
+        cls._is_enabled = False
         socket.socket = old_socket
         socket.SocketType = old_socket
         socket._socketobject = old_socket
@@ -817,7 +819,12 @@ class HTTPretty(Py3kObject):
                 ssl.__dict__['sslwrap_simple'] = old_sslwrap_simple
 
     @classmethod
+    def is_enabled(cls):
+        return cls._is_enabled
+
+    @classmethod
     def enable(cls):
+        cls._is_enabled = True
         socket.socket = fakesock.socket
         socket._socketobject = fakesock.socket
         socket.SocketType = fakesock.socket

@@ -299,6 +299,17 @@ def test_yipit_api_integration():
     expect(HTTPretty.last_request.headers['content-type']).to.equal('text/json')
 ```
 
+## checking if is enabled
+
+```python
+
+HTTPretty.enable()
+HTTPretty.is_enabled().should.be.true
+
+HTTPretty.disable()
+HTTPretty.is_enabled().should.be.false
+
+```
 # Motivation
 
 When building systems that access external resources such as RESTful
