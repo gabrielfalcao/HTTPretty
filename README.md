@@ -1,8 +1,12 @@
 # HTTPretty
-> Version 0.5.10
+> Version 0.5.11
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 
+
+# New in version 0.5.11
+
+* Ability to know whether HTTPretty is or not enabled through `HTTPretty.is_enabled()`
 
 # New in version 0.5.10
 
