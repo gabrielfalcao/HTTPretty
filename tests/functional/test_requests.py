@@ -500,3 +500,16 @@ def test_httpretty_should_allow_multiple_responses_with_multiple_methods():
     expect(requests.post(url).text).to.equal('d')
     expect(requests.post(url).text).to.equal('d')
     expect(requests.post(url).text).to.equal('d')
+
+
+@httprettified
+def test_httpretty_should_normalize_url_patching():
+    u"HTTPretty should normalize all url patching"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        "http://yipit.com/foo(bar)",
+        body="Find the best daily deals")
+
+    response = requests.get('http://yipit.com/foo%28bar%29')
+    expect(response.text).to.equal('Find the best daily deals')
