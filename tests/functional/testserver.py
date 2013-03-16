@@ -36,11 +36,14 @@ except ImportError:
     StringIO = StringIO.StringIO
 
 import time
+import socket
 from tornado.web import Application
 from tornado.web import RequestHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from multiprocessing import Process
+
+true_socket = socket.socket
 
 
 class BubblesHandler(RequestHandler):
@@ -53,7 +56,7 @@ class ComeHandler(RequestHandler):
         self.write("<- HELLO WORLD ->")
 
 
-class Server(object):
+class TornadoServer(object):
     is_running = False
 
     def __init__(self, port):
@@ -90,3 +93,61 @@ class Server(object):
             self.process.terminate()
         finally:
             self.is_running = False
+
+
+class TCPServer(object):
+    def __init__(self, port):
+        self.port = int(port)
+
+    def start(self):
+        def go(port):
+            from httpretty import HTTPretty
+            HTTPretty.disable()
+            import socket
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind(('localhost', port))
+            s.listen(True)
+            conn, addr = s.accept()
+
+            while True:
+                data = conn.recv(1024)
+                conn.send("RECEIVED: " + data)
+
+                print "*" * 100
+                print data
+                print "*" * 100
+
+            conn.close()
+
+        args = [self.port]
+        self.process = Process(target=go, args=args)
+        self.process.start()
+        time.sleep(0.4)
+
+    def stop(self):
+        try:
+            os.kill(self.process.pid, 9)
+        except OSError:
+            self.process.terminate()
+        finally:
+            self.is_running = False
+
+
+class TCPClient(object):
+    def __init__(self, port):
+        self.port = int(port)
+        self.sock = true_socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect(('localhost', self.port))
+
+    def send(self, what):
+        self.sock.sendall(str(what))
+        return self.sock.recv(len(what) + 11)
+
+    def close(self):
+        try:
+            self.sock.close()
+        except socket.error:
+            pass  # already closed
+
+    def __del__(self):
+        self.close()

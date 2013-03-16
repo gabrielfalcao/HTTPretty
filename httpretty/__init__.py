@@ -25,7 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-version = '0.5.11'
+version = '0.5.12'
 
 import re
 import inspect
@@ -104,6 +104,9 @@ except ImportError:
 ClassTypes = (type,)
 if not PY3:
     ClassTypes = (type, types.ClassType)
+
+
+POTENTIAL_HTTP_PORTS = [80, 443]
 
 
 class HTTPrettyError(Exception):
@@ -202,6 +205,7 @@ class fakesock(object):
             self.fd = FakeSockFile()
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
             self._sock = self
+            self.is_http = False
 
         def getpeercert(self, *a, **kw):
             now = datetime.now()
@@ -238,6 +242,9 @@ class fakesock(object):
         def connect(self, address):
             self._address = (self._host, self._port) = address
             self._closed = False
+            self.is_http = self._port in POTENTIAL_HTTP_PORTS
+            if not self.is_http:
+                self.truesock.connect(self._address)
 
         def close(self):
             if not self._closed:
@@ -254,17 +261,22 @@ class fakesock(object):
             return self.fd
 
         def _true_sendall(self, data, *args, **kw):
-            self.truesock.connect(self._address)
+            if self.is_http:
+                self.truesock.connect(self._address)
+
             self.truesock.sendall(data, *args, **kw)
-            _d = self.truesock.recv(16)
-            self.fd.seek(0)
-            self.fd.write(_d)
+
+            _d = True
             while _d:
-                _d = self.truesock.recv(16)
-                self.fd.write(_d)
+                try:
+                    _d = self.truesock.recv(16)
+                    self.truesock.settimeout(0.0)
+                    self.fd.write(_d)
+
+                except socket.error:
+                    break
 
             self.fd.seek(0)
-            self.truesock.close()
 
         def sendall(self, data, *args, **kw):
 
@@ -293,7 +305,7 @@ class fakesock(object):
 
             # path might come with
             s = urlsplit(path)
-
+            POTENTIAL_HTTP_PORTS.append(int(s.port or 80))
             headers, body = map(utf8, data.split(b'\r\n\r\n', 1))
 
             request = HTTPretty.historify_request(headers, body)
@@ -640,6 +652,7 @@ class URIInfo(Py3kObject):
     @classmethod
     def from_uri(cls, uri, entry):
         result = urlsplit(uri)
+        POTENTIAL_HTTP_PORTS.append(int(result.port or 80))
         return cls(result.username,
                    result.password,
                    result.hostname,

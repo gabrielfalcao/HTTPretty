@@ -31,24 +31,37 @@ try:
 except ImportError:
     import urllib2
 
-from .testserver import Server
+from .testserver import TornadoServer, TCPServer, TCPClient
 from sure import expect, that_with_context
 from httpretty import HTTPretty, httprettified
 
 
-def start_server(context):
-    context.server = Server(9999)
+def start_http_server(context):
+    context.server = TornadoServer(9999)
     context.server.start()
     HTTPretty.enable()
 
 
-def stop_server(context):
+def stop_http_server(context):
     context.server.stop()
     HTTPretty.enable()
 
 
+def start_tcp_server(context):
+    context.server = TCPServer(8888)
+    context.server.start()
+    context.client = TCPClient(8888)
+    HTTPretty.enable()
+
+
+def stop_tcp_server(context):
+    context.server.stop()
+    context.client.close()
+    HTTPretty.enable()
+
+
 @httprettified
-@that_with_context(start_server, stop_server)
+@that_with_context(start_http_server, stop_http_server)
 def test_httpretty_bypasses_when_disabled(context):
     u"HTTPretty should bypass all requests by disabling it"
 
@@ -81,7 +94,7 @@ def test_httpretty_bypasses_when_disabled(context):
 
 
 @httprettified
-@that_with_context(start_server, stop_server)
+@that_with_context(start_http_server, stop_http_server)
 def test_httpretty_bypasses_a_unregistered_request(context):
     u"HTTPretty should bypass a unregistered request by disabling it"
 
@@ -100,3 +113,21 @@ def test_httpretty_bypasses_a_unregistered_request(context):
     fd.close()
 
     expect(got2).to.equal(b'<- HELLO WORLD ->')
+
+
+@httprettified
+@that_with_context(start_tcp_server, stop_tcp_server)
+def test_using_httpretty_with_other_tcp_protocols(context):
+    u"HTTPretty should bypass a unregistered request by disabling it"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET, "http://falcao.it/foo/",
+        body="BAR")
+
+    fd = urllib2.urlopen('http://falcao.it/foo/')
+    got1 = fd.read()
+    fd.close()
+
+    expect(got1).to.equal(b'BAR')
+
+    expect(context.client.send("foobar")).to.equal("RECEIVED: foobar")
