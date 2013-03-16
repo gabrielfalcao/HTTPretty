@@ -1,8 +1,13 @@
 # HTTPretty
-> Version 0.5.11
+> Version 0.5.12
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 
+
+# New in version 0.5.12
+
+* HTTPretty doesn't hang when using other application protocols under
+  a @httprettified decorated test.
 
 # New in version 0.5.11
 
