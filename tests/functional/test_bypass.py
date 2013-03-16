@@ -118,7 +118,7 @@ def test_httpretty_bypasses_a_unregistered_request(context):
 @httprettified
 @that_with_context(start_tcp_server, stop_tcp_server)
 def test_using_httpretty_with_other_tcp_protocols(context):
-    u"HTTPretty should bypass a unregistered request by disabling it"
+    u"HTTPretty should work even when testing code that also use other TCP-based protocols"
 
     HTTPretty.register_uri(
         HTTPretty.GET, "http://falcao.it/foo/",
