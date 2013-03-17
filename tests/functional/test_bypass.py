@@ -130,4 +130,4 @@ def test_using_httpretty_with_other_tcp_protocols(context):
 
     expect(got1).to.equal(b'BAR')
 
-    expect(context.client.send("foobar")).to.equal("RECEIVED: foobar")
+    expect(context.client.send("foobar")).to.equal(b"RECEIVED: foobar")

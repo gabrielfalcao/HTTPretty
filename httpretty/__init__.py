@@ -66,9 +66,10 @@ class Py3kObject(object):
 from datetime import datetime
 from datetime import timedelta
 try:
-    from urllib.parse import urlsplit, parse_qs
+    from urllib.parse import urlsplit, urlunsplit, parse_qs, quote, quote_plus
 except ImportError:
-    from urlparse import urlsplit, parse_qs
+    from urlparse import urlsplit, urlunsplit, parse_qs
+    from urllib import quote, quote_plus
 
 try:
     from http.server import BaseHTTPRequestHandler
@@ -582,6 +583,13 @@ class Entry(Py3kObject):
         fk.seek(0)
 
 
+def url_fix(s, charset='utf-8'):
+    scheme, netloc, path, querystring, fragment = urlsplit(s)
+    path = quote(path, b'/%')
+    querystring = quote_plus(querystring, b':&=')
+    return urlunsplit((scheme, netloc, path, querystring, fragment))
+
+
 class URIInfo(Py3kObject):
     def __init__(self,
                  username='',
@@ -626,8 +634,16 @@ class URIInfo(Py3kObject):
         return hash(text_type(self))
 
     def __eq__(self, other):
-        self_tuple = (self.port, decode_utf8(self.hostname), decode_utf8(self.path))
-        other_tuple = (other.port, decode_utf8(other.hostname), decode_utf8(other.path))
+        self_tuple = (
+            self.port,
+            decode_utf8(self.hostname),
+            url_fix(decode_utf8(self.path)),
+        )
+        other_tuple = (
+            other.port,
+            decode_utf8(other.hostname),
+            url_fix(decode_utf8(other.path)),
+        )
         return self_tuple == other_tuple
 
     def full_url(self):

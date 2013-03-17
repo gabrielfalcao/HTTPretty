@@ -27,6 +27,7 @@
 from __future__ import unicode_literals
 
 import os
+import sys
 
 try:
     import io
@@ -42,6 +43,21 @@ from tornado.web import RequestHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from multiprocessing import Process
+
+PY3 = sys.version_info[0] == 3
+if PY3:
+    text_type = str
+    byte_type = bytes
+else:
+    text_type = unicode
+    byte_type = str
+
+
+def utf8(s):
+    if isinstance(s, text_type):
+        s = s.encode('utf-8')
+
+    return byte_type(s)
 
 true_socket = socket.socket
 
@@ -111,11 +127,11 @@ class TCPServer(object):
 
             while True:
                 data = conn.recv(1024)
-                conn.send("RECEIVED: " + data)
+                conn.send(b"RECEIVED: " + data)
 
-                print "*" * 100
-                print data
-                print "*" * 100
+                print("*" * 100)
+                print(data)
+                print("*" * 100)
 
             conn.close()
 
@@ -140,7 +156,7 @@ class TCPClient(object):
         self.sock.connect(('localhost', self.port))
 
     def send(self, what):
-        self.sock.sendall(str(what))
+        self.sock.sendall(utf8(what))
         return self.sock.recv(len(what) + 11)
 
     def close(self):
