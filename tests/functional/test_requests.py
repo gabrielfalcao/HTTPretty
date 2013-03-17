@@ -390,12 +390,12 @@ def test_multipart():
 
 @httprettified
 @within(two=microseconds)
-def test_callback_response(now):
+def test_basic_callback_response(now):
     (u"HTTPretty should all a callback function to be set as the body with"
      " requests")
 
-    def request_callback(method, uri, headers):
-        return "The {0} response from {1}".format(decode_utf8(method), uri)
+    def request_callback(uri, method, body, headers):
+        return "The {0} response from {1}".format(decode_utf8(method), uri.full_url())
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -415,6 +415,41 @@ def test_callback_response(now):
     )
 
     expect(response.text).to.equal("The POST response from https://api.yahoo.com/test_post")
+
+
+@httprettified
+@within(two=microseconds)
+def test_advanced_callback_response(now):
+    (u"HTTPretty should all a callback function to be set as the body with"
+     " requests. This request should have access to the request url, the"
+     " request body, and all headers.")
+
+    def request_callback(uri, method, body, headers):
+        foo_header_regex = re.compile('X-foo: (.*?)\r\n')
+        match = foo_header_regex.search(decode_utf8(headers))
+
+        result = "Response from {0} with body:'{1}' and headers:'{2}'".format(
+            uri.full_url(),
+            decode_utf8(body),
+            match.groups()[0],
+        )
+        import pdb;pdb.set_trace()
+        return result
+
+    HTTPretty.register_uri(
+        HTTPretty.POST, "https://api.yahoo.com/test",
+        body=request_callback)
+
+    response = requests.post(
+        "https://api.yahoo.com/test",
+        {"username": "gabrielfalcao"},
+        headers={'X-foo': 'bar'},
+    )
+
+    expect(response.text).to.equal(
+        "Response from https://api.yahoo.com/test with body:"
+        "'username=gabrielfalcao' and headers:'bar'"
+    )
 
 
 @httprettified
