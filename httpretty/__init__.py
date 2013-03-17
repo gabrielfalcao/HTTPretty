@@ -42,6 +42,8 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     text_type = str
     byte_type = bytes
+    basestring = (str, bytes)
+
     import io
     StringIO = io.BytesIO
 
@@ -256,7 +258,7 @@ class fakesock(object):
             self._bufsize = bufsize
 
             if self._entry:
-                self._entry.fill_filekind(self.fd)
+                self._entry.fill_filekind(self.fd, self._request)
 
             return self.fd
 
@@ -296,6 +298,19 @@ class fakesock(object):
             if not is_parsing_headers:
                 if len(self._sent_data) > 1:
                     headers, body = map(utf8, self._sent_data[-2:])
+
+                    method, path, version = parse_requestline(headers)
+                    split_url = urlsplit(path)
+
+                    info = URIInfo(hostname=self._host, port=self._port,
+                                   path=split_url.path,
+                                   query=split_url.query)
+
+                    # If we are sending more data to a dynamic response entry,
+                    # we need to call the method again.
+                    if self._entry and self._entry.dynamic_response:
+                        self._entry.body(info, method, body, headers)
+
                     try:
                         return HTTPretty.historify_request(headers, body, False)
 
@@ -328,6 +343,7 @@ class fakesock(object):
                 return
 
             self._entry = matcher.get_next_entry(method)
+            self._request = (info, body, headers)
 
         def debug(*a, **kw):
             frame = inspect.stack()[0][0]
@@ -465,16 +481,19 @@ class Entry(Py3kObject):
         self.method = method
         self.uri = uri
 
-        if isinstance(body, types.FunctionType):
-            self.body = body(method, uri, headers)
+        if callable(body):
+            self.dynamic_response = True
         else:
-            self.body = body
+            self.dynamic_response = False
 
+        self.body = body
         self.streaming = streaming
-        if not streaming:
-            self.body_length = len(self.body or '')
-        else:
+
+        if self.dynamic_response or self.streaming:
             self.body_length = 0
+        else:
+            self.body_length = len(self.body or '')
+
         self.adding_headers = adding_headers or {}
         self.forcing_headers = forcing_headers or {}
         self.status = int(status)
@@ -524,7 +543,7 @@ class Entry(Py3kObject):
 
         return new
 
-    def fill_filekind(self, fk):
+    def fill_filekind(self, fk, request):
         now = datetime.utcnow()
 
         headers = {
@@ -536,6 +555,17 @@ class Entry(Py3kObject):
 
         if self.forcing_headers:
             headers = self.forcing_headers
+
+        if self.dynamic_response:
+            req_info, req_body, req_headers = request
+            response = self.body(req_info, self.method, req_body, req_headers)
+            if isinstance(response, basestring):
+                body = response
+            else:
+                body, new_headers = response
+                headers.update(new_headers)
+        else:
+            body = self.body
 
         if self.adding_headers:
             headers.update(self.normalize_headers(self.adding_headers))
@@ -554,7 +584,10 @@ class Entry(Py3kObject):
             content_type = headers.pop('content-type',
                                        'text/plain; charset=utf-8')
 
-            content_length = headers.pop('content-length', self.body_length)
+            body_length = self.body_length
+            if self.dynamic_response:
+                body_length = len(body)
+            content_length = headers.pop('content-length', body_length)
 
             string_list.append('content-type: %s' % content_type)
             if not self.streaming:
@@ -573,11 +606,11 @@ class Entry(Py3kObject):
         fk.write(b'\r\n')
 
         if self.streaming:
-            self.body, body = itertools.tee(self.body)
+            self.body, body = itertools.tee(body)
             for chunk in body:
                 fk.write(utf8(chunk))
         else:
-            fk.write(utf8(self.body))
+            fk.write(utf8(body))
 
         fk.seek(0)
 

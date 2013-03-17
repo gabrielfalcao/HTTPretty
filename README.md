@@ -249,7 +249,7 @@ from httpretty import HTTPretty, httprettified
 @httprettified
 def test_response_callbacks():
 
-    def request_callback(method, uri, headers):
+    def request_callback(uri, method, body, headers):
         return "The {} response from {}".format(method, uri)
 
     HTTPretty.register_uri(

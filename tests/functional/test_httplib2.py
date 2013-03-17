@@ -266,8 +266,8 @@ def test_callback_response(now):
     (u"HTTPretty should all a callback function to be set as the body with"
       " httplib2")
 
-    def request_callback(method, uri, headers):
-        return "The {0} response from {1}".format(decode_utf8(method), uri)
+    def request_callback(uri, method, body, headers):
+        return "The {0} response from {1}".format(decode_utf8(method), uri.full_url())
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
