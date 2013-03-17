@@ -150,7 +150,7 @@ def test_uri_info_full_url():
     )
 
     expect(uri_info.full_url()).to.equal(
-        "http://johhny:password@google.com/?foo=bar&baz=test"
+        "http://johhny:password@google.com/"
     )
 
 

@@ -435,6 +435,24 @@ def test_httpretty_should_allow_registering_regexes():
 
 
 @httprettified
+def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
+    u"HTTPretty should provide an easy access to the querystring with regexes"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("https://api.yipit.com/v1/(?P<endpoint>\w+)/"),
+        body="Find the best daily deals"
+    )
+
+    response = requests.get('https://api.yipit.com/v1/deals/?foo=bar&foo=baz&chuck=norris')
+    expect(response.text).to.equal("Find the best daily deals")
+    expect(HTTPretty.last_request.querystring).to.equal({
+        'foo': ['bar', 'baz'],
+        'chuck': ['norris'],
+    })
+
+
+@httprettified
 def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
     u"HTTPretty should allow registering multiple methods for the same uri"
 
