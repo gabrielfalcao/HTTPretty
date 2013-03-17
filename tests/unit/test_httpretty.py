@@ -156,6 +156,23 @@ def test_uri_info_full_url():
     )
 
 
+def test_uri_info_full_url_without_querystring():
+    uri_info = URIInfo(
+        username='johhny',
+        password='password',
+        hostname=b'google.com',
+        port=80,
+        path=b'/',
+        query=b'foo=bar&baz=test',
+        fragment='',
+        scheme='',
+    )
+
+    expect(uri_info.full_url(use_querystring=False)).to.equal(
+        "http://johhny:password@google.com/"
+    )
+
+
 def test_global_boolean_enabled():
     expect(HTTPretty.is_enabled()).to.be.falsy
     HTTPretty.enable()
