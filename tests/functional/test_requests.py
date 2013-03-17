@@ -433,7 +433,6 @@ def test_advanced_callback_response(now):
             decode_utf8(body),
             match.groups()[0],
         )
-        import pdb;pdb.set_trace()
         return result
 
     HTTPretty.register_uri(
