@@ -418,6 +418,25 @@ def test_callback_response(now):
 
 @httprettified
 @within(two=microseconds)
+def test_callback_body_remains_callable_for_any_subsequent_requests(now):
+    (u"HTTPretty should call a callback function more than one" 
+     " requests")
+
+    def request_callback(request, uri, headers):
+        return [200, headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+
+    HTTPretty.register_uri(
+        HTTPretty.GET, "https://api.yahoo.com/test",
+        body=request_callback)
+
+    response = requests.get('https://api.yahoo.com/test')
+    expect(response.text).to.equal("The GET response from https://api.yahoo.com/test")
+
+    response = requests.get('https://api.yahoo.com/test')
+    expect(response.text).to.equal("The GET response from https://api.yahoo.com/test")
+
+@httprettified
+@within(two=microseconds)
 def test_callback_setting_headers_and_status_response(now):
     (u"HTTPretty should call a callback function and uses it retur tuple as status code, headers and body"
      " requests")
