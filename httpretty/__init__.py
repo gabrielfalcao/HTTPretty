@@ -320,7 +320,6 @@ class fakesock(object):
             for matcher, value in HTTPretty._entries.items():
                 if matcher.matches(info):
                     entries = value
-                    info = matcher.info
                     break
 
             if not entries:
@@ -328,6 +327,13 @@ class fakesock(object):
                 return
 
             self._entry = matcher.get_next_entry(method)
+            # Attach more info to the entry
+            # So the callback can be more clever about what to do
+            # This does also fix the case where the callback
+            # would be handed a compiled regex as uri instead of the 
+            # real uri
+            self._entry.info = info
+            self._entry.request = request
 
         def debug(*a, **kw):
             frame = inspect.stack()[0][0]
@@ -464,17 +470,21 @@ class Entry(Py3kObject):
 
         self.method = method
         self.uri = uri
+        self.info = None
+        self.request = None
 
-        if isinstance(body, types.FunctionType):
-            self.body = body(method, uri, headers)
-        else:
-            self.body = body
+        self.body_is_callable = False 
+        if hasattr(body,"__call__"):
+            self.body_is_callable = True
+
+        self.body = body
 
         self.streaming = streaming
-        if not streaming:
+        if not streaming and not self.body_is_callable:
             self.body_length = len(self.body or '')
         else:
             self.body_length = 0
+
         self.adding_headers = adding_headers or {}
         self.forcing_headers = forcing_headers or {}
         self.status = int(status)
@@ -541,8 +551,11 @@ class Entry(Py3kObject):
             headers.update(self.normalize_headers(self.adding_headers))
 
         headers = self.normalize_headers(headers)
-
         status = headers.get('status', self.status)
+        if self.body_is_callable:
+            status, headers, self.body = self.body(self.request,self.info.full_url(),headers)
+            headers.update({'content-length':len(self.body)})
+        
         string_list = [
             'HTTP/1.1 %d %s' % (status, STATUSES[status]),
         ]
