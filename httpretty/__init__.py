@@ -476,6 +476,8 @@ class Entry(Py3kObject):
 
         self.body_is_callable = False 
         if hasattr(body,"__call__"):
+            self.callable_body = body
+            self.body = None
             self.body_is_callable = True
 
         self.body = body
@@ -554,7 +556,7 @@ class Entry(Py3kObject):
         headers = self.normalize_headers(headers)
         status = headers.get('status', self.status)
         if self.body_is_callable:
-            status, headers, self.body = self.body(self.request,self.info.full_url(),headers)
+            status, headers, self.body = self.callable_body(self.request,self.info.full_url(),headers)
             headers.update({'content-length':len(self.body)})
         
         string_list = [
