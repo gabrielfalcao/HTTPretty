@@ -391,11 +391,11 @@ def test_multipart():
 @httprettified
 @within(two=microseconds)
 def test_callback_response(now):
-    (u"HTTPretty should all a callback function to be set as the body with"
+    (u"HTTPretty should call a callback function and set its return value as the body of the response"
      " requests")
 
-    def request_callback(method, uri, headers):
-        return "The {0} response from {1}".format(decode_utf8(method), uri)
+    def request_callback(request, uri, headers):
+        return [200, headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -416,6 +416,53 @@ def test_callback_response(now):
 
     expect(response.text).to.equal("The POST response from https://api.yahoo.com/test_post")
 
+@httprettified
+@within(two=microseconds)
+def test_callback_setting_headers_and_status_response(now):
+    (u"HTTPretty should call a callback function and uses it retur tuple as status code, headers and body"
+     " requests")
+
+    def request_callback(request, uri, headers):
+        headers.update({'a':'b'})
+        return [418,headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+
+    HTTPretty.register_uri(
+        HTTPretty.GET, "https://api.yahoo.com/test",
+        body=request_callback)
+
+    response = requests.get('https://api.yahoo.com/test')
+    expect(response.text).to.equal("The GET response from https://api.yahoo.com/test")
+    expect(response.headers).to.have.key('a').being.equal("b")
+    expect(response.status_code).to.be(418)
+
+    HTTPretty.register_uri(
+        HTTPretty.POST, "https://api.yahoo.com/test_post",
+        body=request_callback)
+
+    response = requests.post(
+        "https://api.yahoo.com/test_post",
+        {"username": "gabrielfalcao"}
+    )
+
+    expect(response.text).to.equal("The POST response from https://api.yahoo.com/test_post")
+    expect(response.headers).to.have.key('a').being.equal("b")
+    expect(response.status_code).to.be(418)
+
+@httprettified
+def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_the_callback():
+    u"HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
+        body=lambda method,uri,headers: [200,headers,uri]
+    )
+
+    response = requests.get('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
+    expect(response.text).to.equal('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes():
