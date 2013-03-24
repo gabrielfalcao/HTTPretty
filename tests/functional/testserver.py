@@ -61,6 +61,11 @@ def utf8(s):
 
 true_socket = socket.socket
 
+PY3 = sys.version_info[0] == 3
+
+if not PY3:
+    bytes = lambda s, *args: str(s)
+
 
 class BubblesHandler(RequestHandler):
     def get(self):
@@ -127,7 +132,7 @@ class TCPServer(object):
 
             while True:
                 data = conn.recv(1024)
-                conn.send(b"RECEIVED: " + data)
+                conn.send(b"RECEIVED: " + bytes(data))
 
             conn.close()
 
@@ -152,8 +157,9 @@ class TCPClient(object):
         self.sock.connect(('localhost', self.port))
 
     def send(self, what):
-        self.sock.sendall(utf8(what))
-        return self.sock.recv(len(what) + 11)
+        data = bytes(what, 'utf-8')
+        self.sock.sendall(data)
+        return self.sock.recv(len(data) + 11)
 
     def close(self):
         try:
