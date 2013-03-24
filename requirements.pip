@@ -1,7 +1,5 @@
 coverage==3.5.3
 httplib2==0.7.6
-ipdb==0.7
-ipython==0.13.1
 misaka==1.0.2
 nose==1.2.1
 py==1.4.12
