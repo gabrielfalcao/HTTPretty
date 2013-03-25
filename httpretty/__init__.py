@@ -25,7 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-version = '0.5.12'
+version = '0.5.13'
 
 import re
 import inspect
