@@ -149,10 +149,11 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
     u"HTTPretty should allow adding and overwritting headers by " \
     "keyword args with urllib2"
 
+    body = "this is supposed to be the response, indeed"
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
-                           body="this is supposed to be the response, indeed",
+                           body=body,
                            server='Apache',
-                           content_length='111111',
+                           content_length=len(body),
                            content_type='application/json')
 
     request = urlopen('http://github.com')
@@ -163,7 +164,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
     expect(headers).to.equal({
         'content-type': 'application/json',
         'connection': 'close',
-        'content-length': '111111',
+        'content-length': str(len(body)),
         'status': '200',
         'server': 'Apache',
         'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
