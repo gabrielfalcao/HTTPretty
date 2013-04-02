@@ -480,7 +480,7 @@ class Entry(Py3kObject):
         self.status = int(status)
 
         for k, v in headers.items():
-            name = "-".join(k.split("_")).capitalize()
+            name = "-".join(k.split("_")).title()
             self.adding_headers[name] = v
 
         self.validate()

@@ -27,7 +27,7 @@
 from __future__ import unicode_literals
 
 from sure import expect
-from httpretty import HTTPretty, HTTPrettyError, STATUSES, URIInfo, Py3kObject
+from httpretty import HTTPretty, HTTPrettyError, STATUSES, URIInfo, Py3kObject, Entry
 
 
 def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
@@ -169,3 +169,14 @@ def test_py3kobject_implements_valid__repr__based_on__str__():
 
     myobj = MyObject()
     expect(repr(myobj)).to.be.equal('hi')
+
+
+def test_Entry_class_normalizes_headers():
+    entry = Entry(HTTPretty.GET, 'http://example.com', 'example',
+                  host='example.com', cache_control='no-cache', x_forward_for='proxy')
+
+    expect(entry.adding_headers).to.equal({
+        u'Host': u'example.com',
+        u'Cache-Control': u'no-cache',
+        u'X-Forward-For': u'proxy'
+    })
