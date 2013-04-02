@@ -61,7 +61,7 @@ class Py3kObject(object):
         if PY3:
             return ret
         else:
-            ret.encode('utf-8')
+            return ret.encode('utf-8')
 
 from datetime import datetime
 from datetime import timedelta
