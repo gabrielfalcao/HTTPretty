@@ -193,3 +193,9 @@ def test_fake_socket_passes_through_fileno():
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     expect(s.fileno).called_with().should_not.throw(AttributeError)
+
+def test_fake_socket_passes_through_getsockopt():
+    import socket
+    HTTPretty.enable()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    expect(s.getsockopt).called_with(socket.SOL_SOCKET, 1).should_not.throw(AttributeError)

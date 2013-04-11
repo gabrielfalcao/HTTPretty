@@ -360,6 +360,9 @@ class fakesock(object):
         def fileno(self, *args, **kwargs):
           return self.truesock.fileno(*args, **kwargs)
 
+        def getsockopt(self, *args, **kwargs):
+          return self.truesock.getsockopt(*args, **kwargs)
+
 def fake_wrap_socket(s, *args, **kw):
     return s
 
