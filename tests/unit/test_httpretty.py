@@ -25,7 +25,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
-
+from mock import MagicMock
 from sure import expect
 from httpretty import HTTPretty, HTTPrettyError, STATUSES, URIInfo, Py3kObject, Entry
 
@@ -186,63 +186,79 @@ def test_fake_socket_passes_through_setblocking():
     import socket
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.truesock = MagicMock()
     expect(s.setblocking).called_with(0).should_not.throw(AttributeError)
+    s.truesock.setblocking.assert_called_with(0)
 
 def test_fake_socket_passes_through_fileno():
     import socket
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.truesock = MagicMock()
     expect(s.fileno).called_with().should_not.throw(AttributeError)
+    s.truesock.fileno.assert_called_with()
+
 
 def test_fake_socket_passes_through_getsockopt():
     import socket
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.truesock = MagicMock()
     expect(s.getsockopt).called_with(socket.SOL_SOCKET, 1).should_not.throw(AttributeError)
+    s.truesock.getsockopt.assert_called_with(socket.SOL_SOCKET, 1)
 
 def test_fake_socket_passes_through_bind():
     import socket
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.truesock = MagicMock()
     expect(s.bind).called_with().should_not.throw(AttributeError)
+    s.truesock.bind.assert_called_with()
 
 def test_fake_socket_passes_through_connect_ex():
     import socket
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.truesock = MagicMock()
     expect(s.connect_ex).called_with().should_not.throw(AttributeError)
+    s.truesock.connect_ex.assert_called_with()
 
 def test_fake_socket_passes_through_listen():
     import socket
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.truesock = MagicMock()
     expect(s.listen).called_with().should_not.throw(AttributeError)
+    s.truesock.listen.assert_called_with()
 
 def test_fake_socket_passes_through_getpeername():
     import socket
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.truesock = MagicMock()
     expect(s.getpeername).called_with().should_not.throw(AttributeError)
+    s.truesock.getpeername.assert_called_with()
 
 def test_fake_socket_passes_through_getsockname():
     import socket
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.truesock = MagicMock()
     expect(s.getsockname).called_with().should_not.throw(AttributeError)
+    s.truesock.getsockname.assert_called_with()
 
 def test_fake_socket_passes_through_gettimeout():
     import socket
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.truesock = MagicMock()
     expect(s.gettimeout).called_with().should_not.throw(AttributeError)
+    s.truesock.gettimeout.assert_called_with()
 
 def test_fake_socket_passes_through_shutdown():
     import socket
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    def call_shutdown():
-      try:
-        s.shutdown(socket.SHUT_RD)
-      except
-      expect().called_with(socket.SHUT_RD).should_not.throw(AttributeError)
-    except
+    s.truesock = MagicMock()
+    expect(s.shutdown).called_with(socket.SHUT_RD).should_not.throw(AttributeError)
+    s.truesock.shutdown.assert_called_with(socket.SHUT_RD)
