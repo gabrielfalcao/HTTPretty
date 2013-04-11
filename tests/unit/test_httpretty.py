@@ -199,3 +199,50 @@ def test_fake_socket_passes_through_getsockopt():
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     expect(s.getsockopt).called_with(socket.SOL_SOCKET, 1).should_not.throw(AttributeError)
+
+def test_fake_socket_passes_through_bind():
+    import socket
+    HTTPretty.enable()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    expect(s.bind).called_with().should_not.throw(AttributeError)
+
+def test_fake_socket_passes_through_connect_ex():
+    import socket
+    HTTPretty.enable()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    expect(s.connect_ex).called_with().should_not.throw(AttributeError)
+
+def test_fake_socket_passes_through_listen():
+    import socket
+    HTTPretty.enable()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    expect(s.listen).called_with().should_not.throw(AttributeError)
+
+def test_fake_socket_passes_through_getpeername():
+    import socket
+    HTTPretty.enable()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    expect(s.getpeername).called_with().should_not.throw(AttributeError)
+
+def test_fake_socket_passes_through_getsockname():
+    import socket
+    HTTPretty.enable()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    expect(s.getsockname).called_with().should_not.throw(AttributeError)
+
+def test_fake_socket_passes_through_gettimeout():
+    import socket
+    HTTPretty.enable()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    expect(s.gettimeout).called_with().should_not.throw(AttributeError)
+
+def test_fake_socket_passes_through_shutdown():
+    import socket
+    HTTPretty.enable()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def call_shutdown():
+      try:
+        s.shutdown(socket.SHUT_RD)
+      except
+      expect().called_with(socket.SHUT_RD).should_not.throw(AttributeError)
+    except
