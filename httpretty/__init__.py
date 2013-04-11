@@ -347,14 +347,8 @@ class fakesock(object):
 
         sendto = send = recvfrom_into = recv_into = recvfrom = recv = debug
 
-        def setblocking(self, *args, **kwargs):
-          return self.truesock.setblocking(*args, **kwargs)
-
-        def fileno(self, *args, **kwargs):
-          return self.truesock.fileno(*args, **kwargs)
-
-        def getsockopt(self, *args, **kwargs):
-          return self.truesock.getsockopt(*args, **kwargs)
+        def __getattr__(self, name):
+          return getattr(self.truesock, name)
 
 def fake_wrap_socket(s, *args, **kw):
     return s
