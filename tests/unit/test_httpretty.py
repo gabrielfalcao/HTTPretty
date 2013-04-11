@@ -187,3 +187,9 @@ def test_fake_socket_passes_through_setblocking():
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     expect(s.setblocking).called_with(0).should_not.throw(AttributeError)
+
+def test_fake_socket_passes_through_fileno():
+    import socket
+    HTTPretty.enable()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    expect(s.fileno).called_with().should_not.throw(AttributeError)

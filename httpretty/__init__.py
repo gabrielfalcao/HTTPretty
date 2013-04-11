@@ -357,6 +357,9 @@ class fakesock(object):
         def setblocking(self, *args, **kwargs):
           return self.truesock.setblocking(*args, **kwargs)
 
+        def fileno(self, *args, **kwargs):
+          return self.truesock.fileno(*args, **kwargs)
+
 def fake_wrap_socket(s, *args, **kw):
     return s
 
