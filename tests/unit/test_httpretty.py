@@ -180,3 +180,10 @@ def test_Entry_class_normalizes_headers():
         u'Cache-Control': u'no-cache',
         u'X-Forward-For': u'proxy'
     })
+
+
+def test_fake_socket_passes_through_setblocking():
+    import socket
+    HTTPretty.enable()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    expect(s.setblocking).called_with(0).should_not.throw(AttributeError)
