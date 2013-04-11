@@ -347,6 +347,8 @@ class fakesock(object):
 
         sendto = send = recvfrom_into = recv_into = recvfrom = recv = debug
 
+        def __getattr__(self, name):
+          return getattr(self.truesock, name)
 
 def fake_wrap_socket(s, *args, **kw):
     return s
