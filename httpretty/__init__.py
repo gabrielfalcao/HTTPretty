@@ -669,16 +669,11 @@ class URIInfo(Py3kObject):
             credentials = "{0}:{1}@".format(
                 self.username, self.password)
 
-        query = ""
-        if self.query:
-            query = "?{0}".format(decode_utf8(self.query))
-
-        result = "{scheme}://{credentials}{host}{path}{query}".format(
+        result = "{scheme}://{credentials}{host}{path}".format(
             scheme=self.scheme,
             credentials=credentials,
             host=decode_utf8(self.hostname),
-            path=decode_utf8(self.path),
-            query=query
+            path=decode_utf8(self.path)
         )
         return result
 
