@@ -25,7 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-version = '0.5.13'
+version = '0.5.14'
 
 import re
 import inspect
@@ -331,7 +331,7 @@ class fakesock(object):
             # Attach more info to the entry
             # So the callback can be more clever about what to do
             # This does also fix the case where the callback
-            # would be handed a compiled regex as uri instead of the 
+            # would be handed a compiled regex as uri instead of the
             # real uri
             self._entry.info = info
             self._entry.request = request
@@ -476,7 +476,7 @@ class Entry(Py3kObject):
         self.info = None
         self.request = None
 
-        self.body_is_callable = False 
+        self.body_is_callable = False
         if hasattr(body,"__call__"):
             self.callable_body = body
             self.body = None
@@ -560,7 +560,7 @@ class Entry(Py3kObject):
         if self.body_is_callable:
             status, headers, self.body = self.callable_body(self.request,self.info.full_url(),headers)
             headers.update({'content-length':len(self.body)})
-        
+
         string_list = [
             'HTTP/1.1 %d %s' % (status, STATUSES[status]),
         ]

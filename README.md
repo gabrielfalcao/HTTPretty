@@ -1,27 +1,36 @@
 # HTTPretty
-> Version 0.5.13
+> Version 0.5.14
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 
+### New in version 0.5.14
 
-# New in version 0.5.12
+* Delegate calls to other methods on socket
+
+* [Normalized header](https://github.com/gabrielfalcao/HTTPretty/pull/49) strings
+
+* Callbacks are [more intelligent now](https://github.com/gabrielfalcao/HTTPretty/pull/47)
+
+* Normalize urls matching for url quoting
+
+### New in version 0.5.12
 
 * HTTPretty doesn't hang when using other application protocols under
   a @httprettified decorated test.
 
-# New in version 0.5.11
+### New in version 0.5.11
 
 * Ability to know whether HTTPretty is or not enabled through `HTTPretty.is_enabled()`
 
-# New in version 0.5.10
+### New in version 0.5.10
 
 * Support to multiple methods per registered URL. Thanks @hughsaunders
 
-# New in version 0.5.9
+### New in version 0.5.9
 
 * Fixed python 3 support. Thanks @spulec
 
-# New in version 0.5.8
+### New in version 0.5.8
 
 * Support to [register regular expressions to match urls](#matching-regular-expressions)
 * [Body callback](#dynamic-responses-through-callbacks) suppport
