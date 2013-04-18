@@ -1,40 +1,8 @@
-# HTTPretty
-> Version 0.5.14
+# HTTPretty 0.6.0
 
-[![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
+[![Build Status](https://secure.travis-ci.org/gabrielfalcao/httpretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 
-### New in version 0.5.14
-
-* Delegate calls to other methods on socket
-
-* [Normalized header](https://github.com/gabrielfalcao/HTTPretty/pull/49) strings
-
-* Callbacks are [more intelligent now](https://github.com/gabrielfalcao/HTTPretty/pull/47)
-
-* Normalize urls matching for url quoting
-
-### New in version 0.5.12
-
-* HTTPretty doesn't hang when using other application protocols under
-  a @httprettified decorated test.
-
-### New in version 0.5.11
-
-* Ability to know whether HTTPretty is or not enabled through `HTTPretty.is_enabled()`
-
-### New in version 0.5.10
-
-* Support to multiple methods per registered URL. Thanks @hughsaunders
-
-### New in version 0.5.9
-
-* Fixed python 3 support. Thanks @spulec
-
-### New in version 0.5.8
-
-* Support to [register regular expressions to match urls](#matching-regular-expressions)
-* [Body callback](#dynamic-responses-through-callbacks) suppport
-* Python 3 support
+[ChangeLog](NEWS.md)
 
 
 # In a nutshell
@@ -49,13 +17,12 @@ Don't worry, HTTPretty is here for you:
 ```python
 import requests
 from sure import expect
-from httpretty import HTTPretty
-from httpretty import httprettified
+import httpretty
 
 
-@httprettified
+@httpretty.activate
 def test_yipit_api_returning_deals():
-    HTTPretty.register_uri(HTTPretty.GET, "http://api.yipit.com/v1/deals/",
+    httpretty.register_uri(httpretty.GET, "http://api.yipit.com/v1/deals/",
                            body='[{"title": "Test Deal"}]',
                            content_type="application/json")
 
@@ -75,18 +42,18 @@ If you come from ruby this would probably sound familiar :smiley:
 
 ```python
 import requests
-from httpretty import HTTPretty
+import httpretty
 
 def test_one():
-    HTTPretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
-    HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
+    httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
+    httpretty.register_uri(httpretty.GET, "http://yipit.com/",
                            body="Find the best daily deals")
 
     response = requests.get('http://yipit.com')
 
     assert response.text == "Find the best daily deals"
 
-    HTTPretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
+    httpretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
 ```
 
 ## testing query strings
@@ -94,20 +61,20 @@ def test_one():
 ```python
 import requests
 from sure import expect
-from httpretty import HTTPretty
+import httpretty
 
 def test_one():
-    HTTPretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
-    HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/login",
+    httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
+    httpretty.register_uri(httpretty.GET, "http://yipit.com/login",
                            body="Find the best daily deals")
 
     requests.get('http://yipit.com/login?email=user@github.com&password=foobar123')
-    expect(HTTPretty.last_request).to.have.property("querystring").being.equal({
+    expect(httpretty.last_request).to.have.property("querystring").being.equal({
         "email": "user@github.com",
         "password": "foobar123",
     })
 
-    HTTPretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
+    httpretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
 ```
 
 
@@ -117,31 +84,31 @@ def test_one():
 
 ```python
 import requests
-from httpretty import HTTPretty, httprettified
+import httpretty
 
-@httprettified
+@httpretty.activate
 def test_one():
-    HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
+    httpretty.register_uri(httpretty.GET, "http://yipit.com/",
                            body="Find the best daily deals")
 
     response = requests.get('http://yipit.com')
     assert response.text == "Find the best daily deals"
 ```
 
-the `@httprettified` is a short-hand decorator that wraps the
-decorated function with HTTPretty.enable() and then calls
-HTTPretty.disable() right after.
+the `@httpretty.activate` is a short-hand decorator that wraps the
+decorated function with httpretty.enable() and then calls
+httpretty.disable() right after.
 
 ## mocking the status code
 
 ```python
 import requests
 from sure import expect
-from httpretty import HTTPretty, httprettified
+import httpretty
 
-@httprettified
+@httpretty.activate
 def test_github_access():
-    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+    httpretty.register_uri(httpretty.GET, "http://github.com/",
                            body="here is the mocked body",
                            status=201)
 
@@ -157,9 +124,9 @@ For example, let's say you want to mock that server returns `content-type`.
 To do so, use the argument `content_type`, **all the keyword args are taken by HTTPretty and transformed in the RFC2616 equivalent name**.
 
 ```python
-@httprettified
+@httpretty.activate
 def test_some_api():
-    HTTPretty.register_uri(HTTPretty.GET, "http://foo-api.com/gabrielfalcao",
+    httpretty.register_uri(httpretty.GET, "http://foo-api.com/gabrielfalcao",
                            body='{"success": false}',
                            status=500,
                            content_type='text/json')
@@ -173,7 +140,7 @@ def test_some_api():
 ## rotating responses
 
 Same URL, same request method, the first request return the first
-HTTPretty.Response, all the subsequent ones return the last (status 202).
+httpretty.Response, all the subsequent ones return the last (status 202).
 
 Notice that the `responses` argument is a list and you can pass as
 many responses as you want.
@@ -183,12 +150,12 @@ import requests
 from sure import expect
 
 
-@httprettified
+@httpretty.activate
 def test_rotating_responses():
-    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/gabrielfalcao/httpretty",
+    httpretty.register_uri(httpretty.GET, "http://github.com/gabrielfalcao/httpretty",
                            responses=[
-                               HTTPretty.Response(body="first response", status=201),
-                               HTTPretty.Response(body='second and last response', status=202),
+                               httpretty.Response(body="first response", status=201),
+                               httpretty.Response(body='second and last response', status=202),
                             ])
 
     response1 = requests.get('http://github.com/gabrielfalcao/httpretty')
@@ -211,7 +178,7 @@ Mock a streaming response by registering a generator response body.
 ```python
 import requests
 from sure import expect
-from httpretty import HTTPretty, httprettified
+import httpretty
 
 # mock a streaming response body with a generator
 def mock_streaming_tweets(tweets):
@@ -220,7 +187,7 @@ def mock_streaming_tweets(tweets):
         sleep(.5)
         yield t
 
-@httprettified
+@httpretty.activate
 def test_twitter_api_integration(now):
     twitter_response_lines = [
         '{"text":"If @BarackObama requests to follow me one more time I\'m calling the police."}\r\n',
@@ -231,7 +198,7 @@ def test_twitter_api_integration(now):
     TWITTER_STREAMING_URL = "https://stream.twitter.com/1/statuses/filter.json"
 
     # set the body to a generator and set `streaming=True` to mock a streaming response body
-    HTTPretty.register_uri(HTTPretty.POST, TWITTER_STREAMING_URL,
+    httpretty.register_uri(httpretty.POST, TWITTER_STREAMING_URL,
                            body=mock_streaming_tweets(twitter_response_lines),
                            streaming=True)
 
@@ -253,16 +220,16 @@ Set a callback to allow for dynamic responses based on the request.
 ```python
 import requests
 from sure import expect
-from httpretty import HTTPretty, httprettified
+import httpretty
 
-@httprettified
+@httpretty.activate
 def test_response_callbacks():
 
     def request_callback(method, uri, headers):
         return "The {} response from {}".format(method, uri)
 
-    HTTPretty.register_uri(
-        HTTPretty.GET, "https://api.yahoo.com/test",
+    httpretty.register_uri(
+        httpretty.GET, "https://api.yahoo.com/test",
         body=request_callback)
 
     response = requests.get('https://api.yahoo.com/test')
@@ -277,20 +244,20 @@ You can register a
 and it will be matched against the requested urls.
 
 ```python
-@httprettified
+@httpretty.activate
 def test_httpretty_should_allow_registering_regexes():
     u"HTTPretty should allow registering regexes"
 
-    HTTPretty.register_uri(
-        HTTPretty.GET,
+    httpretty.register_uri(
+        httpretty.GET,
         re.compile("api.yipit.com/v2/deal;brand=(\w+)"),
         body="Found brand",
     )
 
     response = requests.get('https://api.yipit.com/v2/deal;brand=GAP')
     expect(response.text).to.equal('Found brand')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=GAP')
+    expect(httpretty.last_request.method).to.equal('GET')
+    expect(httpretty.last_request.path).to.equal('/v1/deal;brand=GAP')
 ```
 
 ## expect for a response, and check the request got by the "server" to make sure it was fine.
@@ -298,12 +265,12 @@ def test_httpretty_should_allow_registering_regexes():
 ```python
 import requests
 from sure import expect
-from httpretty import HTTPretty, httprettified
+import httpretty
 
 
-@httprettified
+@httpretty.activate
 def test_yipit_api_integration():
-    HTTPretty.register_uri(HTTPretty.POST, "http://api.yipit.com/foo/",
+    httpretty.register_uri(httpretty.POST, "http://api.yipit.com/foo/",
                            body='{"repositories": ["HTTPretty", "lettuce"]}')
 
     response = requests.post('http://api.yipit.com/foo',
@@ -313,19 +280,19 @@ def test_yipit_api_integration():
                             })
 
     expect(response.text).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
-    expect(HTTPretty.last_request.method).to.equal("POST")
-    expect(HTTPretty.last_request.headers['content-type']).to.equal('text/json')
+    expect(httpretty.last_request.method).to.equal("POST")
+    expect(httpretty.last_request.headers['content-type']).to.equal('text/json')
 ```
 
 ## checking if is enabled
 
 ```python
 
-HTTPretty.enable()
-HTTPretty.is_enabled().should.be.true
+httpretty.enable()
+httpretty.is_enabled().should.be.true
 
-HTTPretty.disable()
-HTTPretty.is_enabled().should.be.false
+httpretty.disable()
+httpretty.is_enabled().should.be.false
 
 ```
 # Motivation
@@ -426,7 +393,7 @@ make unit functional
 
 # Main contributors
 
-There folks made a remarkable contribution to HTTPretty:
+There folks made remarkable contributions to HTTPretty:
 
 * Steve Pulec ~> @spulec
 * Hugh Saunders ~> @hughsaunders

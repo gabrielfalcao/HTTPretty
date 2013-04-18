@@ -31,7 +31,8 @@ from __future__ import unicode_literals
 import re
 import requests
 from sure import within, microseconds, expect
-from httpretty import HTTPretty, httprettified, decode_utf8
+from httpretty import HTTPretty, httprettified
+from httpretty.core import decode_utf8
 
 try:
     xrange = xrange
@@ -419,7 +420,7 @@ def test_callback_response(now):
 @httprettified
 @within(two=microseconds)
 def test_callback_body_remains_callable_for_any_subsequent_requests(now):
-    (u"HTTPretty should call a callback function more than one" 
+    (u"HTTPretty should call a callback function more than one"
      " requests")
 
     def request_callback(request, uri, headers):

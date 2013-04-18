@@ -25,18 +25,20 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-__version__ = version = '0.6.0'
+from .compat import (
+    byte_type, text_type
+)
 
-import sys
 
-from .core import httpretty, httprettified
-from .errors import HTTPrettyError
-from .core import URIInfo
+def utf8(s):
+    if isinstance(s, text_type):
+        s = s.encode('utf-8')
 
-HTTPretty = httpretty
-activate = httprettified
+    return byte_type(s)
 
-SELF = sys.modules[__name__]
 
-for attr in list(httpretty.METHODS) + ['register_uri', 'enable', 'disable', 'is_enabled', 'Response']:
-    setattr(SELF, attr, getattr(httpretty, attr))
+def decode_utf8(s):
+    if isinstance(s, byte_type):
+        s = s.decode("utf-8")
+
+    return text_type(s)

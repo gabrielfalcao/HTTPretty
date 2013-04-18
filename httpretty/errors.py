@@ -1,5 +1,6 @@
 # #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
 # <HTTPretty - HTTP client mock for Python>
 # Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
@@ -25,18 +26,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-__version__ = version = '0.6.0'
 
-import sys
-
-from .core import httpretty, httprettified
-from .errors import HTTPrettyError
-from .core import URIInfo
-
-HTTPretty = httpretty
-activate = httprettified
-
-SELF = sys.modules[__name__]
-
-for attr in list(httpretty.METHODS) + ['register_uri', 'enable', 'disable', 'is_enabled', 'Response']:
-    setattr(SELF, attr, getattr(httpretty, attr))
+class HTTPrettyError(Exception):
+    pass

@@ -27,7 +27,9 @@
 from __future__ import unicode_literals
 from mock import MagicMock
 from sure import expect
-from httpretty import HTTPretty, HTTPrettyError, STATUSES, URIInfo, Py3kObject, Entry
+from httpretty import HTTPretty, HTTPrettyError
+from httpretty.core import URIInfo, BaseClass, Entry
+from httpretty.http import STATUSES
 
 
 def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
@@ -163,7 +165,7 @@ def test_global_boolean_enabled():
 
 
 def test_py3kobject_implements_valid__repr__based_on__str__():
-    class MyObject(Py3kObject):
+    class MyObject(BaseClass):
         def __str__(self):
             return 'hi'
 
