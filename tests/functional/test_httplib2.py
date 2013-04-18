@@ -29,7 +29,8 @@ from __future__ import unicode_literals
 import re
 import httplib2
 from sure import expect, within, microseconds
-from httpretty import HTTPretty, httprettified, decode_utf8
+from httpretty import HTTPretty, httprettified
+from httpretty.core import decode_utf8
 
 
 @httprettified
@@ -42,6 +43,7 @@ def test_httpretty_should_mock_a_simple_get_with_httplib2_read(now):
 
     _, got = httplib2.Http().request('http://yipit.com', 'GET')
     expect(got).to.equal(b'Find the best daily deals')
+
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/')
 

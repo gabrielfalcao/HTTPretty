@@ -1,7 +1,7 @@
 # #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# <HTTPretty - HTTP client mock for Python>
+# <httpretty - HTTP client mock for Python>
 # Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
@@ -33,43 +33,44 @@ except ImportError:
 
 from .testserver import TornadoServer, TCPServer, TCPClient
 from sure import expect, that_with_context
-from httpretty import HTTPretty, httprettified
+
+import httpretty
 
 
 def start_http_server(context):
     context.server = TornadoServer(9999)
     context.server.start()
-    HTTPretty.enable()
+    httpretty.enable()
 
 
 def stop_http_server(context):
     context.server.stop()
-    HTTPretty.enable()
+    httpretty.enable()
 
 
 def start_tcp_server(context):
     context.server = TCPServer(8888)
     context.server.start()
     context.client = TCPClient(8888)
-    HTTPretty.enable()
+    httpretty.enable()
 
 
 def stop_tcp_server(context):
     context.server.stop()
     context.client.close()
-    HTTPretty.enable()
+    httpretty.enable()
 
 
-@httprettified
+@httpretty.activate
 @that_with_context(start_http_server, stop_http_server)
 def test_httpretty_bypasses_when_disabled(context):
-    u"HTTPretty should bypass all requests by disabling it"
+    u"httpretty should bypass all requests by disabling it"
 
-    HTTPretty.register_uri(
-        HTTPretty.GET, "http://localhost:9999/go-for-bubbles/",
+    httpretty.register_uri(
+        httpretty.GET, "http://localhost:9999/go-for-bubbles/",
         body="glub glub")
 
-    HTTPretty.disable()
+    httpretty.disable()
 
     fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
     got1 = fd.read()
@@ -84,7 +85,7 @@ def test_httpretty_bypasses_when_disabled(context):
 
     expect(got2).to.equal(b'<- HELLO WORLD ->')
 
-    HTTPretty.enable()
+    httpretty.enable()
 
     fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
     got3 = fd.read()
@@ -93,13 +94,13 @@ def test_httpretty_bypasses_when_disabled(context):
     expect(got3).to.equal(b'glub glub')
 
 
-@httprettified
+@httpretty.activate
 @that_with_context(start_http_server, stop_http_server)
 def test_httpretty_bypasses_a_unregistered_request(context):
-    u"HTTPretty should bypass a unregistered request by disabling it"
+    u"httpretty should bypass a unregistered request by disabling it"
 
-    HTTPretty.register_uri(
-        HTTPretty.GET, "http://localhost:9999/go-for-bubbles/",
+    httpretty.register_uri(
+        httpretty.GET, "http://localhost:9999/go-for-bubbles/",
         body="glub glub")
 
     fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
@@ -115,13 +116,13 @@ def test_httpretty_bypasses_a_unregistered_request(context):
     expect(got2).to.equal(b'<- HELLO WORLD ->')
 
 
-@httprettified
+@httpretty.activate
 @that_with_context(start_tcp_server, stop_tcp_server)
 def test_using_httpretty_with_other_tcp_protocols(context):
-    u"HTTPretty should work even when testing code that also use other TCP-based protocols"
+    u"httpretty should work even when testing code that also use other TCP-based protocols"
 
-    HTTPretty.register_uri(
-        HTTPretty.GET, "http://falcao.it/foo/",
+    httpretty.register_uri(
+        httpretty.GET, "http://falcao.it/foo/",
         body="BAR")
 
     fd = urllib2.urlopen('http://falcao.it/foo/')

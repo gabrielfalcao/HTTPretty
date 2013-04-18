@@ -34,7 +34,8 @@ except ImportError:
     urlopen = urllib2.urlopen
 
 from sure import *
-from httpretty import HTTPretty, httprettified, decode_utf8
+from httpretty import HTTPretty, httprettified
+from httpretty.core import decode_utf8
 
 
 @httprettified
