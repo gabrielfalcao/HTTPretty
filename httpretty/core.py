@@ -242,7 +242,7 @@ class fakesock(object):
                     headers = utf8(last_requestline(self._sent_data))
                     body = utf8(self._sent_data[-1])
 
-                    if self._entry.body_is_callable:
+                    if self._entry.body_is_callable and hasattr(self, 'callable_body'):
                         self.callable_body(self.request, self.info.full_url(), headers)
 
                     try:

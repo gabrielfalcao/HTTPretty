@@ -530,8 +530,8 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
     )
 
     def gen():
-        yield 'hi'
-        yield 'there'
+        yield b'hi'
+        yield b'there'
 
     response = requests.post(
         'https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris',
