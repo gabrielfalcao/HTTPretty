@@ -51,6 +51,7 @@ from .http import (
     STATUSES,
     HttpBaseClass,
     parse_requestline,
+    last_requestline,
 )
 
 from .utils import (
@@ -224,7 +225,6 @@ class fakesock(object):
         def sendall(self, data, *args, **kw):
 
             self._sent_data.append(data)
-            hostnames = [getattr(i.info, 'hostname', None) for i in httpretty._entries.keys()]
             self.fd.seek(0)
             try:
                 requestline, _ = data.split(b'\r\n', 1)
@@ -233,15 +233,20 @@ class fakesock(object):
             except ValueError:
                 is_parsing_headers = False
 
-                if self._host not in hostnames:
+                if not self._entry:
+                    # If the previous request wasn't mocked, don't mock the subsequent sending of data
                     return self._true_sendall(data)
 
             if not is_parsing_headers:
                 if len(self._sent_data) > 1:
-                    headers, body = map(utf8, self._sent_data[-2:])
+                    headers = utf8(last_requestline(self._sent_data))
+                    body = utf8(self._sent_data[-1])
+
+                    if self._entry.body_is_callable and hasattr(self, 'callable_body'):
+                        self.callable_body(self.request, self.info.full_url(), headers)
+
                     try:
                         return httpretty.historify_request(headers, body, False)
-
                     except Exception as e:
                         logging.error(traceback.format_exc(e))
                         return self._true_sendall(data, *args, **kw)
@@ -266,6 +271,7 @@ class fakesock(object):
                     break
 
             if not entries:
+                self._entry = None
                 self._true_sendall(data)
                 return
 

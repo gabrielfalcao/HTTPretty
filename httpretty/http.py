@@ -137,3 +137,16 @@ def parse_requestline(s):
         return m.group(1).upper(), m.group(2), m.group(3)
     else:
         raise ValueError('Not a Request-Line')
+
+
+def last_requestline(sent_data):
+    """
+    Find the last line in sent_data that can be parsed with parse_requestline
+    """
+    for line in reversed(sent_data):
+        try:
+            parse_requestline(line)
+        except ValueError:
+            pass
+        else:
+            return line
