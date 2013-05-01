@@ -520,6 +520,29 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
 
 
 @httprettified
+def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
+    u"HTTPretty should allow registering regexes with requests"
+
+    HTTPretty.register_uri(
+        HTTPretty.POST,
+        re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
+        body="Found brand",
+    )
+
+    def gen():
+        yield b'hi'
+        yield b'there'
+
+    response = requests.post(
+        'https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris',
+        data=gen(),
+    )
+    expect(response.text).to.equal('Found brand')
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
+
+@httprettified
 def test_httpretty_should_allow_multiple_responses_with_multiple_methods():
     u"HTTPretty should allow multiple responses when binding multiple methods to the same uri"
 
