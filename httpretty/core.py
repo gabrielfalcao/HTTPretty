@@ -533,14 +533,14 @@ class URIInfo(BaseClass):
         )
         return self_tuple == other_tuple
 
-    def full_url(self):
+    def full_url(self, use_querystring=True):
         credentials = ""
         if self.password:
             credentials = "{0}:{1}@".format(
                 self.username, self.password)
 
         query = ""
-        if self.query:
+        if use_querystring and self.query:
             query = "?{0}".format(decode_utf8(self.query))
 
         result = "{scheme}://{credentials}{host}{path}{query}".format(
@@ -586,7 +586,7 @@ class URIMatcher(object):
         if self.info:
             return self.info == info
         else:
-            return self.regex.search(info.full_url())
+            return self.regex.search(info.full_url(use_querystring=False))
 
     def __str__(self):
         wrap = 'URLMatcher({0})'

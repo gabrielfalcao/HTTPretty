@@ -155,6 +155,10 @@ def test_uri_info_full_url():
         "http://johhny:password@google.com/?foo=bar&baz=test"
     )
 
+    expect(uri_info.full_url(use_querystring=False)).to.equal(
+        "http://johhny:password@google.com/"
+    )
+
 
 def test_global_boolean_enabled():
     expect(HTTPretty.is_enabled()).to.be.falsy
