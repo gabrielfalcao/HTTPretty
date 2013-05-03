@@ -242,8 +242,13 @@ class fakesock(object):
                     headers = utf8(last_requestline(self._sent_data))
                     body = utf8(self._sent_data[-1])
 
-                    if self._entry.body_is_callable and hasattr(self, 'callable_body'):
-                        self.callable_body(self.request, self.info.full_url(), headers)
+                    last_entry = self._entry
+                    last_entry.request.body = body
+                    request_headers = dict(last_entry.request.headers)
+                    # If we are receiving more data and the last entry to be processed
+                    # was a callback responsed, send the new data to the callback
+                    if last_entry.body_is_callable:
+                        last_entry.callable_body(last_entry.request, last_entry.info.full_url(), request_headers)
 
                     try:
                         return httpretty.historify_request(headers, body, False)
