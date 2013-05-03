@@ -536,6 +536,13 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
         request_action = getattr(requests, method.lower())
         expect(request_action(url).text).to.equal(method)
 
+data_received = []
+
+def my_callback(request, url, headers):
+    if request.body.strip():
+        data_received.append(request.body.strip())
+    return 200, headers, "Received"
+
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
@@ -544,7 +551,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
     HTTPretty.register_uri(
         HTTPretty.POST,
         re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
-        body="Found brand",
+        body=my_callback,
     )
 
     def gen():
@@ -555,7 +562,14 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
         'https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris',
         data=gen(),
     )
-    expect(response.text).to.equal('Found brand')
+    expect(data_received).to.equal([
+        b'2',
+        b'hi',
+        b'5',
+        b'there',
+        b'0',
+        b'0',
+    ])
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
