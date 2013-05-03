@@ -539,7 +539,6 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
 data_received = []
 
 def my_callback(request, url, headers):
-    global data_received
     if request.body.strip():
         data_received.append(request.body.strip())
     return 200, headers, "Received"
