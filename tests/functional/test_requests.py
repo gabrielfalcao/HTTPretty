@@ -563,12 +563,12 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
         data=gen(),
     )
     expect(data_received).to.equal([
-        '2',
-        'hi',
-        '5',
-        'there',
-        '0',
-        '0',
+        b'2',
+        b'hi',
+        b'5',
+        b'there',
+        b'0',
+        b'0',
     ])
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
