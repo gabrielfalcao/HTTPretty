@@ -50,7 +50,7 @@ next = advance_iterator
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
-   "HTTPretty should mock a simple GET with requests.get"
+    "HTTPretty should mock a simple GET with requests.get"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
                            body="Find the best daily deals")
@@ -64,7 +64,7 @@ def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_provides_easy_access_to_querystrings(now):
-   "HTTPretty should provide an easy access to the querystring"
+    "HTTPretty should provide an easy access to the querystring"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
                            body="Find the best daily deals")
@@ -79,7 +79,7 @@ def test_httpretty_provides_easy_access_to_querystrings(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_mock_headers_requests(now):
-   "HTTPretty should mock basic headers with requests"
+    "HTTPretty should mock basic headers with requests"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
                            body="this is supposed to be the response",
@@ -101,7 +101,7 @@ def test_httpretty_should_mock_headers_requests(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_allow_adding_and_overwritting_requests(now):
-   "HTTPretty should allow adding and overwritting headers with requests"
+    "HTTPretty should allow adding and overwritting headers with requests"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="this is supposed to be the response",
@@ -126,7 +126,7 @@ def test_httpretty_should_allow_adding_and_overwritting_requests(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_allow_forcing_headers_requests(now):
-   "HTTPretty should allow forcing headers with requests"
+    "HTTPretty should allow forcing headers with requests"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="<root><baz /</root>",
@@ -146,7 +146,7 @@ def test_httpretty_should_allow_forcing_headers_requests(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
-   "HTTPretty should allow adding and overwritting headers by keyword args " \
+    "HTTPretty should allow adding and overwritting headers by keyword args " \
         "with requests"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
@@ -170,7 +170,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
 @httprettified
 @within(two=microseconds)
 def test_rotating_responses_with_requests(now):
-   "HTTPretty should support rotating responses with requests"
+    "HTTPretty should support rotating responses with requests"
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -201,7 +201,7 @@ def test_rotating_responses_with_requests(now):
 @httprettified
 @within(two=microseconds)
 def test_can_inspect_last_request(now):
-   "HTTPretty.last_request is a mimetools.Message request from last match"
+    "HTTPretty.last_request is a mimetools.Message request from last match"
 
     HTTPretty.register_uri(HTTPretty.POST, "http://api.github.com/",
                            body='{"repositories": ["HTTPretty", "lettuce"]}')
@@ -227,7 +227,7 @@ def test_can_inspect_last_request(now):
 @httprettified
 @within(two=microseconds)
 def test_can_inspect_last_request_with_ssl(now):
-   "HTTPretty.last_request is recorded even when mocking 'https' (SSL)"
+    "HTTPretty.last_request is recorded even when mocking 'https' (SSL)"
 
     HTTPretty.register_uri(HTTPretty.POST, "https://secure.github.com/",
                            body='{"repositories": ["HTTPretty", "lettuce"]}')
@@ -253,7 +253,7 @@ def test_can_inspect_last_request_with_ssl(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_ignores_querystrings_from_registered_uri(now):
-   "HTTPretty should ignore querystrings from the registered uri (requests library)"
+    "HTTPretty should ignore querystrings from the registered uri (requests library)"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/?id=123",
                            body=b"Find the best daily deals")
@@ -392,7 +392,7 @@ def test_multipart():
 @httprettified
 @within(two=microseconds)
 def test_callback_response(now):
-    (u"HTTPretty should call a callback function and set its return value as the body of the response"
+    ("HTTPretty should call a callback function and set its return value as the body of the response"
      " requests")
 
     def request_callback(request, uri, headers):
@@ -420,7 +420,7 @@ def test_callback_response(now):
 @httprettified
 @within(two=microseconds)
 def test_callback_body_remains_callable_for_any_subsequent_requests(now):
-    (u"HTTPretty should call a callback function more than one"
+    ("HTTPretty should call a callback function more than one"
      " requests")
 
     def request_callback(request, uri, headers):
@@ -439,7 +439,7 @@ def test_callback_body_remains_callable_for_any_subsequent_requests(now):
 @httprettified
 @within(two=microseconds)
 def test_callback_setting_headers_and_status_response(now):
-    (u"HTTPretty should call a callback function and uses it retur tuple as status code, headers and body"
+    ("HTTPretty should call a callback function and uses it retur tuple as status code, headers and body"
      " requests")
 
     def request_callback(request, uri, headers):
@@ -470,7 +470,7 @@ def test_callback_setting_headers_and_status_response(now):
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_the_callback():
-   "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
+    "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -486,7 +486,7 @@ def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_t
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes():
-   "HTTPretty should allow registering regexes with requests"
+    "HTTPretty should allow registering regexes with requests"
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -503,7 +503,7 @@ def test_httpretty_should_allow_registering_regexes():
 
 @httprettified
 def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
-   "HTTPretty should match regexes even if they have a different querystring"
+    "HTTPretty should match regexes even if they have a different querystring"
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -521,7 +521,7 @@ def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
 
 @httprettified
 def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
-   "HTTPretty should allow registering multiple methods for the same uri"
+    "HTTPretty should allow registering multiple methods for the same uri"
 
     url = 'http://test.com/test'
     methods = ['GET', 'POST', 'PUT']
@@ -546,7 +546,7 @@ def my_callback(request, url, headers):
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
-   "HTTPretty should allow registering regexes with requests"
+    "HTTPretty should allow registering regexes with requests"
 
     HTTPretty.register_uri(
         HTTPretty.POST,
@@ -576,7 +576,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
 
 @httprettified
 def test_httpretty_should_allow_multiple_responses_with_multiple_methods():
-   "HTTPretty should allow multiple responses when binding multiple methods to the same uri"
+    "HTTPretty should allow multiple responses when binding multiple methods to the same uri"
 
     url = 'http://test.com/list'
 
@@ -608,7 +608,7 @@ def test_httpretty_should_allow_multiple_responses_with_multiple_methods():
 
 @httprettified
 def test_httpretty_should_normalize_url_patching():
-   "HTTPretty should normalize all url patching"
+    "HTTPretty should normalize all url patching"
 
     HTTPretty.register_uri(
         HTTPretty.GET,

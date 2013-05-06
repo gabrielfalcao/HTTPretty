@@ -33,10 +33,10 @@ from httpretty.http import STATUSES
 
 
 def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
-   "HTTPretty should raise proper exception on inconsistent Content-Length / "\
-    "registered response body"
+    "HTTPretty should raise proper exception on inconsistent Content-Length / "\
+       "registered response body"
     expect(HTTPretty.register_uri).when.called_with(
-        HTTPretty.GET,
+      HTTPretty.GET,
         "http://github.com/gabrielfalcao",
         body="that's me!",
         adding_headers={
@@ -50,7 +50,7 @@ def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
 
 
 def test_does_not_have_last_request_by_default():
-   'HTTPretty.last_request is a dummy object by default'
+    'HTTPretty.last_request is a dummy object by default'
     HTTPretty.reset()
 
     expect(HTTPretty.last_request.headers).to.be.empty

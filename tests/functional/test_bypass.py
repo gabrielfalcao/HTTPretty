@@ -64,7 +64,7 @@ def stop_tcp_server(context):
 @httpretty.activate
 @that_with_context(start_http_server, stop_http_server)
 def test_httpretty_bypasses_when_disabled(context):
-   "httpretty should bypass all requests by disabling it"
+    "httpretty should bypass all requests by disabling it"
 
     httpretty.register_uri(
         httpretty.GET, "http://localhost:9999/go-for-bubbles/",
@@ -97,7 +97,7 @@ def test_httpretty_bypasses_when_disabled(context):
 @httpretty.activate
 @that_with_context(start_http_server, stop_http_server)
 def test_httpretty_bypasses_a_unregistered_request(context):
-   "httpretty should bypass a unregistered request by disabling it"
+    "httpretty should bypass a unregistered request by disabling it"
 
     httpretty.register_uri(
         httpretty.GET, "http://localhost:9999/go-for-bubbles/",
@@ -119,7 +119,7 @@ def test_httpretty_bypasses_a_unregistered_request(context):
 @httpretty.activate
 @that_with_context(start_tcp_server, stop_tcp_server)
 def test_using_httpretty_with_other_tcp_protocols(context):
-   "httpretty should work even when testing code that also use other TCP-based protocols"
+    "httpretty should work even when testing code that also use other TCP-based protocols"
 
     httpretty.register_uri(
         httpretty.GET, "http://falcao.it/foo/",
