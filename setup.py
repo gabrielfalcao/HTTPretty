@@ -53,7 +53,7 @@ def test_packages():
 setup(name='httpretty',
     version=version,
     description='HTTP client mock for Python',
-    author=u'Gabriel Falcao',
+    author='Gabriel Falcao',
     author_email='gabriel@nacaolivre.org',
     url='http://github.com/gabrielfalcao/httpretty',
     packages=get_packages(),

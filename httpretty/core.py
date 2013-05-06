@@ -163,14 +163,14 @@ class fakesock(object):
                 ),
                 'subject': (
                     (
-                        ('organizationName', u'*.%s' % self._host),
+                        ('organizationName', '*.%s' % self._host),
                     ),
                     (
                         ('organizationalUnitName',
-                         u'Domain Control Validated'),
+                         'Domain Control Validated'),
                     ),
                     (
-                        ('commonName', u'*.%s' % self._host),
+                        ('commonName', '*.%s' % self._host),
                     ),
                 ),
             }
@@ -630,7 +630,7 @@ class URIMatcher(object):
 
 
 class httpretty(HttpBaseClass):
-    u"""The URI registration class"""
+    """The URI registration class"""
     _entries = {}
     latest_requests = []
 
@@ -683,7 +683,7 @@ class httpretty(HttpBaseClass):
         cls._entries[matcher] = entries_for_this_uri
 
     def __str__(self):
-        return u'<HTTPretty with %d URI entries>' % len(self._entries)
+        return '<HTTPretty with %d URI entries>' % len(self._entries)
 
     @classmethod
     def Response(cls, body, method=None, uri=None, adding_headers=None, forcing_headers=None,
