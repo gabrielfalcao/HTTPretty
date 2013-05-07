@@ -69,7 +69,7 @@ def test_one():
                            body="Find the best daily deals")
 
     requests.get('http://yipit.com/login?email=user@github.com&password=foobar123')
-    expect(httpretty.last_request).to.have.property("querystring").being.equal({
+    expect(httpretty.last_request()).to.have.property("querystring").being.equal({
         "email": "user@github.com",
         "password": "foobar123",
     })
@@ -256,8 +256,8 @@ def test_httpretty_should_allow_registering_regexes():
 
     response = requests.get('https://api.yipit.com/v2/deal;brand=GAP')
     expect(response.text).to.equal('Found brand')
-    expect(httpretty.last_request.method).to.equal('GET')
-    expect(httpretty.last_request.path).to.equal('/v1/deal;brand=GAP')
+    expect(httpretty.last_request().method).to.equal('GET')
+    expect(httpretty.last_request().path).to.equal('/v1/deal;brand=GAP')
 ```
 
 ## expect for a response, and check the request got by the "server" to make sure it was fine.
@@ -280,8 +280,8 @@ def test_yipit_api_integration():
                             })
 
     expect(response.text).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
-    expect(httpretty.last_request.method).to.equal("POST")
-    expect(httpretty.last_request.headers['content-type']).to.equal('text/json')
+    expect(httpretty.last_request().method).to.equal("POST")
+    expect(httpretty.last_request().headers['content-type']).to.equal('text/json')
 ```
 
 ## checking if is enabled
