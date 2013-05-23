@@ -115,7 +115,8 @@ class HttpBaseClass(BaseClass):
     DELETE = b'DELETE'
     HEAD = b'HEAD'
     PATCH = b'PATCH'
-    METHODS = (GET, PUT, POST, DELETE, HEAD, PATCH)
+    OPTIONS = b'OPTIONS'
+    METHODS = (GET, PUT, POST, DELETE, HEAD, PATCH, OPTIONS)
 
 
 def parse_requestline(s):
