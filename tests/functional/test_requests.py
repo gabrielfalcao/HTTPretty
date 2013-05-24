@@ -524,7 +524,7 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
     u"HTTPretty should allow registering multiple methods for the same uri"
 
     url = 'http://test.com/test'
-    methods = ['GET', 'POST', 'PUT']
+    methods = ['GET', 'POST', 'PUT', 'OPTIONS']
     for method in methods:
         HTTPretty.register_uri(
             getattr(HTTPretty, method),
