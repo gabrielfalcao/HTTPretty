@@ -1,4 +1,4 @@
-### New in version 0.6.0
+### New in version 0.6.1
 
 * New API, no more camel case and everything is available through a simple import:
 

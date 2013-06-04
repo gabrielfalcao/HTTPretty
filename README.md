@@ -1,4 +1,4 @@
-# HTTPretty 0.6.0
+# HTTPretty 0.6.1
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 
