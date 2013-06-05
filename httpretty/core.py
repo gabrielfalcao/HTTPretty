@@ -666,10 +666,10 @@ class httpretty(HttpBaseClass):
                 response.method = method
             entries_for_this_uri = responses
         else:
-            headers['body'] = body
-            headers['adding_headers'] = adding_headers
-            headers['forcing_headers'] = forcing_headers
-            headers['status'] = status
+            headers[str('body')] = body
+            headers[str('adding_headers')] = adding_headers
+            headers[str('forcing_headers')] = forcing_headers
+            headers[str('status')] = status
 
             entries_for_this_uri = [
                 cls.Response(method=method, uri=uri, **headers),
@@ -689,11 +689,11 @@ class httpretty(HttpBaseClass):
     def Response(cls, body, method=None, uri=None, adding_headers=None, forcing_headers=None,
                  status=200, streaming=False, **headers):
 
-        headers['body'] = body
-        headers['adding_headers'] = adding_headers
-        headers['forcing_headers'] = forcing_headers
-        headers['status'] = int(status)
-        headers['streaming'] = streaming
+        headers[str('body')] = body
+        headers[str('adding_headers')] = adding_headers
+        headers[str('forcing_headers')] = forcing_headers
+        headers[str('status')] = int(status)
+        headers[str('streaming')] = streaming
         return Entry(method, uri, **headers)
 
     @classmethod
