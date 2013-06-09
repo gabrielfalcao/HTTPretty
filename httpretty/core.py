@@ -356,8 +356,10 @@ class Entry(BaseClass):
             self.callable_body = body
             self.body = None
             self.body_is_callable = True
-
-        self.body = body
+        elif isinstance(body, text_type):
+            self.body = utf8(body)
+        else:
+            self.body = body
 
         self.streaming = streaming
         if not streaming and not self.body_is_callable:
