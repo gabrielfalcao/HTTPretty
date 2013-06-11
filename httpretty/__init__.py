@@ -40,3 +40,6 @@ SELF = sys.modules[__name__]
 
 for attr in [name.decode() for name in httpretty.METHODS] + ['register_uri', 'enable', 'disable', 'is_enabled', 'Response']:
     setattr(SELF, attr, getattr(httpretty, attr))
+
+def last_request():
+    return httpretty.last_request
