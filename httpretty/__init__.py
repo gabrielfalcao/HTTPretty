@@ -25,7 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-__version__ = version = '0.6.1'
+__version__ = version = '0.6.2'
 
 import sys
 

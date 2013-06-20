@@ -1,4 +1,11 @@
-### New in version 0.6.1
+### New in version 0.6.2
+
+* Fixing bug of lack of trailing slashes [#73](https://github.com/gabrielfalcao/HTTPretty/issues/73)
+* Applied pull requests [#71](https://github.com/gabrielfalcao/HTTPretty/pull/71) and [#72](https://github.com/gabrielfalcao/HTTPretty/pull/72) by @andresriancho
+* Keyword arg coercion fix by @dupuy
+* @papaeye fixed content-length calculation.
+
+### New in version 0.6.2
 
 * New API, no more camel case and everything is available through a simple import:
 
