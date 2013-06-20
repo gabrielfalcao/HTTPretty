@@ -143,7 +143,8 @@ class fakesock(object):
         debuglevel = 0
         _sent_data = []
 
-        def __init__(self, family, type, protocol=6):
+        def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM,
+                     protocol=0):
             self.setsockopt(family, type, protocol)
             self.truesock = old_socket(family, type, protocol)
             self._closed = True
