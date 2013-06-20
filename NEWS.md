@@ -5,7 +5,7 @@
 * Keyword arg coercion fix by @dupuy
 * @papaeye fixed content-length calculation.
 
-### New in version 0.6.2
+### New in version 0.6.1
 
 * New API, no more camel case and everything is available through a simple import:
 
