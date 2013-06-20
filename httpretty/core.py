@@ -75,6 +75,8 @@ old_ssl_wrap_socket = None
 old_sslwrap_simple = None
 old_sslsocket = None
 
+if PY3:
+    basestring = (bytes, str)
 try:
     import socks
     old_socksocket = socks.socksocket
