@@ -617,3 +617,12 @@ def test_httpretty_should_normalize_url_patching():
 
     response = requests.get('http://yipit.com/foo%28bar%29')
     expect(response.text).to.equal('Find the best daily deals')
+
+
+@httprettified
+def test_lack_of_trailing_slash():
+    ("HTTPretty should automatically append a slash to given urls")
+    url = 'http://www.youtube.com'
+    HTTPretty.register_uri(HTTPretty.GET, url, body='')
+    response = requests.get(url)
+    response.status_code.should.equal(200)

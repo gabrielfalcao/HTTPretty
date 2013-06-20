@@ -25,6 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
+import re
 import inspect
 import socket
 import functools
@@ -661,6 +662,11 @@ class httpretty(HttpBaseClass):
                      forcing_headers=None,
                      status=200,
                      responses=None, **headers):
+
+        uri_is_string = isinstance(uri, basestring)
+
+        if uri_is_string and re.search(r'^\w+://[^/]+[.]\w{2,}$', uri):
+            uri += '/'
 
         if isinstance(responses, list) and len(responses) > 0:
             for response in responses:
