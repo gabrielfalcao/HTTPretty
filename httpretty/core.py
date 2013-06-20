@@ -716,7 +716,6 @@ class httpretty(HttpBaseClass):
         socket.gethostname = old_gethostname
         socket.gethostbyname = old_gethostbyname
         socket.getaddrinfo = old_getaddrinfo
-        socket.inet_aton = old_gethostbyname
 
         socket.__dict__['socket'] = old_socket
         socket.__dict__['_socketobject'] = old_socket
@@ -726,7 +725,6 @@ class httpretty(HttpBaseClass):
         socket.__dict__['gethostname'] = old_gethostname
         socket.__dict__['gethostbyname'] = old_gethostbyname
         socket.__dict__['getaddrinfo'] = old_getaddrinfo
-        socket.__dict__['inet_aton'] = old_gethostbyname
 
         if socks:
             socks.socksocket = old_socksocket
@@ -757,7 +755,6 @@ class httpretty(HttpBaseClass):
         socket.gethostname = fake_gethostname
         socket.gethostbyname = fake_gethostbyname
         socket.getaddrinfo = fake_getaddrinfo
-        socket.inet_aton = fake_gethostbyname
 
         socket.__dict__['socket'] = fakesock.socket
         socket.__dict__['_socketobject'] = fakesock.socket
@@ -766,7 +763,6 @@ class httpretty(HttpBaseClass):
         socket.__dict__['create_connection'] = create_fake_connection
         socket.__dict__['gethostname'] = fake_gethostname
         socket.__dict__['gethostbyname'] = fake_gethostbyname
-        socket.__dict__['inet_aton'] = fake_gethostbyname
         socket.__dict__['getaddrinfo'] = fake_getaddrinfo
 
         if socks:
