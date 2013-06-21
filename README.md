@@ -226,7 +226,7 @@ import httpretty
 def test_response_callbacks():
 
     def request_callback(method, uri, headers):
-        return "The {} response from {}".format(method, uri)
+        return (200, headers, "The {} response from {}".format(method, uri))
 
     httpretty.register_uri(
         httpretty.GET, "https://api.yahoo.com/test",
