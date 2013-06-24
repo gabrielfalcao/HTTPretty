@@ -49,6 +49,7 @@ def test_packages():
             line.strip() for line in open(test_reqs).readlines()
             if not line.startswith("#")
         ]
+    return tests_require
 
 setup(name='httpretty',
     version=version,
@@ -57,5 +58,9 @@ setup(name='httpretty',
     author_email='gabriel@nacaolivre.org',
     url='http://github.com/gabrielfalcao/httpretty',
     packages=get_packages(),
-    tests_require=test_packages()
+    tests_require=test_packages(),
+    license='MIT',
+    classifiers=["Intended Audience :: Developers",
+                 "License :: OSI Approved :: MIT License",
+                 "Topic :: Software Development :: Testing"],
 )
