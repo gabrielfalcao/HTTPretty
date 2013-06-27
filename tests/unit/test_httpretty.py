@@ -25,11 +25,15 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
-from mock import MagicMock
 from sure import expect
 from httpretty import HTTPretty, HTTPrettyError
 from httpretty.core import URIInfo, BaseClass, Entry, FakeSockFile
 from httpretty.http import STATUSES
+
+try:
+    from mock import MagicMock
+except ImportError:
+    from unittest.mock import MagicMock
 
 
 def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
