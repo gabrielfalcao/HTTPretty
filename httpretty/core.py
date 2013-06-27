@@ -47,6 +47,7 @@ from .compat import (
     urlsplit,
     parse_qs,
     ClassTypes,
+    basestring
 )
 from .http import (
     STATUSES,
