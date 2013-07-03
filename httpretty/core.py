@@ -107,6 +107,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         self.parse_request()
         self.method = self.command
         self.querystring = parse_qs(self.path.split("?", 1)[-1])
+        self.querystring_post = parse_qs(self.body)
 
     def __str__(self):
         return 'HTTPrettyRequest(headers={0}, body="{1}")'.format(
