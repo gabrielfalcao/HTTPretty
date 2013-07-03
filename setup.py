@@ -32,11 +32,13 @@ from setuptools import setup
 
 HTTPretty.disable()
 
+HTTPRETTY_PATH = os.path.abspath(os.path.join(__file__, os.pardir))
+
 
 def get_packages():
     # setuptools can't do the job :(
     packages = []
-    for root, dirnames, filenames in os.walk('httpretty'):
+    for root, dirnames, filenames in os.walk(os.path.join(HTTPRETTY_PATH, 'httpretty')):
         if '__init__.py' in filenames:
             packages.append(".".join(os.path.split(root)).strip("."))
 
@@ -44,7 +46,7 @@ def get_packages():
 
 
 def test_packages():
-    test_reqs = os.path.join(os.getcwd(), 'requirements.pip')
+    test_reqs = os.path.join(HTTPRETTY_PATH, 'requirements.pip')
     tests_require = [
             line.strip() for line in open(test_reqs).readlines()
             if not line.startswith("#")
