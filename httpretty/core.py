@@ -33,6 +33,7 @@ import itertools
 import warnings
 import logging
 import traceback
+import json
 
 
 from .compat import (
@@ -108,12 +109,25 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         self.parse_request()
         self.method = self.command
         self.querystring = parse_qs(self.path.split("?", 1)[-1])
+        self.parsed_body = self.__parse_body(self.body)
 
     def __str__(self):
         return 'HTTPrettyRequest(headers={0}, body="{1}")'.format(
             self.headers,
             self.body,
         )
+
+    def __parse_body(self, body):
+        """ Attempt to parse the post based on the content-type passed. Return the regular body if not """
+        return_value = body
+        try:
+            if 'content-type' in self.headers.keys():
+                if self.headers['content-type'].lower() == 'application/json':
+                    return_value = json.loads(body)
+                elif self.headers['content-type'].lower() == 'application/x-www-form-urlencoded':
+                    return_value = parse_qs(body)
+        finally:
+            return return_value
 
 
 class EmptyRequestHeaders(dict):
