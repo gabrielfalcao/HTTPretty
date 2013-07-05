@@ -32,4 +32,16 @@ clean:
 
 release: clean unit functional
 	@echo "Releasing httpretty..."
+	@./.release
 	@python setup.py sdist register upload
+
+docs: docstests
+	@markment -o . -t HTTPretty --sitemap-for="http://falcao.it/HTTPretty" .
+	@git co master && \
+		(git br -D gh-pages || printf "") && \
+		git checkout --orphan gh-pages && \
+		markment -o . -t HTTPretty --sitemap-for="http://falcao.it/HTTPretty" . && \
+		git add . && \
+		git commit -am 'documentation' && \
+		git push --force origin gh-pages && \
+		git checkout master

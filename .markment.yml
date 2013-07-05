@@ -1,0 +1,18 @@
+project:
+  name: "HTTPretty"
+  version: 0.6.2
+  description: HTTP client mock for Python
+
+  github_maintainer: gabrielfalcao
+  github_maintainer_name: Gabriel Falc&atilde;o
+  github_maintainer_url: http://github.com/gabrielfalcao
+  github_maintainer_gravatar: https://secure.gravatar.com/avatar/3fa0df5c54f5ac0f8652d992d7d24039?s=64
+
+  github_url: http://github.com/gabrielfalcao/HTTPretty
+  github_fork_url: https://github.com/gabrielfalcao/HTTPretty/archive/master.tar.gz
+  tarball_download_url: https://github.com/gabrielfalcao/HTTPretty/archive/master.tar.gz
+  zipball_download_url: https://github.com/gabrielfalcao/HTTPretty/archive/master.zip
+
+  full_index: true
+documentation:
+  index: README.md

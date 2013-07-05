@@ -9,3 +9,4 @@ dist/
 .#*
 #*
 .tox/
+_public/
