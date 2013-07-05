@@ -35,6 +35,7 @@ if PY3:
     byte_type = bytes
     import io
     StringIO = io.BytesIO
+    basestring = (str, bytes)
 
     class BaseClass(object):
         def __repr__(self):
@@ -44,6 +45,7 @@ else:
     byte_type = str
     import StringIO
     StringIO = StringIO.StringIO
+    basestring = basestring
 
 
 class BaseClass(object):
