@@ -13,6 +13,6 @@ project:
   tarball_download_url: https://github.com/gabrielfalcao/HTTPretty/archive/master.tar.gz
   zipball_download_url: https://github.com/gabrielfalcao/HTTPretty/archive/master.zip
 
-  full_index: true
+  full_index: false
 documentation:
   index: README.md
