@@ -35,7 +35,7 @@ release: clean unit functional
 	@./.release
 	@python setup.py sdist register upload
 
-docs: docstests
+docs: doctests
 	@markment -o . -t HTTPretty --sitemap-for="http://falcao.it/HTTPretty" .
 	@git co master && \
 		(git br -D gh-pages || printf "") && \
