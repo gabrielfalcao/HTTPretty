@@ -68,7 +68,7 @@ def test_httpretty_should_raise_on_socket_send_when_uri_registered():
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(('127.0.0.1', 5000))
-    expect(sock.send).when.called_with('whatever').to.throw(RuntimeError)
+    expect(sock.send).when.called_with(b'whatever').to.throw(RuntimeError)
     sock.close()
 
     # restore the previous value
@@ -86,7 +86,7 @@ def test_httpretty_should_not_raise_on_socket_send_when_uri_not_registered():
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
     sock.setblocking(0)
-    expect(sock.sendto).when.called_with('whatever',
+    expect(sock.sendto).when.called_with(b'whatever',
                                          ('127.0.0.1', 53)
                                          ).should_not.throw(RuntimeError)
 
