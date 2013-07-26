@@ -294,23 +294,41 @@ class fakesock(object):
             self._entry.info = info
             self._entry.request = request
 
-        def debug(*a, **kw):
-            frame = inspect.stack()[0][0]
-            lines = map(utf8, traceback.format_stack(frame))
+        def debug(self, func, *a, **kw):
+            if self.is_http:
+                frame = inspect.stack()[0][0]
+                lines = map(utf8, traceback.format_stack(frame))
 
-            message = [
-                "HTTPretty intercepted and unexpected socket method call.",
-                ("Please open an issue at "
-                 "'https://github.com/gabrielfalcao/HTTPretty/issues'"),
-                "And paste the following traceback:\n",
-                "".join(decode_utf8(lines)),
-            ]
-            raise RuntimeError("\n".join(message))
+                message = [
+                    "HTTPretty intercepted and unexpected socket method call.",
+                    ("Please open an issue at "
+                     "'https://github.com/gabrielfalcao/HTTPretty/issues'"),
+                    "And paste the following traceback:\n",
+                    "".join(decode_utf8(lines)),
+                ]
+                raise RuntimeError("\n".join(message))
+            return func(*a, **kw)
 
         def settimeout(self, new_timeout):
             self.timeout = new_timeout
 
-        sendto = send = recvfrom_into = recv_into = recvfrom = recv = debug
+        def send(self, *args, **kwargs):
+            return self.debug(self.truesock.send, *args, **kwargs)
+
+        def sendto(self, *args, **kwargs):
+            return self.debug(self.truesock.sendto, *args, **kwargs)
+
+        def recvfrom_into(self, *args, **kwargs):
+            return self.debug(self.truesock.recvfrom_into, *args, **kwargs)
+
+        def recv_into(self, *args, **kwargs):
+            return self.debug(self.truesock.recv_into, *args, **kwargs)
+
+        def recvfrom(self, *args, **kwargs):
+            return self.debug(self.truesock.recvfrom, *args, **kwargs)
+
+        def recv(self, *args, **kwargs):
+            return self.debug(self.truesock.recv, *args, **kwargs)
 
         def __getattr__(self, name):
             return getattr(self.truesock, name)

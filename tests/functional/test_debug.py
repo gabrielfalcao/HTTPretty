@@ -36,6 +36,7 @@ def create_socket(context):
         socket.SOCK_STREAM,
         socket.IPPROTO_TCP,
     )
+    context.sock.is_http = True
 
 
 @httprettified
