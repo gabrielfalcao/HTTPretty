@@ -94,7 +94,7 @@ except ImportError:
     ssl = None
 
 
-POTENTIAL_HTTP_PORTS = [80, 443]
+POTENTIAL_HTTP_PORTS = set([80, 443])
 
 
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
@@ -263,7 +263,7 @@ class fakesock(object):
 
             # path might come with
             s = urlsplit(path)
-            POTENTIAL_HTTP_PORTS.append(int(s.port or 80))
+            POTENTIAL_HTTP_PORTS.add(int(s.port or 80))
             headers, body = map(utf8, data.split(b'\r\n\r\n', 1))
 
             request = httpretty.historify_request(headers, body)
@@ -585,7 +585,7 @@ class URIInfo(BaseClass):
     @classmethod
     def from_uri(cls, uri, entry):
         result = urlsplit(uri)
-        POTENTIAL_HTTP_PORTS.append(int(result.port or 80))
+        POTENTIAL_HTTP_PORTS.add(int(result.port or 80))
         return cls(result.username,
                    result.password,
                    result.hostname,
