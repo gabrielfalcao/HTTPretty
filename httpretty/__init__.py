@@ -38,7 +38,11 @@ activate = httprettified
 
 SELF = sys.modules[__name__]
 
-for attr in [name.decode() for name in httpretty.METHODS] + ['register_uri', 'enable', 'disable', 'is_enabled', 'Response']:
+for attr in [name.decode() for name in httpretty.METHODS] + [
+    'enable', 'disable', 'is_enabled', 'Response',
+    'enable_recording', 'disable_recording',
+    'register_uri',
+]:
     setattr(SELF, attr, getattr(httpretty, attr))
 
 def last_request():

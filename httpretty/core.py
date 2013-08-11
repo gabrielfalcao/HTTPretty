@@ -26,6 +26,7 @@
 from __future__ import unicode_literals
 
 import re
+import json
 import inspect
 import socket
 import functools
@@ -47,7 +48,8 @@ from .compat import (
     urlsplit,
     parse_qs,
     ClassTypes,
-    basestring
+    basestring,
+    HTTPMessage,
 )
 from .http import (
     STATUSES,
@@ -207,6 +209,8 @@ class fakesock(object):
             if self._entry:
                 self._entry.fill_filekind(self.fd)
 
+            httpretty.record_response(self.fd)
+
             return self.fd
 
         def _true_sendall(self, data, *args, **kw):
@@ -272,6 +276,8 @@ class fakesock(object):
                            path=s.path,
                            query=s.query,
                            last_request=request)
+
+            httpretty.record_request(info)
 
             entries = []
 
@@ -661,6 +667,7 @@ class httpretty(HttpBaseClass):
 
     last_request = HTTPrettyRequestEmpty()
     _is_enabled = False
+    _is_recording = False
 
     @classmethod
     def reset(cls):
@@ -800,6 +807,66 @@ class httpretty(HttpBaseClass):
             if not PY3:
                 ssl.sslwrap_simple = fake_wrap_socket
                 ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
+
+    @classmethod
+    def enable_recording(cls):
+        '''
+        Enable httpretty and start recording
+        '''
+        cls.enable()
+        cls._is_recording = True
+        cls._last_recorded_key = None
+        cls._entries_vcr = {}
+
+    @classmethod
+    def disable_recording(cls, fn):
+        '''
+        disable recording and httpretty
+        and write output to ``fn``
+        '''
+        if not cls._is_recording:
+            raise Exception('Cannot disable_recording, it was not enabled')
+        # save recordings to file
+        with open(fn, 'w') as f:
+            json.dump(cls._entries_vcr, f, indent=2)
+        # remove recording related attr
+        cls._is_recording = False
+        del cls._entries_vcr
+        del cls._last_recorded_key
+        cls.disable()
+
+    @classmethod
+    def record_request(cls, info):
+        if not cls._is_recording:
+            return
+        key = cls._last_recorded_key = '|'.join((
+            info.last_request.method, info.full_url()
+        ))
+        cls._entries_vcr.setdefault(key, [])
+
+    @classmethod
+    def record_response(cls, fp):
+        if not cls._is_recording:
+            return
+        content = fp.getvalue()
+        # remove the http/1.1 line and grab the status_code
+        end = content.index('\n') + 1
+        status_line, content = content[0:end], content[end:]
+        status = int(status_line.split()[1])
+        new_fp = StringIO(content)
+        message = HTTPMessage(new_fp)
+        message.rewindbody()
+        body = message.fp.read()
+        headers = message.dict
+        if 'content-length' not in headers:
+            # add content-length so this can be safely used with forcing-headers
+            headers['content-lentgh'] = str(len(body))
+        response = {
+            'status': status,
+            'headers': headers,
+            'body': body,
+        }
+        cls._entries_vcr[cls._last_recorded_key].append(response)
 
 
 def httprettified(test):
