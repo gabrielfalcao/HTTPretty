@@ -868,6 +868,7 @@ class httpretty(HttpBaseClass):
         message = HTTPMessage(new_fp)
         message.rewindbody()
         body = message.fp.read()
+        message.dict['status'] = int(message.dict['status'])
         response = {
             'status': status,
             'forcing_headers': message.dict,
