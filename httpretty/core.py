@@ -25,6 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
+import os
 import re
 import json
 import inspect
@@ -67,6 +68,7 @@ from .errors import HTTPrettyError
 
 from datetime import datetime
 from datetime import timedelta
+from contextlib import contextmanager
 
 old_socket = socket.socket
 old_create_connection = socket.create_connection
@@ -834,7 +836,7 @@ class httpretty(HttpBaseClass):
         and write output to ``fn``
         '''
         if not cls._is_recording:
-            raise Exception('Cannot disable_recording, it was not enabled')
+            raise HTTPrettyError('Cannot disable_recording, it was not enabled')
         # save recordings to file
         with open(fn, 'w') as f:
             json.dump(cls._entries_vcr, f, indent=2)
@@ -902,3 +904,24 @@ def httprettified(test):
     if isinstance(test, ClassTypes):
         return decorate_class(test)
     return decorate_callable(test)
+
+def record_context_generator(playback_check=False):
+    def record_context(fn):
+        httpretty.reset()
+        if playback_check and os.path.exists(fn):
+            httpretty.enable()
+            try:
+                httpretty.register_uris_from_file(fn)
+                yield
+            finally:
+                httpretty.disable()
+        else:
+            httpretty.enable_recording()
+            try:
+                yield
+            finally:
+                httpretty.disable_recording(fn)
+    return record_context
+
+record = contextmanager(record_context_generator())
+record_or_playback = contextmanager(record_context_generator(playback_check=True))

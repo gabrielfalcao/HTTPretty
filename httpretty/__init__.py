@@ -31,7 +31,7 @@ import sys
 
 from .core import httpretty, httprettified
 from .errors import HTTPrettyError
-from .core import URIInfo
+from .core import URIInfo, record, record_or_playback
 
 HTTPretty = httpretty
 activate = httprettified
