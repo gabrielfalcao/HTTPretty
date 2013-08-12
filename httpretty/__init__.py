@@ -41,7 +41,7 @@ SELF = sys.modules[__name__]
 for attr in [name.decode() for name in httpretty.METHODS] + [
     'enable', 'disable', 'is_enabled', 'Response',
     'enable_recording', 'disable_recording',
-    'register_uri',
+    'register_uri', 'register_uris_from_file',
 ]:
     setattr(SELF, attr, getattr(httpretty, attr))
 

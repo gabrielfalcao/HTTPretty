@@ -686,6 +686,15 @@ class httpretty(HttpBaseClass):
         return request
 
     @classmethod
+    def register_uris_from_file(cls, fn):
+        with open(fn) as f:
+            entry_map = json.load(f)
+        for key, val in entry_map.items():
+            method, uri = key.split('|', 1)
+            responses = [cls.Response(**r) for r in val]
+            cls.register_uri(method, uri, responses=responses)
+
+    @classmethod
     def register_uri(cls, method, uri, body='HTTPretty :)',
                      adding_headers=None,
                      forcing_headers=None,
@@ -857,13 +866,9 @@ class httpretty(HttpBaseClass):
         message = HTTPMessage(new_fp)
         message.rewindbody()
         body = message.fp.read()
-        headers = message.dict
-        if 'content-length' not in headers:
-            # add content-length so this can be safely used with forcing-headers
-            headers['content-lentgh'] = str(len(body))
         response = {
             'status': status,
-            'headers': headers,
+            'forcing_headers': message.dict,
             'body': body,
         }
         cls._entries_vcr[cls._last_recorded_key].append(response)
