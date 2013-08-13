@@ -200,6 +200,7 @@ class fakesock(object):
                 self.truesock.connect(self._address)
 
         def close(self):
+            httpretty.record_response(self.fd)
             if not self._closed:
                 self.truesock.close()
             self._closed = True
@@ -210,8 +211,6 @@ class fakesock(object):
 
             if self._entry:
                 self._entry.fill_filekind(self.fd)
-
-            httpretty.record_response(self.fd)
 
             return self.fd
 
