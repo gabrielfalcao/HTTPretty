@@ -25,7 +25,9 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
+import os
 import re
+import json
 import inspect
 import socket
 import functools
@@ -47,7 +49,8 @@ from .compat import (
     urlsplit,
     parse_qs,
     ClassTypes,
-    basestring
+    basestring,
+    HTTPMessage,
 )
 from .http import (
     STATUSES,
@@ -65,6 +68,7 @@ from .errors import HTTPrettyError
 
 from datetime import datetime
 from datetime import timedelta
+from contextlib import contextmanager
 
 old_socket = socket.socket
 old_create_connection = socket.create_connection
@@ -196,6 +200,7 @@ class fakesock(object):
                 self.truesock.connect(self._address)
 
         def close(self):
+            httpretty.record_response(self.fd)
             if not self._closed:
                 self.truesock.close()
             self._closed = True
@@ -272,6 +277,8 @@ class fakesock(object):
                            path=s.path,
                            query=s.query,
                            last_request=request)
+
+            httpretty.record_request(info)
 
             entries = []
 
@@ -661,6 +668,7 @@ class httpretty(HttpBaseClass):
 
     last_request = HTTPrettyRequestEmpty()
     _is_enabled = False
+    _is_recording = False
 
     @classmethod
     def reset(cls):
@@ -677,6 +685,15 @@ class httpretty(HttpBaseClass):
         else:
             cls.latest_requests[-1] = request
         return request
+
+    @classmethod
+    def register_uris_from_file(cls, fn):
+        with open(fn) as f:
+            entry_map = json.load(f)
+        for key, val in entry_map.items():
+            method, uri = key.split('|', 1)
+            responses = [cls.Response(**r) for r in val]
+            cls.register_uri(method, uri, responses=responses)
 
     @classmethod
     def register_uri(cls, method, uri, body='HTTPretty :)',
@@ -801,6 +818,63 @@ class httpretty(HttpBaseClass):
                 ssl.sslwrap_simple = fake_wrap_socket
                 ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
 
+    @classmethod
+    def enable_recording(cls):
+        '''
+        Enable httpretty and start recording
+        '''
+        cls.enable()
+        cls._is_recording = True
+        cls._last_recorded_key = None
+        cls._entries_vcr = {}
+
+    @classmethod
+    def disable_recording(cls, fn):
+        '''
+        disable recording and httpretty
+        and write output to ``fn``
+        '''
+        if not cls._is_recording:
+            raise HTTPrettyError('Cannot disable_recording, it was not enabled')
+        # save recordings to file
+        with open(fn, 'w') as f:
+            json.dump(cls._entries_vcr, f, indent=2)
+        # remove recording related attr
+        cls._is_recording = False
+        del cls._entries_vcr
+        del cls._last_recorded_key
+        cls.disable()
+
+    @classmethod
+    def record_request(cls, info):
+        if not cls._is_recording:
+            return
+        key = cls._last_recorded_key = '|'.join((
+            info.last_request.method, info.full_url()
+        ))
+        cls._entries_vcr.setdefault(key, [])
+
+    @classmethod
+    def record_response(cls, fp):
+        if not cls._is_recording:
+            return
+        content = fp.getvalue()
+        # remove the http/1.1 line and grab the status_code
+        end = content.index('\n') + 1
+        status_line, content = content[0:end], content[end:]
+        status = int(status_line.split()[1])
+        new_fp = StringIO(content)
+        message = HTTPMessage(new_fp)
+        message.rewindbody()
+        body = message.fp.read()
+        message.dict['status'] = int(message.dict['status'])
+        response = {
+            'status': status,
+            'forcing_headers': message.dict,
+            'body': body,
+        }
+        cls._entries_vcr[cls._last_recorded_key].append(response)
+
 
 def httprettified(test):
     "A decorator tests that use HTTPretty"
@@ -830,3 +904,24 @@ def httprettified(test):
     if isinstance(test, ClassTypes):
         return decorate_class(test)
     return decorate_callable(test)
+
+def record_context_generator(playback_check=False):
+    def record_context(fn):
+        httpretty.reset()
+        if playback_check and os.path.exists(fn):
+            httpretty.enable()
+            try:
+                httpretty.register_uris_from_file(fn)
+                yield
+            finally:
+                httpretty.disable()
+        else:
+            httpretty.enable_recording()
+            try:
+                yield
+            finally:
+                httpretty.disable_recording(fn)
+    return record_context
+
+record = contextmanager(record_context_generator())
+record_or_playback = contextmanager(record_context_generator(playback_check=True))

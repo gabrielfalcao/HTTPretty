@@ -36,7 +36,7 @@ if PY3:
     import io
     StringIO = io.BytesIO
     basestring = (str, bytes)
-
+    from http.client import HTTPMessage
     class BaseClass(object):
         def __repr__(self):
             return self.__str__()
@@ -46,6 +46,7 @@ else:
     import StringIO
     StringIO = StringIO.StringIO
     basestring = basestring
+    from httplib import HTTPMessage
 
 
 class BaseClass(object):

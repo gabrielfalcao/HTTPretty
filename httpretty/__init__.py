@@ -25,20 +25,24 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-__version__ = version = '0.6.2'
+__version__ = version = '0.6.3'
 
 import sys
 
 from .core import httpretty, httprettified
 from .errors import HTTPrettyError
-from .core import URIInfo
+from .core import URIInfo, record, record_or_playback
 
 HTTPretty = httpretty
 activate = httprettified
 
 SELF = sys.modules[__name__]
 
-for attr in [name.decode() for name in httpretty.METHODS] + ['register_uri', 'enable', 'disable', 'is_enabled', 'Response']:
+for attr in [name.decode() for name in httpretty.METHODS] + [
+    'enable', 'disable', 'is_enabled', 'Response',
+    'enable_recording', 'disable_recording',
+    'register_uri', 'register_uris_from_file',
+]:
     setattr(SELF, attr, getattr(httpretty, attr))
 
 def last_request():

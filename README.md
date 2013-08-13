@@ -295,6 +295,68 @@ httpretty.disable()
 httpretty.is_enabled().should.be.false
 
 ```
+
+## recording responses to file for later playback
+
+```python
+import requests
+import httpretty
+
+def test_one():
+    with httpretty.record('path/to/filename.json'):
+        requests.get('http://yipit.com')
+        requests.get('http://google.com')
+        requests.get('http://leadsift.com')
+    # now all the requests are saved to the file
+```
+
+This essentially translates to (w/o the context manager):
+
+```python
+import requests
+import httpretty
+
+def test_one():
+    httpretty.enable_recording() # enables httpretty and starts recording
+    try:
+        requests.get('http://yipit.com')
+        requests.get('http://google.com')
+        requests.get('http://leadsift.com')
+    finally:
+        # disables httpretty and saves recorded session to file
+        httpretty.disable_recording('path/to/filename.json')
+```
+
+## to playback a recorded session
+
+```python
+import requests
+import httpretty
+
+def test_one():
+    httpretty.enable()
+    httpretty.register_uris_from_file('path/to/filename.json')
+    response = requests.get('http://yipit.com')
+    assert response.text == "Find the best daily deals"
+    httpretty.disable()
+```
+
+## to playback a recorded session OR record one
+
+It is sometimes desireable to allow your code to grab data from the interwebs
+the first time the tests are run, then for subsequent requests it would use the
+locally cached data for requests. To do so you can write:
+
+```python
+import requests
+import httpretty
+
+def test_one():
+    with httpretty.record_or_playback('path/to/filename.json'):
+        response = requests.get('http://yipit.com')
+        assert response.text == "Find the best daily deals"
+```
+
 # Motivation
 
 When building systems that access external resources such as RESTful

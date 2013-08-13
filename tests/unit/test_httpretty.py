@@ -31,9 +31,9 @@ from httpretty.core import URIInfo, BaseClass, Entry, FakeSockFile
 from httpretty.http import STATUSES
 
 try:
-    from mock import MagicMock
+    from mock import patch, MagicMock
 except ImportError:
-    from unittest.mock import MagicMock
+    from unittest.mock import patch, MagicMock
 
 
 def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
@@ -322,3 +322,105 @@ def test_fake_socket_passes_through_shutdown():
     s.truesock = MagicMock()
     expect(s.shutdown).called_with(socket.SHUT_RD).should_not.throw(AttributeError)
     s.truesock.shutdown.assert_called_with(socket.SHUT_RD)
+
+def test_enable_recording_enables_httpretty():
+    HTTPretty.enable = MagicMock()
+    HTTPretty.enable_recording()
+    HTTPretty.enable.assert_called_once_with()
+
+def test_disable_recording_disables_httpretty():
+    HTTPretty.enable = MagicMock()
+    HTTPretty.disable = MagicMock()
+    HTTPretty.enable_recording()
+    with patch('__builtin__.open') as new_open:
+        new_open.return_value.__enter__ = lambda s: s
+        new_open.return_value.__exit__ = MagicMock()
+        new_open.return_value.write = MagicMock()
+        HTTPretty.disable_recording('filename')
+        HTTPretty.disable.assert_called_once_with()
+
+def test_disable_recording_writes_to_file():
+    HTTPretty.enable = MagicMock()
+    HTTPretty.disable = MagicMock()
+    HTTPretty.enable_recording()
+    with patch('__builtin__.open') as new_open:
+        new_open.return_value.__enter__ = lambda s: s
+        new_open.return_value.__exit__ = MagicMock()
+        new_open.return_value.write = MagicMock()
+        HTTPretty.disable_recording('filename')
+        new_open.assert_called_with('filename', 'w')
+        expect(new_open.return_value.write.called).should.be.ok
+
+def test_record_context_calls_enable_recording():
+    HTTPretty.enable_recording = MagicMock()
+    HTTPretty.disable_recording = MagicMock()
+    core.record('filename').__enter__()
+    HTTPretty.enable_recording.assert_called_once_with()
+
+def test_record_context_calls_disable_recording():
+    HTTPretty.enable_recording = MagicMock()
+    HTTPretty.disable_recording = MagicMock()
+    with core.record('filename'):
+        pass
+    HTTPretty.disable_recording.assert_called_once_with('filename')
+
+def test_record_or_playback_context_calls_enable_recording():
+    HTTPretty.enable_recording = MagicMock()
+    HTTPretty.disable_recording = MagicMock()
+    with patch('os.path.exists') as exists:
+        exists.return_value = False
+        core.record_or_playback('filename').__enter__()
+        HTTPretty.enable_recording.assert_called_once_with()
+
+def test_record_or_playback_context_calls_disable_recording():
+    HTTPretty.enable_recording = MagicMock()
+    HTTPretty.disable_recording = MagicMock()
+    with patch('os.path.exists') as exists:
+        exists.return_value = False
+        with core.record_or_playback('filename'):
+            pass
+        HTTPretty.disable_recording.assert_called_once_with('filename')
+
+def test_record_or_playback_context_fileexists_calls_enable():
+    HTTPretty.enable = MagicMock()
+    HTTPretty.register_uris_from_file = MagicMock()
+    with patch('os.path.exists') as exists:
+        exists.return_value = True
+        with core.record_or_playback('filename'):
+            pass
+        HTTPretty.enable.assert_called_once_with()
+
+def test_record_or_playback_context_fileexists_calls_disable():
+    HTTPretty.disable = MagicMock()
+    HTTPretty.register_uris_from_file = MagicMock()
+    with patch('os.path.exists') as exists:
+        exists.return_value = True
+        with core.record_or_playback('filename'):
+            pass
+        HTTPretty.disable.assert_called_once_with()
+
+def test_record_or_playback_context_fileexists_calls_register_uris_from_file():
+    HTTPretty.register_uris_from_file = MagicMock()
+    with patch('os.path.exists') as exists:
+        exists.return_value = True
+        with core.record_or_playback('filename'):
+            pass
+        HTTPretty.register_uris_from_file.assert_called_once_with('filename')
+
+def test_record_or_playback_context_fileexists_doesnotcall_enable_recording():
+    HTTPretty.enable_recording = MagicMock()
+    HTTPretty.register_uris_from_file = MagicMock()
+    with patch('os.path.exists') as exists:
+        exists.return_value = True
+        with core.record_or_playback('filename'):
+            pass
+        expect(HTTPretty.enable_recording.called).should_not.be.ok
+
+def test_record_or_playback_context_fileexists_doesnotcall_disable_recording():
+    HTTPretty.disable_recording = MagicMock()
+    HTTPretty.register_uris_from_file = MagicMock()
+    with patch('os.path.exists') as exists:
+        exists.return_value = True
+        with core.record_or_playback('filename'):
+            pass
+        expect(HTTPretty.disable_recording.called).should_not.be.ok
