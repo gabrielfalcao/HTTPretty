@@ -54,6 +54,7 @@ def test_one():
     assert response.text == "Find the best daily deals"
 
     httpretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
+    httpretty.reset()    # reset HTTPretty state (clean up registered urls and request history)
 ```
 
 ## testing query strings
