@@ -342,7 +342,7 @@ def test_HTTPrettyRequest_json_body():
 def test_HTTPrettyRequest_invalid_json_body():
     """ A content-type of application/json with an invalid json body should return the content unaltered """
     header = TEST_HEADER % {'content_type': 'application/json'}
-    invalid_json = "{'hello', 'world','thisstringdoesntstops}"
+    invalid_json = u"{'hello', 'world','thisstringdoesntstops}"
     request = HTTPrettyRequest(header, invalid_json)
     expect(request.parsed_body).to.equal(invalid_json)
 
@@ -350,7 +350,7 @@ def test_HTTPrettyRequest_invalid_json_body():
 def test_HTTPrettyRequest_queryparam():
     """ A content-type of x-www-form-urlencoded with a valid queryparam body should return parsed content """
     header = TEST_HEADER % {'content_type': 'application/x-www-form-urlencoded'}
-    valid_queryparam = "hello=world&this=isavalidquerystring"
+    valid_queryparam = u"hello=world&this=isavalidquerystring"
     valid_results = {'hello': ['world'], 'this': ['isavalidquerystring']}
     request = HTTPrettyRequest(header, valid_queryparam)
     expect(request.parsed_body).to.equal(valid_results)

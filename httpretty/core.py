@@ -102,7 +102,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
     def __init__(self, headers, body=''):
         self.body = utf8(body)
         self.raw_headers = utf8(headers)
-        self.rfile = StringIO(b'\r\n\r\n'.join([headers.strip(), body]))
+        self.rfile = StringIO(b'\r\n\r\n'.join([utf8(headers.strip()), self.body]))
         self.wfile = StringIO()
         self.raw_requestline = self.rfile.readline()
         self.error_code = self.error_message = None
@@ -119,13 +119,14 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
     def __parse_body(self, body):
         """ Attempt to parse the post based on the content-type passed. Return the regular body if not """
-        return_value = body
+        return_value = body.decode('utf-8')
         try:
-            if 'content-type' in self.headers.keys():
-                if self.headers['content-type'].lower() == 'application/json':
-                    return_value = json.loads(body)
-                elif self.headers['content-type'].lower() == 'application/x-www-form-urlencoded':
-                    return_value = parse_qs(body)
+            for header in self.headers.keys():
+                if header.lower() == 'content-type':
+                    if self.headers['content-type'].lower() == 'application/json':
+                        return_value = json.loads(return_value)
+                    elif self.headers['content-type'].lower() == 'application/x-www-form-urlencoded':
+                        return_value = parse_qs(return_value)
         finally:
             return return_value
 
