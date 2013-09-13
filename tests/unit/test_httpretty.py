@@ -184,7 +184,6 @@ def test_status_codes():
         599: "Network connect timeout error",
     })
 
-
 def test_uri_info_full_url():
     uri_info = URIInfo(
         username='johhny',
@@ -205,6 +204,31 @@ def test_uri_info_full_url():
         "http://johhny:password@google.com/"
     )
 
+def test_uri_info_eq_ignores_case():
+    """Test that URIInfo.__eq__ method ignores case for
+    hostname matching.
+    """
+    uri_info_uppercase = URIInfo(
+        username='johhny',
+        password='password',
+        hostname=b'GOOGLE.COM',
+        port=80,
+        path=b'/',
+        query=b'foo=bar&baz=test',
+        fragment='',
+        scheme='',
+    )
+    uri_info_lowercase = URIInfo(
+        username='johhny',
+        password='password',
+        hostname=b'google.com',
+        port=80,
+        path=b'/',
+        query=b'foo=bar&baz=test',
+        fragment='',
+        scheme='',
+    )
+    expect(uri_info_uppercase).to.equal(uri_info_lowercase)
 
 def test_global_boolean_enabled():
     expect(HTTPretty.is_enabled()).to.be.falsy
