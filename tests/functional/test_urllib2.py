@@ -27,6 +27,7 @@
 from __future__ import unicode_literals
 
 try:
+    from urllib import urlencode
     from urllib.request import urlopen
     import urllib.request as urllib2
 except ImportError:
@@ -335,3 +336,47 @@ def test_httpretty_should_allow_registering_regexes():
     fd.close()
 
     expect(got).to.equal(b"Found brand")
+
+
+@httprettified
+def test_httpretty_should_check_post_payload():
+    "HTTPretty should allow checking POST data payload"
+
+    HTTPretty.register_uri(
+        HTTPretty.POST,
+        "https://api.imaginary.com/v1/sweet/",
+        expected_data={'name': "Lollipop"},
+        body='{"id": 12, "status": "Created"}',
+    )
+
+    request = urllib2.Request(
+        "https://api.imaginary.com/v1/sweet/",
+        urlencode({"name": "Lollipop"}),
+        {
+            'content-type': 'text/json',
+        },
+    )
+    fd = urllib2.urlopen(request)
+    got = fd.read()
+    fd.close()
+
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.body).to.equal(b'name=Lollipop')
+    expect(got).to.equal(b'{"id": 12, "status": "Created"}')
+
+    request = urllib2.Request(
+        "https://api.imaginary.com/v1/sweet/",
+        urlencode({"wrong": "data"}),
+        {
+            'content-type': 'text/json',
+        },
+    )
+
+    try:
+        fd = urllib2.urlopen(request)
+        got = fd.read()
+        fd.close()
+        raise Exception("Payload checked didn't work")
+    except ValueError:
+        pass

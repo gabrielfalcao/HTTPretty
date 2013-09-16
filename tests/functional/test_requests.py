@@ -626,3 +626,34 @@ def test_lack_of_trailing_slash():
     HTTPretty.register_uri(HTTPretty.GET, url, body='')
     response = requests.get(url)
     response.status_code.should.equal(200)
+
+
+@httprettified
+def test_httpretty_should_check_post_payload():
+    "HTTPretty should allow checking POST data payload"
+
+    HTTPretty.register_uri(
+        HTTPretty.POST,
+        "https://api.imaginary.com/v1/sweet/",
+        expected_data={'name': "Lollipop"},
+        body='{"id": 12, "status": "Created"}',
+    )
+
+    response = requests.post(
+        "https://api.imaginary.com/v1/sweet/",
+        {"name": "Lollipop"}
+    )
+
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.body).to.equal(b'name=Lollipop')
+    expect(response.json()).to.equal({"id": 12, "status": "Created"})
+
+    try:
+        response = requests.post(
+            "https://api.imaginary.com/v1/sweet/",
+            {"wrong": "data"}
+        )
+        raise Exception("Payload checked didn't work")
+    except ValueError:
+        pass

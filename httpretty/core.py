@@ -25,6 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
+from urlparse import parse_qsl
 import re
 import inspect
 import socket
@@ -277,6 +278,13 @@ class fakesock(object):
 
             for matcher, value in httpretty._entries.items():
                 if matcher.matches(info):
+                    if matcher.expected_data is not None:
+                        body_dict = dict(parse_qsl(request.body))
+                        if body_dict != matcher.expected_data:
+                            raise ValueError("Body Post didn't match, expected %s, got %s" % (
+                                matcher.expected_data,
+                                body_dict
+                            ))
                     entries = value
                     break
 
@@ -601,12 +609,13 @@ class URIMatcher(object):
     regex = None
     info = None
 
-    def __init__(self, uri, entries):
+    def __init__(self, uri, expected_data, entries):
         if type(uri).__name__ == 'SRE_Pattern':
             self.regex = uri
         else:
             self.info = URIInfo.from_uri(uri, entries)
 
+        self.expected_data = expected_data
         self.entries = entries
 
         #hash of current_entry pointers, per method.
@@ -683,6 +692,7 @@ class httpretty(HttpBaseClass):
                      adding_headers=None,
                      forcing_headers=None,
                      status=200,
+                     expected_data=None,
                      responses=None, **headers):
 
         uri_is_string = isinstance(uri, basestring)
@@ -705,7 +715,7 @@ class httpretty(HttpBaseClass):
                 cls.Response(method=method, uri=uri, **headers),
             ]
 
-        matcher = URIMatcher(uri, entries_for_this_uri)
+        matcher = URIMatcher(uri, expected_data, entries_for_this_uri)
         if matcher in cls._entries:
             matcher.entries.extend(cls._entries[matcher])
             del cls._entries[matcher]
