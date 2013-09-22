@@ -1,6 +1,7 @@
 # HTTPretty 0.6.2
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/gabrielfalcao/httpretty/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
 [ChangeLog](NEWS.md)
 
