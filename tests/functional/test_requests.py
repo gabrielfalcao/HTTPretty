@@ -520,6 +520,28 @@ def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
 
 
 @httprettified
+def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
+    "HTTPretty should provide a way to not match regexes that have a different querystring"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("https://example.org/(?P<endpoint>\w+)/$"),
+        body="Nudge, nudge, wink, wink. Know what I mean?",
+        match_querystring=True
+    )
+
+    response = requests.get('https://example.org/what/')
+    expect(response.text).to.equal('Nudge, nudge, wink, wink. Know what I mean?')
+    try:
+        requests.get('https://example.org/what/?flying=coconuts')
+        raised = False
+    except requests.ConnectionError:
+        raised = True
+
+    assert raised is True
+
+
+@httprettified
 def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
     "HTTPretty should allow registering multiple methods for the same uri"
 
