@@ -261,6 +261,10 @@ def test_httpretty_should_allow_registering_regexes():
     expect(httpretty.last_request().path).to.equal('/v1/deal;brand=GAP')
 ```
 
+By default, the regexp you register will match the requests without looking at
+the querystring. If you want the querystring to be considered, you can set 
+`match_querystring=True` when calling `register_uri`.
+
 ## expect for a response, and check the request got by the "server" to make sure it was fine.
 
 ```python
