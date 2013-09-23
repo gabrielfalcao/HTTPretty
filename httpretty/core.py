@@ -601,7 +601,8 @@ class URIMatcher(object):
     regex = None
     info = None
 
-    def __init__(self, uri, entries):
+    def __init__(self, uri, entries, match_querystring=False):
+        self._match_querystring = match_querystring
         if type(uri).__name__ == 'SRE_Pattern':
             self.regex = uri
         else:
@@ -616,7 +617,8 @@ class URIMatcher(object):
         if self.info:
             return self.info == info
         else:
-            return self.regex.search(info.full_url(use_querystring=False))
+            return self.regex.search(info.full_url(
+                use_querystring=self._match_querystring))
 
     def __str__(self):
         wrap = 'URLMatcher({0})'
@@ -683,7 +685,8 @@ class httpretty(HttpBaseClass):
                      adding_headers=None,
                      forcing_headers=None,
                      status=200,
-                     responses=None, **headers):
+                     responses=None, match_querystring=False,
+                     **headers):
 
         uri_is_string = isinstance(uri, basestring)
 
@@ -705,7 +708,8 @@ class httpretty(HttpBaseClass):
                 cls.Response(method=method, uri=uri, **headers),
             ]
 
-        matcher = URIMatcher(uri, entries_for_this_uri)
+        matcher = URIMatcher(uri, entries_for_this_uri,
+                             match_querystring)
         if matcher in cls._entries:
             matcher.entries.extend(cls._entries[matcher])
             del cls._entries[matcher]
