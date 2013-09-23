@@ -6,7 +6,7 @@ read newversion
 
 
 find_files () {
-    find * -name '*.py' -or -name '*.yml'
+    find . -name '*.py' -or -name '*.yml'
 }
 update_files (){
     find_files | xargs gsed -i "s,$current_version,$newversion,g"

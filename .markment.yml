@@ -1,6 +1,6 @@
 project:
   name: "HTTPretty"
-  version: 0.6.2
+  version: 0.6.4
   description: HTTP client mock for Python
 
   github_maintainer: gabrielfalcao
