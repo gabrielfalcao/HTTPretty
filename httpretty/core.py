@@ -65,6 +65,7 @@ from .errors import HTTPrettyError
 
 from datetime import datetime
 from datetime import timedelta
+from errno import EAGAIN
 
 old_socket = socket.socket
 old_create_connection = socket.create_connection
@@ -221,8 +222,9 @@ class fakesock(object):
                     _d = self.truesock.recv(16)
                     self.truesock.settimeout(0.0)
                     self.fd.write(_d)
-
-                except socket.error:
+                except socket.error as e:
+                    if e.errno == EAGAIN:
+                        continue
                     break
 
             self.fd.seek(0)
