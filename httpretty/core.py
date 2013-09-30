@@ -555,12 +555,12 @@ class URIInfo(BaseClass):
     def __eq__(self, other):
         self_tuple = (
             self.port,
-            decode_utf8(self.hostname),
+            decode_utf8(self.hostname.lower()),
             url_fix(decode_utf8(self.path)),
         )
         other_tuple = (
             other.port,
-            decode_utf8(other.hostname),
+            decode_utf8(other.hostname.lower()),
             url_fix(decode_utf8(other.path)),
         )
         return self_tuple == other_tuple
