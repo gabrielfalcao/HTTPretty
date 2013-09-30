@@ -351,7 +351,7 @@ def create_fake_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, sour
 
 
 def fake_gethostbyname(host):
-    return host
+    return '127.0.0.1'
 
 
 def fake_gethostname():
