@@ -39,7 +39,7 @@ def get_packages():
     # setuptools can't do the job :(
     packages = []
     for root, dirnames, filenames in os.walk(os.path.join(HTTPRETTY_PATH, 'httpretty')):
-        path = root.replace(HTTPRETTY_PATH, '').strip('/')
+        path = root.replace(HTTPRETTY_PATH, '').strip(os.sep)
         if '__init__.py' in filenames:
             packages.append(".".join(os.path.split(path)).strip("."))
 
