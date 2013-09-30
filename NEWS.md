@@ -1,3 +1,16 @@
+### New in version 0.6.5
+
+Applied pull requests:
+
+* continue on EAGAIN socket errors: [#102](https://github.com/gabrielfalcao/HTTPretty/pull/102) by [kouk](http://github.com/kouk).
+* Fix `fake_gethostbyname` for requests 2.0: [#101](https://github.com/gabrielfalcao/HTTPretty/pull/101) by [mgood](http://github.com/mgood)
+* Add a way to match the querystrings: [#98](https://github.com/gabrielfalcao/HTTPretty/pull/98) by [ametaireau](http://github.com/ametaireau)
+* Use common string case for URIInfo hostname comparison: [#95](https://github.com/gabrielfalcao/HTTPretty/pull/95) by [mikewaters](http://github.com/mikewaters)
+* Expose httpretty.reset() to public API: [#91](https://github.com/gabrielfalcao/HTTPretty/pull/91) by [imankulov](http://github.com/imankulov)
+* Don't duplicate http ports number: [#89](https://github.com/gabrielfalcao/HTTPretty/pull/89) by [mardiros](http://github.com/mardiros)
+* Adding parsed_body parameter to simplify checks: [#88](https://github.com/gabrielfalcao/HTTPretty/pull/88) by [toumorokoshi](http://github.com/toumorokoshi)
+* Use the real socket if it's not HTTP: [#87](https://github.com/gabrielfalcao/HTTPretty/pull/87) by [mardiros](http://github.com/mardiros)
+
 ### New in version 0.6.2
 
 * Fixing bug of lack of trailing slashes [#73](https://github.com/gabrielfalcao/HTTPretty/issues/73)

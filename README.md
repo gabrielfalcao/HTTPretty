@@ -1,4 +1,4 @@
-# HTTPretty 0.6.2
+# HTTPretty 0.6.4
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/gabrielfalcao/httpretty/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
@@ -263,7 +263,7 @@ def test_httpretty_should_allow_registering_regexes():
 ```
 
 By default, the regexp you register will match the requests without looking at
-the querystring. If you want the querystring to be considered, you can set 
+the querystring. If you want the querystring to be considered, you can set
 `match_querystring=True` when calling `register_uri`.
 
 ## expect for a response, and check the request got by the "server" to make sure it was fine.
