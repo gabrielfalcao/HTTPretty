@@ -60,11 +60,9 @@ def test_httpretty_should_raise_on_socket_send_when_uri_registered():
     import socket
     HTTPretty.enable()
 
-    defaults = core.POTENTIAL_HTTP_PORTS[:]
-    core.POTENTIAL_HTTP_PORTS = [80, 443]
     HTTPretty.register_uri(HTTPretty.GET,
                            'http://127.0.0.1:5000')
-    expect(core.POTENTIAL_HTTP_PORTS).to.be.equal([80, 443, 5000])
+    expect(core.POTENTIAL_HTTP_PORTS).to.be.equal(set([80, 443, 5000]))
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(('127.0.0.1', 5000))
@@ -72,7 +70,7 @@ def test_httpretty_should_raise_on_socket_send_when_uri_registered():
     sock.close()
 
     # restore the previous value
-    core.POTENTIAL_HTTP_PORTS = defaults
+    core.POTENTIAL_HTTP_PORTS.remove(5000)
     HTTPretty.reset()
     HTTPretty.disable()
 
