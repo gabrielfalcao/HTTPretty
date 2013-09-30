@@ -35,6 +35,7 @@ from .testserver import TornadoServer, TCPServer, TCPClient
 from sure import expect, that_with_context
 
 import httpretty
+from httpretty import core
 
 
 def start_http_server(context):
@@ -92,7 +93,7 @@ def test_httpretty_bypasses_when_disabled(context):
     fd.close()
 
     expect(got3).to.equal(b'glub glub')
-
+    core.POTENTIAL_HTTP_PORTS.remove(9999)
 
 @httpretty.activate
 @that_with_context(start_http_server, stop_http_server)
@@ -114,6 +115,7 @@ def test_httpretty_bypasses_a_unregistered_request(context):
     fd.close()
 
     expect(got2).to.equal(b'<- HELLO WORLD ->')
+    core.POTENTIAL_HTTP_PORTS.remove(9999)
 
 
 @httpretty.activate
