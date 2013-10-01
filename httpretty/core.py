@@ -47,6 +47,7 @@ from .compat import (
     urlunsplit,
     urlsplit,
     parse_qs,
+    unquote,
     ClassTypes,
     basestring
 )
@@ -109,8 +110,11 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         self.error_code = self.error_message = None
         self.parse_request()
         self.method = self.command
-        self.querystring = parse_qs(self.path.split("?", 1)[-1])
-        self.parsed_body = self.__parse_body(self.body)
+
+        qstring = self.path.split("?", 1)[-1]
+        self.querystring = self.parse_querystring(qstring)
+
+        self.parsed_body = self.parse_request_body(self.body)
 
     def __str__(self):
         return 'HTTPrettyRequest(headers={0}, body="{1}")'.format(
@@ -118,7 +122,16 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
             self.body,
         )
 
-    def __parse_body(self, body):
+    def parse_querystring(self, qs):
+        unicode_qs = qs.encode('utf-8')
+        expanded = unquote(unicode_qs)
+        parsed = parse_qs(expanded)
+        result = {}
+        for k, v in parsed.iteritems():
+            result[k] = map(decode_utf8, v)
+        return result
+
+    def parse_request_body(self, body):
         """ Attempt to parse the post based on the content-type passed. Return the regular body if not """
         return_value = body.decode('utf-8')
         try:
@@ -127,7 +140,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
                     if self.headers['content-type'].lower() == 'application/json':
                         return_value = json.loads(return_value)
                     elif self.headers['content-type'].lower() == 'application/x-www-form-urlencoded':
-                        return_value = parse_qs(return_value)
+                        return_value = self.parse_querystring(return_value)
         finally:
             return return_value
 

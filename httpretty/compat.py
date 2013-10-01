@@ -58,9 +58,9 @@ class BaseClass(object):
 
 
 try:
-    from urllib.parse import urlsplit, urlunsplit, parse_qs, quote, quote_plus
+    from urllib.parse import urlsplit, urlunsplit, parse_qs, quote, quote_plus, unquote
 except ImportError:
-    from urlparse import urlsplit, urlunsplit, parse_qs
+    from urlparse import urlsplit, urlunsplit, parse_qs, unquote
     from urllib import quote, quote_plus
 
 try:

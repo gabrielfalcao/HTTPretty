@@ -648,3 +648,11 @@ def test_lack_of_trailing_slash():
     HTTPretty.register_uri(HTTPretty.GET, url, body='')
     response = requests.get(url)
     response.status_code.should.equal(200)
+
+
+@httprettified
+def test_unicode_querystrings():
+    HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/login",
+                           body="Find the best daily deals")
+    requests.get('http://yipit.com/login?user=Gabriel+Falcão')
+    expect(HTTPretty.last_request.querystring['user'][0]).should.be.equal('Gabriel Falcão')
