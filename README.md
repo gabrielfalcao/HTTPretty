@@ -147,6 +147,7 @@ headers will be
 [united](http://en.wikipedia.org/wiki/Union_(set_theory)) to the
 existing headers.
 
+```python
 @httpretty.activate
 def test_some_api():
     httpretty.register_uri(httpretty.GET, "http://foo-api.com/gabrielfalcao",
@@ -169,7 +170,7 @@ specified fake response body.
 
 So you might want to *"force"* those headers:
 
-
+```python
 @httpretty.activate
 def test_some_api():
     httpretty.register_uri(httpretty.GET, "http://foo-api.com/gabrielfalcao",
