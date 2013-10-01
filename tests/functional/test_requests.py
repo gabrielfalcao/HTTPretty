@@ -27,12 +27,15 @@
 
 from __future__ import unicode_literals
 
-
+import os
 import re
+import json
 import requests
 from sure import within, microseconds, expect
 from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
+
+from base import FIXTURE_FILE, use_tornado_server
 
 try:
     xrange = xrange
@@ -652,7 +655,88 @@ def test_lack_of_trailing_slash():
 
 @httprettified
 def test_unicode_querystrings():
+    ("Querystrings should accept unicode characters")
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/login",
                            body="Find the best daily deals")
     requests.get('http://yipit.com/login?user=Gabriel+Falcão')
     expect(HTTPretty.last_request.querystring['user'][0]).should.be.equal('Gabriel Falcão')
+
+
+@use_tornado_server
+def test_recording_calls():
+    ("HTTPretty should be able to record calls")
+    # Given a destination path:
+    destination = FIXTURE_FILE("recording-1.json")
+
+    # When I record some calls
+    with HTTPretty.record(destination):
+        requests.get("http://localhost:8888/foobar?name=Gabriel&age=25")
+        requests.post("http://localhost:8888/foobar", data=json.dumps({'test': '123'}))
+
+    # Then the destination path should exist
+    os.path.exists(destination).should.be.true
+
+    # And the contents should be json
+    raw = open(destination).read()
+    json.loads.when.called_with(raw).should_not.throw(ValueError)
+
+    # And the contents should be expected
+    data = json.loads(raw)
+    data.should.equal([
+        {
+            "request": {
+                "method": "GET",
+                "uri": "http://localhost:8888/foobar?name=Gabriel&age=25",
+                "body": "",
+                "headers": {
+                    "host": "localhost:8888",
+                    "accept-encoding": "gzip, deflate, compress",
+                    "content-length": "0",
+                    "accept": "*/*",
+                    "user-agent": "python-requests/1.1.0 CPython/2.7.5 Darwin/12.5.0"
+                },
+                "querystring": {
+                    "age": [
+                        "25"
+                    ],
+                    "name": [
+                        "Gabriel"
+                    ]
+                }
+            },
+            "response": {
+                "status": 200,
+                "body": "{\n    \"foobar\": {\n        \"age\": \"25\", \n        \"name\": \"Gabriel\"\n    }\n}",
+                "headers": {
+                    "content-length": "73",
+                    "etag": "\"6fdccaba6542114e7d1098d22a01623dc2aa5761\"",
+                    "content-type": "text/html; charset=UTF-8",
+                    "server": "TornadoServer/2.4"
+                }
+            }
+        },
+        {
+            "request": {
+                "method": "POST",
+                "uri": "http://localhost:8888/foobar",
+                "body": "{\"test\": \"123\"}",
+                "headers": {
+                    "host": "localhost:8888",
+                    "accept-encoding": "gzip, deflate, compress",
+                    "content-length": "15",
+                    "accept": "*/*",
+                    "user-agent": "python-requests/1.1.0 CPython/2.7.5 Darwin/12.5.0"
+                },
+                "querystring": {}
+            },
+            "response": {
+                "status": 200,
+                "body": "{\n    \"foobar\": {}\n}",
+                "headers": {
+                    "content-length": "20",
+                    "content-type": "text/html; charset=UTF-8",
+                    "server": "TornadoServer/2.4"
+                }
+            }
+        }
+    ])

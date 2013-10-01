@@ -26,6 +26,7 @@
 from __future__ import unicode_literals
 
 import re
+import codecs
 import inspect
 import socket
 import functools
@@ -34,6 +35,7 @@ import warnings
 import logging
 import traceback
 import json
+import contextlib
 
 
 from .compat import (
@@ -98,7 +100,7 @@ except ImportError:
 
 
 POTENTIAL_HTTP_PORTS = set([80, 443])
-
+DEFAULT_HTTP_PORTS = tuple(POTENTIAL_HTTP_PORTS)
 
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
     def __init__(self, headers, body=''):
@@ -307,7 +309,7 @@ class fakesock(object):
 
             for matcher, value in httpretty._entries.items():
                 if matcher.matches(info):
-                    entries = value
+                    entries = info
                     break
 
             if not entries:
@@ -562,7 +564,7 @@ class URIInfo(BaseClass):
         self.port = port or 80
         self.path = path or ''
         self.query = query or ''
-        self.scheme = scheme or (self.port is 80 and "http" or "https")
+        self.scheme = scheme or (self.port == 443 and "https" or "http")
         self.fragment = fragment or ''
         self.last_request = last_request
 
@@ -603,14 +605,21 @@ class URIInfo(BaseClass):
         if use_querystring and self.query:
             query = "?{0}".format(decode_utf8(self.query))
 
-        result = "{scheme}://{credentials}{host}{path}{query}".format(
+        result = "{scheme}://{credentials}{domain}{path}{query}".format(
             scheme=self.scheme,
             credentials=credentials,
-            host=decode_utf8(self.hostname),
+            domain=self.get_full_domain(),
             path=decode_utf8(self.path),
             query=query
         )
         return result
+
+    def get_full_domain(self):
+        hostname = decode_utf8(self.hostname)
+        if self.port not in DEFAULT_HTTP_PORTS:
+            return ":".join([hostname, str(self.port)])
+
+        return hostname
 
     @classmethod
     def from_uri(cls, uri, entry):
@@ -693,6 +702,49 @@ class httpretty(HttpBaseClass):
 
     last_request = HTTPrettyRequestEmpty()
     _is_enabled = False
+
+
+    @classmethod
+    @contextlib.contextmanager
+    def record(cls, filename, indentation=4, encoding='utf-8'):
+        try:
+            import urllib3
+        except ImportError:
+            raise RuntimeError('HTTPretty requires urllib3 installed for recording actual requests.')
+
+
+        http = urllib3.PoolManager()
+
+        cls.enable()
+        calls = []
+        def record_request(request, uri, headers):
+            cls.disable()
+
+            response = http.request(request.method, uri)
+            calls.append({
+                'request': {
+                    'uri': uri,
+                    'method': request.method,
+                    'headers': dict(request.headers),
+                    'body': request.body,
+                    'querystring': request.querystring
+                },
+                'response': {
+                    'status': response.status,
+                    'body': response.data,
+                    'headers': dict(response.headers)
+                }
+            })
+            cls.enable()
+            return response.status, response.headers, response.data
+
+        for method in cls.METHODS:
+            cls.register_uri(method, re.compile(r'.*', re.M), body=record_request)
+
+        yield
+        cls.disable()
+        with codecs.open(filename, 'w', encoding) as f:
+            f.write(json.dumps(calls, indent=indentation))
 
     @classmethod
     def reset(cls):

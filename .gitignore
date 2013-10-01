@@ -10,3 +10,4 @@ dist/
 #*
 .tox/
 _public/
+tests/functional/fixtures/*.json

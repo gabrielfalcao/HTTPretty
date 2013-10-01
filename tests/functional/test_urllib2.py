@@ -285,7 +285,7 @@ def test_httpretty_ignores_querystrings_from_registered_uri():
 def test_callback_response(now):
     ("HTTPretty should all a callback function to be set as the body with"
       " urllib2")
-
+    os.environ['DEBUG'] = 'true'
     def request_callback(request, uri, headers):
         return [200, headers, "The {0} response from {1}".format(decode_utf8(request.method), uri)]
 
