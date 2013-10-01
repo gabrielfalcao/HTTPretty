@@ -27,7 +27,7 @@
 
 from __future__ import unicode_literals
 import os
-import multiprocessing
+import threading
 import traceback
 import tornado.ioloop
 import tornado.web
@@ -35,6 +35,7 @@ from functools import wraps
 from sure import scenario
 import json
 from os.path import abspath, dirname, join
+from httpretty.core import POTENTIAL_HTTP_PORTS
 
 
 LOCAL_FILE = lambda *path: join(abspath(dirname(__file__)), *path)
@@ -51,10 +52,10 @@ class JSONEchoHandler(tornado.web.RequestHandler):
         self.write(json.dumps({matched or 'index': payload}, indent=4))
 
 
-class JSONEchoServer(multiprocessing.Process):
+class JSONEchoServer(threading.Thread):
     def __init__(self, port=8888, *args, **kw):
         self.port = int(port)
-        self._stop = multiprocessing.Event()
+        self._stop = threading.Event()
         super(JSONEchoServer, self).__init__(*args, **kw)
         self.daemon = True
 
@@ -85,5 +86,6 @@ def use_tornado_server(callback):
             callback(*args, **kw)
         finally:
             server.stop()
-
+            if 8888 in POTENTIAL_HTTP_PORTS:
+                POTENTIAL_HTTP_PORTS.remove(8888)
     return func
