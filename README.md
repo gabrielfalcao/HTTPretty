@@ -139,6 +139,59 @@ def test_some_api():
     expect(response.status_code).to.equal(500)
 ```
 
+
+### Adding extra headers and forcing headers
+
+You can pass the `adding_headers` argument as a dictionary and your
+headers will be
+[united](http://en.wikipedia.org/wiki/Union_(set_theory)) to the
+existing headers.
+
+@httpretty.activate
+def test_some_api():
+    httpretty.register_uri(httpretty.GET, "http://foo-api.com/gabrielfalcao",
+                           body='{"success": false}',
+                           status=500,
+                           content_type='text/json',
+                           adding_headers={
+                               'X-foo': 'bar'
+                           })
+
+    response = requests.get('http://foo-api.com/gabrielfalcao')
+
+    expect(response.json()).to.equal({'success': False})
+    expect(response.status_code).to.equal(500)
+```
+
+Although there are some situation where some headers line
+`content-length` will be calculated by HTTPretty based on the
+specified fake response body.
+
+So you might want to *"force"* those headers:
+
+
+@httpretty.activate
+def test_some_api():
+    httpretty.register_uri(httpretty.GET, "http://foo-api.com/gabrielfalcao",
+                           body='{"success": false}',
+                           status=500,
+                           content_type='text/json',
+                           forcing_headers={
+                               'content-length': '100'
+                           })
+
+    response = requests.get('http://foo-api.com/gabrielfalcao')
+
+    expect(response.json()).to.equal({'success': False})
+    expect(response.status_code).to.equal(500)
+```
+
+You should, though, be careful with it. The HTTP client is likely to
+rely on the content length to know how many bytes of response payload
+should be loaded. Forcing a `content-length` that is bigger than the
+action response body might cause the HTTP client to hang because it is
+waiting for data. Read more in the "caveats" session on the bottom.
+
 ## rotating responses
 
 Same URL, same request method, the first request return the first
