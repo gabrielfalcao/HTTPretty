@@ -10,4 +10,4 @@ dist/
 #*
 .tox/
 _public/
-tests/functional/fixtures/*.json
+tests/functional/fixtures/recording-*.json

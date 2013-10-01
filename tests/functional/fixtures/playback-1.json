@@ -1,0 +1,58 @@
+[
+    {
+        "request": {
+            "body": "",
+            "headers": {
+                "host": "localhost:8888",
+                "accept-encoding": "gzip, deflate, compress",
+                "content-length": "0",
+                "accept": "*/*",
+                "user-agent": "python-requests/1.1.0 CPython/2.7.5 Darwin/12.5.0"
+            },
+            "querystring": {
+                "age": [
+                    "25"
+                ],
+                "name": [
+                    "Gabriel"
+                ]
+            },
+            "uri": "http://localhost:8888/foobar?name=Gabriel&age=25",
+            "method": "GET"
+        },
+        "response": {
+            "status": 200,
+            "body": "{\n    \"foobar\": {\n        \"age\": \"25\", \n        \"name\": \"Gabriel\"\n    }\n}",
+            "headers": {
+                "content-length": "73",
+                "etag": "\"6fdccaba6542114e7d1098d22a01623dc2aa5761\"",
+                "content-type": "text/html; charset=UTF-8",
+                "server": "TornadoServer/2.4"
+            }
+        }
+    },
+    {
+        "request": {
+            "body": "{\"test\": \"123\"}",
+            "headers": {
+                "host": "localhost:8888",
+                "accept-encoding": "gzip, deflate, compress",
+                "content-length": "15",
+                "accept": "*/*",
+                "user-agent": "python-requests/1.1.0 CPython/2.7.5 Darwin/12.5.0"
+            },
+            "querystring": {},
+            "uri": "http://localhost:8888/foobar",
+            "method": "POST"
+        },
+        "response": {
+            "status": 200,
+            "body": "{\n    \"foobar\": {}\n}",
+            "headers": {
+                "content-length": "20",
+                "content-type": "text/html; charset=UTF-8",
+                "server": "TornadoServer/2.4"
+            }
+        }
+    }
+]

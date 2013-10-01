@@ -747,6 +747,20 @@ class httpretty(HttpBaseClass):
             f.write(json.dumps(calls, indent=indentation))
 
     @classmethod
+    @contextlib.contextmanager
+    def playback(cls, origin):
+        cls.enable()
+
+        data = json.loads(open(origin).read())
+        for item in data:
+            uri = item['request']['uri']
+            method = item['request']['method']
+            cls.register_uri(method, uri, body=item['response']['body'], forcing_headers=item['response']['headers'])
+
+        yield
+        cls.disable()
+
+    @classmethod
     def reset(cls):
         cls._entries.clear()
         cls.latest_requests = []

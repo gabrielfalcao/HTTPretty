@@ -666,7 +666,7 @@ def test_unicode_querystrings():
 def test_recording_calls():
     ("HTTPretty should be able to record calls")
     # Given a destination path:
-    destination = FIXTURE_FILE("recording-1.json")
+    destination = FIXTURE_FILE("recording-.json")
 
     # When I record some calls
     with HTTPretty.record(destination):
@@ -740,3 +740,19 @@ def test_recording_calls():
             }
         }
     ])
+
+
+def test_playing_calls():
+    ("HTTPretty should be able to record calls")
+    # Given a destination path:
+    destination = FIXTURE_FILE("playback-1.json")
+
+    # When I playback some previously recorded calls
+    with HTTPretty.playback(destination):
+        # And make the expected requests
+        response1 = requests.get("http://localhost:8888/foobar?name=Gabriel&age=25")
+        response2 = requests.post("http://localhost:8888/foobar", data=json.dumps({'test': '123'}))
+
+    # Then the responses should be the expected
+    response1.json().should.equal({"foobar": {"age": "25", "name": "Gabriel"}})
+    response2.json().should.equal({"foobar": {}})
