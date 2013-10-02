@@ -49,6 +49,9 @@ except NameError:
         return it.next()
 next = advance_iterator
 
+PORT = int(os.getenv('TEST_PORT') or 8888)
+server_url = lambda path: "http://localhost:{0}/{1}".format(PORT, path.lstrip('/'))
+
 
 @httprettified
 @within(two=microseconds)
@@ -670,8 +673,8 @@ def test_recording_calls():
 
     # When I record some calls
     with HTTPretty.record(destination):
-        requests.get("http://localhost:8888/foobar?name=Gabriel&age=25")
-        requests.post("http://localhost:8888/foobar", data=json.dumps({'test': '123'}))
+        requests.get(server_url("/foobar?name=Gabriel&age=25"))
+        requests.post(server_url("/foobar"), data=json.dumps({'test': '123'}))
 
     # Then the destination path should exist
     os.path.exists(destination).should.be.true
@@ -682,64 +685,28 @@ def test_recording_calls():
 
     # And the contents should be expected
     data = json.loads(raw)
-    data.should.equal([
-        {
-            "request": {
-                "method": "GET",
-                "uri": "http://localhost:8888/foobar?name=Gabriel&age=25",
-                "body": "",
-                "headers": {
-                    "host": "localhost:8888",
-                    "accept-encoding": "gzip, deflate, compress",
-                    "content-length": "0",
-                    "accept": "*/*",
-                    "user-agent": "python-requests/1.1.0 CPython/2.7.5 Darwin/12.5.0"
-                },
-                "querystring": {
-                    "age": [
-                        "25"
-                    ],
-                    "name": [
-                        "Gabriel"
-                    ]
-                }
-            },
-            "response": {
-                "status": 200,
-                "body": "{\n    \"foobar\": {\n        \"age\": \"25\", \n        \"name\": \"Gabriel\"\n    }\n}",
-                "headers": {
-                    "content-length": "73",
-                    "etag": "\"6fdccaba6542114e7d1098d22a01623dc2aa5761\"",
-                    "content-type": "text/html; charset=UTF-8",
-                    "server": "TornadoServer/2.4"
-                }
-            }
-        },
-        {
-            "request": {
-                "method": "POST",
-                "uri": "http://localhost:8888/foobar",
-                "body": "{\"test\": \"123\"}",
-                "headers": {
-                    "host": "localhost:8888",
-                    "accept-encoding": "gzip, deflate, compress",
-                    "content-length": "15",
-                    "accept": "*/*",
-                    "user-agent": "python-requests/1.1.0 CPython/2.7.5 Darwin/12.5.0"
-                },
-                "querystring": {}
-            },
-            "response": {
-                "status": 200,
-                "body": "{\n    \"foobar\": {}\n}",
-                "headers": {
-                    "content-length": "20",
-                    "content-type": "text/html; charset=UTF-8",
-                    "server": "TornadoServer/2.4"
-                }
-            }
-        }
-    ])
+    data.should.be.a(list)
+    data.should.have.length_of(2)
+
+    # And the responses should have the expected keys
+    response = data[0]
+    response.should.have.key("request").being.length_of(5)
+    response.should.have.key("response").being.length_of(3)
+
+    response['request'].should.have.key("method").being.equal("GET")
+    response['request'].should.have.key("headers").being.a(dict)
+    response['request'].should.have.key("querystring").being.equal({
+        "age": [
+            "25"
+        ],
+        "name": [
+            "Gabriel"
+        ]
+    })
+    response['response'].should.have.key("status").being.equal(200)
+    response['response'].should.have.key("body").being.an(unicode)
+    response['response'].should.have.key("headers").being.a(dict)
+    response['response']["headers"].should.have.key("server").being.equal("TornadoServer/2.4")
 
 
 def test_playing_calls():
@@ -750,8 +717,8 @@ def test_playing_calls():
     # When I playback some previously recorded calls
     with HTTPretty.playback(destination):
         # And make the expected requests
-        response1 = requests.get("http://localhost:8888/foobar?name=Gabriel&age=25")
-        response2 = requests.post("http://localhost:8888/foobar", data=json.dumps({'test': '123'}))
+        response1 = requests.get(server_url("/foobar?name=Gabriel&age=25"))
+        response2 = requests.post(server_url("/foobar"), data=json.dumps({'test': '123'}))
 
     # Then the responses should be the expected
     response1.json().should.equal({"foobar": {"age": "25", "name": "Gabriel"}})
