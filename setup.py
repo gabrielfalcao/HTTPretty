@@ -28,22 +28,11 @@
 
 import os
 from httpretty import version, HTTPretty
-from setuptools import setup
+from setuptools import setup, find_packages
 
 HTTPretty.disable()
 
 HTTPRETTY_PATH = os.path.abspath(os.path.join(__file__, os.pardir))
-
-
-def get_packages():
-    # setuptools can't do the job :(
-    packages = []
-    for root, dirnames, filenames in os.walk(os.path.join(HTTPRETTY_PATH, 'httpretty')):
-        path = root.replace(HTTPRETTY_PATH, '').strip('/')
-        if '__init__.py' in filenames:
-            packages.append(".".join(os.path.split(path)).strip("."))
-
-    return packages
 
 
 def test_packages():
@@ -61,7 +50,7 @@ setup(name='httpretty',
     author_email='gabriel@nacaolivre.org',
     url='http://github.com/gabrielfalcao/httpretty',
     zip_safe=False,
-    packages=get_packages(),
+    packages=find_packages(HTTPRETTY_PATH, ('tests')),
     tests_require=test_packages(),
     license='MIT',
     classifiers=["Intended Audience :: Developers",
