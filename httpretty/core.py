@@ -102,6 +102,7 @@ except ImportError:
 POTENTIAL_HTTP_PORTS = set([80, 443])
 DEFAULT_HTTP_PORTS = tuple(POTENTIAL_HTTP_PORTS)
 
+
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
     def __init__(self, headers, body=''):
         self.body = utf8(body)
@@ -277,9 +278,13 @@ class fakesock(object):
             if not is_parsing_headers:
                 if len(self._sent_data) > 1:
                     headers = utf8(last_requestline(self._sent_data))
+                    meta = dict(self._entry.request.headers)
                     body = utf8(self._sent_data[-1])
-
-                    self._entry.request.body = body
+                    if meta.get('transfer-encoding', '') == 'chunked':
+                        if len(body) > 1 and body != '\r\n' and body != '0\r\n\r\n':
+                            self._entry.request.body += body
+                    else:
+                        self._entry.request.body += body
 
                     try:
                         return httpretty.historify_request(headers, body, False)

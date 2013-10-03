@@ -566,7 +566,7 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
 
 
 @httprettified
-def on_hold__httpretty_should_allow_registering_regexes_with_streaming_responses():
+def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
     "HTTPretty should allow registering regexes with streaming responses"
     import os
     os.environ['DEBUG'] = 'true'
@@ -678,9 +678,7 @@ def test_recording_calls():
     # And the contents should be expected
     data = json.loads(raw)
     data.should.be.a(list)
-    data[:2].should.have.length_of(2) # TODO: remove the `[:2]` when
-                                      # this ticket is solved:
-                                      # https://github.com/gabrielfalcao/HTTPretty/issues/100
+    data.should.have.length_of(2)
 
     # And the responses should have the expected keys
     response = data[0]
