@@ -279,13 +279,7 @@ class fakesock(object):
                     headers = utf8(last_requestline(self._sent_data))
                     body = utf8(self._sent_data[-1])
 
-                    last_entry = self._entry
-                    last_entry.request.body = body
-                    request_headers = dict(last_entry.request.headers)
-                    # If we are receiving more data and the last entry to be processed
-                    # was a callback responsed, send the new data to the callback
-                    if last_entry.body_is_callable:
-                        last_entry.callable_body(last_entry.request, last_entry.info.full_url(), request_headers)
+                    self._entry.request.body = body
 
                     try:
                         return httpretty.historify_request(headers, body, False)
@@ -394,6 +388,10 @@ def fake_getaddrinfo(
 
 
 class Entry(BaseClass):
+    # TODO: rename callable_body to a private name and provide a
+    # public version named `call`, which will be a wrapper that only
+    # calls the callable if suitable. This is how it will decide:
+    # if the transfer-encoding is chunked then it will get the expected size of chunks and only call the callable once per chunk
     def __init__(self, method, uri, body,
                  adding_headers=None,
                  forcing_headers=None,
@@ -490,8 +488,10 @@ class Entry(BaseClass):
         headers = self.normalize_headers(headers)
         status = headers.get('status', self.status)
         if self.body_is_callable:
-            status, headers, self.body = self.callable_body(self.request,self.info.full_url(),headers)
-            headers.update({'content-length':len(self.body)})
+            status, headers, self.body = self.callable_body(self.request, self.info.full_url(), headers)
+            headers.update({
+                'content-length': len(self.body)
+            })
 
         string_list = [
             'HTTP/1.1 %d %s' % (status, STATUSES[status]),

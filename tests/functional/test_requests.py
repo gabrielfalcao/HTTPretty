@@ -564,17 +564,16 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
         request_action = getattr(requests, method.lower())
         expect(request_action(url).text).to.equal(method)
 
-data_received = []
-
-def my_callback(request, url, headers):
-    if request.body.strip():
-        data_received.append(request.body.strip())
-    return 200, headers, "Received"
-
 
 @httprettified
-def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
-    "HTTPretty should allow registering regexes with requests"
+def on_hold__httpretty_should_allow_registering_regexes_with_streaming_responses():
+    "HTTPretty should allow registering regexes with streaming responses"
+    import os
+    os.environ['DEBUG'] = 'true'
+
+    def my_callback(request, url, headers):
+        request.body.should.equal('hithere')
+        return 200, headers, "Received"
 
     HTTPretty.register_uri(
         HTTPretty.POST,
@@ -590,14 +589,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
         'https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris',
         data=gen(),
     )
-    expect(data_received).to.equal([
-        b'2',
-        b'hi',
-        b'5',
-        b'there',
-        b'0',
-        b'0',
-    ])
+    expect(response.content).to.equal("Received")
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
@@ -725,3 +717,28 @@ def test_playing_calls():
     # Then the responses should be the expected
     response1.json().should.equal({"foobar": {"age": "25", "name": "Gabriel"}})
     response2.json().should.equal({"foobar": {}})
+
+
+@httprettified
+def test_py26_callback_response():
+    ("HTTPretty should call a callback function *once* and set its return value"
+    " as the body of the response requests")
+
+    from mock import Mock
+
+    def _request_callback(request, uri, headers):
+        return [200, headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+
+    request_callback = Mock()
+    request_callback.side_effect = _request_callback
+
+    HTTPretty.register_uri(
+        HTTPretty.POST, "https://api.yahoo.com/test_post",
+        body=request_callback)
+
+    response = requests.post(
+        "https://api.yahoo.com/test_post",
+        {"username": "gabrielfalcao"}
+    )
+    os.environ['STOP'] = 'true'
+    expect(request_callback.call_count).equal(1)
