@@ -13,15 +13,15 @@ check_dependencies:
 
 test: unit functional doctests
 
-unit:
+unit: prepare
 	@echo "Running unit tests ..."
 	@nosetests -s --verbosity=2 --with-coverage --cover-erase --cover-inclusive tests/unit --cover-package=httpretty
 
-functional:
+functional: prepare
 	@echo "Running functional tests ..."
 	@nosetests -s --verbosity=2 --with-coverage --cover-erase --cover-inclusive tests/functional --cover-package=httpretty
 
-doctests:
+doctests: prepare
 	@echo "Running documentation tests tests ..."
 	@steadymark README.md
 
@@ -45,3 +45,6 @@ docs: doctests
 		git commit -am 'documentation' && \
 		git push --force origin gh-pages && \
 		git checkout master
+
+prepare:
+	@reset

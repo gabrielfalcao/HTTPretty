@@ -81,21 +81,21 @@ old_ssl_wrap_socket = None
 old_sslwrap_simple = None
 old_sslsocket = None
 
-if PY3:
+if PY3:  # pragma: no cover
     basestring = (bytes, str)
-try:
+try:  # pragma: no cover
     import socks
     old_socksocket = socks.socksocket
 except ImportError:
     socks = None
 
-try:
+try:  # pragma: no cover
     import ssl
     old_ssl_wrap_socket = ssl.wrap_socket
     if not PY3:
         old_sslwrap_simple = ssl.sslwrap_simple
     old_sslsocket = ssl.SSLSocket
-except ImportError:
+except ImportError:  # pragma: no cover
     ssl = None
 
 
@@ -104,48 +104,110 @@ DEFAULT_HTTP_PORTS = tuple(POTENTIAL_HTTP_PORTS)
 
 
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
+    """Represents a HTTP request. It takes a valid multi-line, `\r\n`
+    separated string with HTTP headers and parse them out using the
+    internal `parse_request` method.
+
+    It also replaces the `rfile` and `wfile` attributes with StringIO
+    instances so that we garantee that it won't make any I/O, neighter
+    for writing nor reading.
+
+    It has some convenience attributes:
+
+    `headers` -> a mimetype object that can be cast into a dictionary,
+    contains all the request headers
+
+    `method` -> the HTTP method used in this request
+
+    `querystring` -> a dictionary containing lists with the
+    attributes. Please notice that if you need a single value from a
+    query string you will need to get it manually like:
+
+    ```python
+    >>> request.querystring
+    {'name': ['Gabriel Falcao']}
+    >>> print request.querystring['name'][0]
+    ```
+
+    `parsed_body` -> a dictionary containing parsed request body or
+    None if HTTPrettyRequest doesn't know how to parse it.  It
+    currently supports parsing body data that was sent under the
+    `content-type` headers values: 'application/json' or
+    'application/x-www-form-urlencoded'
+    """
     def __init__(self, headers, body=''):
+        # first of all, lets make sure that if headers or body are
+        # unicode strings, it must be converted into a utf-8 encoded
+        # byte string
+        self.raw_headers = utf8(headers.strip())
         self.body = utf8(body)
-        self.raw_headers = utf8(headers)
-        self.rfile = StringIO(b'\r\n\r\n'.join([utf8(headers.strip()), self.body]))
-        self.wfile = StringIO()
+
+        # Now let's concatenate the headers with the body, and create
+        # `rfile` based on it
+        self.rfile = StringIO(b'\r\n\r\n'.join([self.raw_headers, self.body]))
+        self.wfile = StringIO()  # Creating `wfile` as an empty
+                                 # StringIO, just to avoid any real
+                                 # I/O calls
+
+        # parsing the request line preemptively
         self.raw_requestline = self.rfile.readline()
-        self.error_code = self.error_message = None
+
+        # initiating the error attributes with None
+        self.error_code = None
+        self.error_message = None
+
+        # Parse the request based on the attributes above
         self.parse_request()
+
+        # making the HTTP method string available as the command
         self.method = self.command
+
+        # Now 2 convenient attributes for the HTTPretty API:
+
+        # `querystring` holds a dictionary with the parsed query string
+        self.path = decode_utf8(self.path)
 
         qstring = self.path.split("?", 1)[-1]
         self.querystring = self.parse_querystring(qstring)
 
+        # And the body will be attempted to be parsed as
+        # `application/json` or `application/x-www-form-urlencoded`
         self.parsed_body = self.parse_request_body(self.body)
 
     def __str__(self):
-        return 'HTTPrettyRequest(headers={0}, body="{1}")'.format(
-            self.headers,
-            self.body,
+        return '<HTTPrettyRequest("{0}", total_headers={1}, body_length={2})>'.format(
+            self.headers.get('content-type', ''),
+            len(self.headers),
+            len(self.body),
         )
 
     def parse_querystring(self, qs):
-        unicode_qs = qs.encode('utf-8')
-        expanded = unquote(unicode_qs)
+        expanded = decode_utf8(unquote(utf8(qs)))
+
         parsed = parse_qs(expanded)
         result = {}
         for k, v in parsed.iteritems():
             result[k] = map(decode_utf8, v)
+
         return result
 
     def parse_request_body(self, body):
         """ Attempt to parse the post based on the content-type passed. Return the regular body if not """
-        return_value = body.decode('utf-8')
+
+        PARSING_FUNCTIONS = {
+            'application/json': json.loads,
+            'text/json': json.loads,
+            'application/x-www-form-urlencoded': self.parse_querystring,
+        }
+        FALLBACK_FUNCTION = lambda x: x
+
+        content_type = self.headers.get('content-type', '')
+
+        do_parse = PARSING_FUNCTIONS.get(content_type, FALLBACK_FUNCTION)
         try:
-            for header in self.headers.keys():
-                if header.lower() == 'content-type':
-                    if self.headers['content-type'].lower() == 'application/json':
-                        return_value = json.loads(return_value)
-                    elif self.headers['content-type'].lower() == 'application/x-www-form-urlencoded':
-                        return_value = self.parse_querystring(return_value)
-        finally:
-            return return_value
+            return do_parse(body)
+        except:
+            return body
 
 
 class EmptyRequestHeaders(dict):
@@ -166,9 +228,6 @@ class FakeSSLSocket(object):
         self._httpretty_sock = sock
 
     def __getattr__(self, attr):
-        if attr == '_httpretty_sock':
-            return super(FakeSSLSocket, self).__getattribute__(attr)
-
         return getattr(self._httpretty_sock, attr)
 
 
@@ -224,11 +283,12 @@ class fakesock(object):
             self._address = (self._host, self._port) = address
             self._closed = False
             self.is_http = self._port in POTENTIAL_HTTP_PORTS
+
             if not self.is_http:
                 self.truesock.connect(self._address)
 
         def close(self):
-            if not self._closed:
+            if not (self.is_http and self._closed):
                 self.truesock.close()
             self._closed = True
 
