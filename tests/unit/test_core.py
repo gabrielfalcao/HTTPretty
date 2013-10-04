@@ -283,3 +283,37 @@ def test_fakesock_socket_makefile(old_socket):
     socket._mode.should.equal('rw')
     # And the bufsize should have been set in the socket instance
     socket._bufsize.should.equal(512)
+
+    # And the entry should have been filled with that filedescriptor
+    socket._entry.fill_filekind.assert_called_once_with(fd)
+
+
+@patch('httpretty.core.old_socket')
+def test_fakesock_socket_real_sendall(old_socket):
+    ("fakesock.socket#real_sendall sends data and buffers "
+     "the response in the file descriptor")
+    # Background: the real socket will stop returning bytes after the
+    # first call
+    real_socket = old_socket.return_value
+    real_socket.recv.side_effect = ['response from server', ""]
+
+    # Given a fake socket
+    socket = fakesock.socket()
+
+    # When I call real_sendall with data, some args and kwargs
+    socket.real_sendall("SOMEDATA", 'some extra args...', foo='bar')
+
+    # Then it should have called sendall in the real socket
+    real_socket.sendall.assert_called_once_with("SOMEDATA", 'some extra args...', foo='bar')
+
+    # And the timeout was set to 0
+    real_socket.settimeout.assert_called_once_with(0)
+
+    # And recv was called with the bufsize
+    real_socket.recv.assert_has_calls([
+        call(16),
+        call(16),
+    ])
+
+    # And the buffer should contain the data from the server
+    socket.fd.getvalue().should.equal("response from server")

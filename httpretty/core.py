@@ -246,6 +246,7 @@ class fakesock(object):
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
             self._sock = self
             self.is_http = False
+            self._bufsize = 16
 
         def getpeercert(self, *a, **kw):
             now = datetime.now()
@@ -293,6 +294,12 @@ class fakesock(object):
             self._closed = True
 
         def makefile(self, mode='r', bufsize=-1):
+            """Returns this fake socket's own StringIO buffer.
+
+            If there is an entry associated with the socket, the file
+            descriptor gets filled in with the entry data before being
+            returned.
+            """
             self._mode = mode
             self._bufsize = bufsize
 
@@ -301,18 +308,30 @@ class fakesock(object):
 
             return self.fd
 
-        def _true_sendall(self, data, *args, **kw):
-            if self.is_http:
+        def real_sendall(self, data, *args, **kw):
+            """Sends data to the remote server. This method is called
+            when HTTPretty identifies that someone is trying to send
+            non-http data.
+
+            The received bytes are written in this socket's StringIO
+            buffer so that HTTPretty can return it accordingly when
+            necessary.
+            """
+            if self.is_http:  # no need to connect if `self.is_http` is
+                              # False because self.connect already did
+                              # that
                 self.truesock.connect(self._address)
 
+            self.truesock.settimeout(0)
             self.truesock.sendall(data, *args, **kw)
 
-            _d = True
-            while _d:
+            should_continue = True
+            while should_continue:
                 try:
-                    _d = self.truesock.recv(16)
-                    self.truesock.settimeout(0.0)
-                    self.fd.write(_d)
+                    received = self.truesock.recv(self._bufsize)
+                    self.fd.write(received)
+                    should_continue = len(received) > 0
+
                 except socket.error as e:
                     if e.errno == EAGAIN:
                         continue
@@ -321,7 +340,6 @@ class fakesock(object):
             self.fd.seek(0)
 
         def sendall(self, data, *args, **kw):
-
             self._sent_data.append(data)
             self.fd.seek(0)
             try:
@@ -333,7 +351,7 @@ class fakesock(object):
 
                 if not self._entry:
                     # If the previous request wasn't mocked, don't mock the subsequent sending of data
-                    return self._true_sendall(data)
+                    return self.real_sendall(data)
 
             if not is_parsing_headers:
                 if len(self._sent_data) > 1:
@@ -350,7 +368,7 @@ class fakesock(object):
                         return httpretty.historify_request(headers, body, False)
                     except Exception as e:
                         logging.error(traceback.format_exc(e))
-                        return self._true_sendall(data, *args, **kw)
+                        return self.real_sendall(data, *args, **kw)
 
             # path might come with
             s = urlsplit(path)
@@ -373,7 +391,7 @@ class fakesock(object):
 
             if not entries:
                 self._entry = None
-                self._true_sendall(data)
+                self.real_sendall(data)
                 return
 
             self._entry = matcher.get_next_entry(method)
