@@ -30,7 +30,7 @@ import sys
 import types
 
 PY3 = sys.version_info[0] == 3
-if PY3:
+if PY3:  # pragma: no cover
     text_type = str
     byte_type = bytes
     import io
@@ -40,7 +40,7 @@ if PY3:
     class BaseClass(object):
         def __repr__(self):
             return self.__str__()
-else:
+else:  # pragma: no cover
     text_type = unicode
     byte_type = str
     import StringIO
@@ -51,26 +51,26 @@ else:
 class BaseClass(object):
     def __repr__(self):
         ret = self.__str__()
-        if PY3:
+        if PY3:  # pragma: no cover
             return ret
         else:
             return ret.encode('utf-8')
 
 
-try:
+try:  # pragma: no cover
     from urllib.parse import urlsplit, urlunsplit, parse_qs, quote, quote_plus, unquote
-except ImportError:
+except ImportError:  # pragma: no cover
     from urlparse import urlsplit, urlunsplit, parse_qs, unquote
     from urllib import quote, quote_plus
 
-try:
+try:  # pragma: no cover
     from http.server import BaseHTTPRequestHandler
-except ImportError:
+except ImportError:  # pragma: no cover
     from BaseHTTPServer import BaseHTTPRequestHandler
 
 
 ClassTypes = (type,)
-if not PY3:
+if not PY3:  # pragma: no cover
     ClassTypes = (type, types.ClassType)
 
 

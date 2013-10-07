@@ -43,4 +43,5 @@ for attr in [name.decode() for name in httpretty.METHODS] + ['register_uri', 'en
 
 
 def last_request():
+    """returns the last request"""
     return httpretty.last_request
