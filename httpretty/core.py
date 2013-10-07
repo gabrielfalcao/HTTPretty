@@ -341,7 +341,7 @@ class fakesock(object):
 
         def sendall(self, data, *args, **kw):
             self._sent_data.append(data)
-            self.fd.seek(0)
+
             try:
                 requestline, _ = data.split(b'\r\n', 1)
                 method, path, version = parse_requestline(requestline)
@@ -351,7 +351,9 @@ class fakesock(object):
 
                 if not self._entry:
                     # If the previous request wasn't mocked, don't mock the subsequent sending of data
-                    return self.real_sendall(data)
+                    return self.real_sendall(data, *args, **kw)
+
+            self.fd.seek(0)
 
             if not is_parsing_headers:
                 if len(self._sent_data) > 1:

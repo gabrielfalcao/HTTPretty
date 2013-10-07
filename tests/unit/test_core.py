@@ -317,3 +317,69 @@ def test_fakesock_socket_real_sendall(old_socket):
 
     # And the buffer should contain the data from the server
     socket.fd.getvalue().should.equal("response from server")
+
+    # And connect was never called
+    real_socket.connect.called.should.be.false
+
+
+@patch('httpretty.core.old_socket')
+@patch('httpretty.core.POTENTIAL_HTTP_PORTS')
+def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket):
+    ("fakesock.socket#real_sendall should connect before sending data")
+    # Background: the real socket will stop returning bytes after the
+    # first call
+    real_socket = old_socket.return_value
+    real_socket.recv.side_effect = ['response from foobar :)', ""]
+
+    # And the potential http port is 4000
+    POTENTIAL_HTTP_PORTS.__contains__.side_effect = lambda other: int(other) == 4000
+
+    # Given a fake socket
+    socket = fakesock.socket()
+
+    # When I call connect to a server in a port that is considered HTTP
+    socket.connect(('foobar.com', 4000))
+
+    # And send some data
+    socket.real_sendall("SOMEDATA")
+
+    # Then connect should have been called
+    real_socket.connect.assert_called_once_with(('foobar.com', 4000))
+
+    # And the timeout was set to 0
+    real_socket.settimeout.assert_called_once_with(0)
+
+    # And recv was called with the bufsize
+    real_socket.recv.assert_has_calls([
+        call(16),
+        call(16),
+    ])
+
+    # And the buffer should contain the data from the server
+    socket.fd.getvalue().should.equal("response from foobar :)")
+
+
+@patch('httpretty.core.old_socket')
+def test_fakesock_socket_sendall_sends_real_if_non_http(old_socket):
+    ("fakesock.socket#sendall should simply forward the call to real_sendall if it's not http")
+
+    # Background:
+    # using a subclass of socket that mocks out real_sendall
+    class MySocket(fakesock.socket):
+        def real_sendall(self, data, *args, **kw):
+            data.should.equal('some data')
+            args.should.equal(('chuck', 'norris'))
+            kw.should.equal({'attack': 'roundhouse kick'})
+            return 'really sentall'
+
+    # Given an instance of that socket
+    socket = MySocket()
+
+    # And that is is not considered http
+    socket.is_http = False
+
+    # When I try to send data
+    result = socket.sendall("some data", "chuck", "norris", attack="roundhouse kick")
+
+    # Then it should have returned the result `real_sendall`
+    result.should.equal('really sentall')

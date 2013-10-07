@@ -134,10 +134,6 @@ class TCPServer(object):
                 data = conn.recv(1024)
                 conn.send(b"RECEIVED: " + bytes(data))
 
-                print("*" * 100)
-                print(data)
-                print("*" * 100)
-
             conn.close()
 
         args = [self.port]
