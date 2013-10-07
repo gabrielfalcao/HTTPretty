@@ -1,4 +1,14 @@
-### New in version 0.6.5
+### New in version 0.7.0
+
+Improvements:
+
+* Refactored `core.py` and increased its unit test coverage to 80%. HTTPretty is slightly more robust now.
+
+Bug fixes:
+
+* POST requests being called twice [#100](https://github.com/gabrielfalcao/HTTPretty/pull/100)
+
+### New in version 0.7.0
 
 Applied pull requests:
 
