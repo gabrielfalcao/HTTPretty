@@ -2,12 +2,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import json
+import errno
 from datetime import datetime
 
 from mock import Mock, patch, call
 from sure import expect
 
-from httpretty.core import HTTPrettyRequest, FakeSSLSocket, fakesock
+from httpretty.core import HTTPrettyRequest, FakeSSLSocket, fakesock, httpretty
+
+
+class SocketErrorStub(Exception):
+    def __init__(self, errno):
+        self.errno = errno
 
 
 def test_request_stubs_internals():
@@ -323,6 +329,75 @@ def test_fakesock_socket_real_sendall(old_socket):
 
 
 @patch('httpretty.core.old_socket')
+@patch('httpretty.core.socket')
+def test_fakesock_socket_real_sendall_continue_eagain(socket, old_socket):
+    ("fakesock.socket#real_sendall should continue if the socket error was EAGAIN")
+    socket.error = SocketErrorStub
+    # Background: the real socket will stop returning bytes after the
+    # first call
+    real_socket = old_socket.return_value
+    real_socket.recv.side_effect = [SocketErrorStub(errno.EAGAIN), 'after error', ""]
+
+    # Given a fake socket
+    socket = fakesock.socket()
+
+
+    # When I call real_sendall with data, some args and kwargs
+    socket.real_sendall("SOMEDATA", 'some extra args...', foo='bar')
+
+    # Then it should have called sendall in the real socket
+    real_socket.sendall.assert_called_once_with("SOMEDATA", 'some extra args...', foo='bar')
+
+    # And the timeout was set to 0
+    real_socket.settimeout.assert_called_once_with(0)
+
+    # And recv was called with the bufsize
+    real_socket.recv.assert_has_calls([
+        call(16),
+        call(16),
+    ])
+
+    # And the buffer should contain the data from the server
+    socket.fd.getvalue().should.equal("after error")
+
+    # And connect was never called
+    real_socket.connect.called.should.be.false
+
+
+@patch('httpretty.core.old_socket')
+@patch('httpretty.core.socket')
+def test_fakesock_socket_real_sendall_socket_error(socket, old_socket):
+    ("fakesock.socket#real_sendall should continue if the socket error was EAGAIN")
+    socket.error = SocketErrorStub
+    # Background: the real socket will stop returning bytes after the
+    # first call
+    real_socket = old_socket.return_value
+    real_socket.recv.side_effect = [SocketErrorStub(42), 'after error', ""]
+
+    # Given a fake socket
+    socket = fakesock.socket()
+
+
+    # When I call real_sendall with data, some args and kwargs
+    socket.real_sendall("SOMEDATA", 'some extra args...', foo='bar')
+
+    # Then it should have called sendall in the real socket
+    real_socket.sendall.assert_called_once_with("SOMEDATA", 'some extra args...', foo='bar')
+
+    # And the timeout was set to 0
+    real_socket.settimeout.assert_called_once_with(0)
+
+    # And recv was called with the bufsize
+    real_socket.recv.assert_called_once_with(16)
+
+    # And the buffer should contain the data from the server
+    socket.fd.getvalue().should.equal("")
+
+    # And connect was never called
+    real_socket.connect.called.should.be.false
+
+
+@patch('httpretty.core.old_socket')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
 def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket):
     ("fakesock.socket#real_sendall should connect before sending data")
@@ -360,26 +435,26 @@ def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket
 
 
 @patch('httpretty.core.old_socket')
-def test_fakesock_socket_sendall_sends_real_if_non_http(old_socket):
-    ("fakesock.socket#sendall should simply forward the call to real_sendall if it's not http")
+@patch('httpretty.core.httpretty')
+@patch('httpretty.core.POTENTIAL_HTTP_PORTS')
+def test_fakesock_socket_sendall_with_valid_requestline(POTENTIAL_HTTP_PORTS, httpretty, old_socket):
+    ("fakesock.socket#sendall should create an entry if it's given a valid request line")
+    matcher = Mock()
+    info = Mock()
+    httpretty.match_uriinfo.return_value = (matcher, info)
+    httpretty.register_uri(httpretty.GET, 'http://foo.com/foobar')
 
     # Background:
     # using a subclass of socket that mocks out real_sendall
     class MySocket(fakesock.socket):
         def real_sendall(self, data, *args, **kw):
-            data.should.equal('some data')
-            args.should.equal(('chuck', 'norris'))
-            kw.should.equal({'attack': 'roundhouse kick'})
-            return 'really sentall'
+            raise AssertionError('should never call this...')
 
     # Given an instance of that socket
     socket = MySocket()
 
-    # And that is is not considered http
-    socket.is_http = False
+    # And that is is considered http
+    socket.connect(('foo.com', 80))
 
     # When I try to send data
-    result = socket.sendall("some data", "chuck", "norris", attack="roundhouse kick")
-
-    # Then it should have returned the result `real_sendall`
-    result.should.equal('really sentall')
+    socket.sendall("GET /foobar HTTP/1.1\r\nContent-Type: application/json\r\n\r\n")

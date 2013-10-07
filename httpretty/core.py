@@ -332,7 +332,7 @@ class fakesock(object):
                     self.fd.write(received)
                     should_continue = len(received) > 0
 
-                except socket.error as e:
+                except socket.error as e:  #TODO: TEST THIS
                     if e.errno == EAGAIN:
                         continue
                     break
@@ -384,12 +384,7 @@ class fakesock(object):
                            query=s.query,
                            last_request=request)
 
-            entries = []
-
-            for matcher, value in httpretty._entries.items():
-                if matcher.matches(info):
-                    entries = info
-                    break
+            matcher, entries = httpretty.match_uriinfo(info)
 
             if not entries:
                 self._entry = None
@@ -788,6 +783,13 @@ class httpretty(HttpBaseClass):
     last_request = HTTPrettyRequestEmpty()
     _is_enabled = False
 
+    @classmethod
+    def match_uriinfo(cls, info):
+        for matcher, value in cls._entries.items():
+            if matcher.matches(info):
+                return (matcher, info)
+
+        return (None, [])
 
     @classmethod
     @contextlib.contextmanager
