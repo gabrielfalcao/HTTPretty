@@ -377,7 +377,6 @@ def test_fakesock_socket_real_sendall_socket_error(socket, old_socket):
     # Given a fake socket
     socket = fakesock.socket()
 
-
     # When I call real_sendall with data, some args and kwargs
     socket.real_sendall("SOMEDATA", 'some extra args...', foo='bar')
 
@@ -458,3 +457,113 @@ def test_fakesock_socket_sendall_with_valid_requestline(POTENTIAL_HTTP_PORTS, ht
 
     # When I try to send data
     socket.sendall("GET /foobar HTTP/1.1\r\nContent-Type: application/json\r\n\r\n")
+
+
+@patch('httpretty.core.old_socket')
+@patch('httpretty.core.httpretty')
+@patch('httpretty.core.POTENTIAL_HTTP_PORTS')
+def test_fakesock_socket_sendall_with_valid_requestline(POTENTIAL_HTTP_PORTS, httpretty, old_socket):
+    ("fakesock.socket#sendall should create an entry if it's given a valid request line")
+    matcher = Mock()
+    info = Mock()
+    httpretty.match_uriinfo.return_value = (matcher, info)
+    httpretty.register_uri(httpretty.GET, 'http://foo.com/foobar')
+
+    # Background:
+    # using a subclass of socket that mocks out real_sendall
+    class MySocket(fakesock.socket):
+        def real_sendall(self, data, *args, **kw):
+            raise AssertionError('should never call this...')
+
+    # Given an instance of that socket
+    socket = MySocket()
+
+    # And that is is considered http
+    socket.connect(('foo.com', 80))
+
+    # When I try to send data
+    socket.sendall("GET /foobar HTTP/1.1\r\nContent-Type: application/json\r\n\r\n")
+
+
+@patch('httpretty.core.old_socket')
+@patch('httpretty.core.POTENTIAL_HTTP_PORTS')
+def test_fakesock_socket_sendall_with_body_data_no_entry(POTENTIAL_HTTP_PORTS, old_socket):
+    ("fakesock.socket#sendall should call real_sendall when not parsing headers and there is no entry")
+    # Background:
+    # Using a subclass of socket that mocks out real_sendall
+    class MySocket(fakesock.socket):
+        def real_sendall(self, data):
+            data.should.equal('BLABLABLABLA')
+            return 'cool'
+
+    # Given an instance of that socket
+    socket = MySocket()
+    socket._entry = None
+
+    # And that is is considered http
+    socket.connect(('foo.com', 80))
+
+    # When I try to send data
+    result = socket.sendall("BLABLABLABLA")
+
+    # Then the result should be the return value from real_sendall
+    result.should.equal('cool')
+
+
+@patch('httpretty.core.old_socket')
+@patch('httpretty.core.POTENTIAL_HTTP_PORTS')
+def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS, old_socket):
+    ("fakesock.socket#sendall should call real_sendall when not ")
+    # Background:
+    # Using a subclass of socket that mocks out real_sendall
+    class MySocket(fakesock.socket):
+        def real_sendall(self, data):
+            raise AssertionError('should have never been called')
+    # Using a mocked entry
+    entry = Mock()
+    entry.request.headers = {}
+    entry.request.body = ''
+
+    # Given an instance of that socket
+    socket = MySocket()
+    socket._entry = entry
+
+
+    # And that is is considered http
+    socket.connect(('foo.com', 80))
+
+    # When I try to send data
+    socket.sendall("BLABLABLABLA")
+
+    # Then the entry should have that body
+    entry.request.body.should.equal('BLABLABLABLA')
+
+
+@patch('httpretty.core.old_socket')
+@patch('httpretty.core.POTENTIAL_HTTP_PORTS')
+def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTTP_PORTS, old_socket):
+    ("fakesock.socket#sendall should call real_sendall when not ")
+    # Background:
+    # Using a subclass of socket that mocks out real_sendall
+    class MySocket(fakesock.socket):
+        def real_sendall(self, data):
+            raise AssertionError('should have never been called')
+    # Using a mocked entry
+    entry = Mock()
+    entry.request.headers = {
+        'transfer-encoding': 'chunked',
+    }
+    entry.request.body = ''
+
+    # Given an instance of that socket
+    socket = MySocket()
+    socket._entry = entry
+
+    # And that is is considered http
+    socket.connect(('foo.com', 80))
+
+    # When I try to send data
+    socket.sendall("BLABLABLABLA")
+
+    # Then the entry should have that body
+    httpretty.last_request.body.should.equal('BLABLABLABLA')

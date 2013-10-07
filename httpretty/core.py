@@ -332,7 +332,7 @@ class fakesock(object):
                     self.fd.write(received)
                     should_continue = len(received) > 0
 
-                except socket.error as e:  #TODO: TEST THIS
+                except socket.error as e:
                     if e.errno == EAGAIN:
                         continue
                     break
@@ -361,16 +361,13 @@ class fakesock(object):
                     meta = dict(self._entry.request.headers)
                     body = utf8(self._sent_data[-1])
                     if meta.get('transfer-encoding', '') == 'chunked':
-                        if len(body) > 1 and body != '\r\n' and body != '0\r\n\r\n':
+                        if not body.isdigit() and body != '\r\n' and body != '0\r\n\r\n':
                             self._entry.request.body += body
                     else:
                         self._entry.request.body += body
 
-                    try:
-                        return httpretty.historify_request(headers, body, False)
-                    except Exception as e:
-                        logging.error(traceback.format_exc(e))
-                        return self.real_sendall(data, *args, **kw)
+                    httpretty.historify_request(headers, body, False)
+                    return
 
             # path might come with
             s = urlsplit(path)
@@ -391,14 +388,7 @@ class fakesock(object):
                 self.real_sendall(data)
                 return
 
-            self._entry = matcher.get_next_entry(method)
-            # Attach more info to the entry
-            # So the callback can be more clever about what to do
-            # This does also fix the case where the callback
-            # would be handed a compiled regex as uri instead of the
-            # real uri
-            self._entry.info = info
-            self._entry.request = request
+            self._entry = matcher.get_next_entry(method, info, request)
 
         def debug(self, func, *a, **kw):
             if self.is_http:
@@ -746,7 +736,7 @@ class URIMatcher(object):
         else:
             return wrap.format(self.regex.pattern)
 
-    def get_next_entry(self, method='GET'):
+    def get_next_entry(self, method, info, request):
         """Cycle through available responses, but only once.
         Any subsequent requests will receive the last response"""
 
@@ -766,6 +756,14 @@ class URIMatcher(object):
         entry = entries_for_method[self.current_entries[method]]
         if self.current_entries[method] != -1:
             self.current_entries[method] += 1
+
+        # Attach more info to the entry
+        # So the callback can be more clever about what to do
+        # This does also fix the case where the callback
+        # would be handed a compiled regex as uri instead of the
+        # real uri
+        entry.info = info
+        entry.request = request
         return entry
 
     def __hash__(self):
@@ -857,7 +855,7 @@ class httpretty(HttpBaseClass):
     def historify_request(cls, headers, body='', append=True):
         request = HTTPrettyRequest(headers, body)
         cls.last_request = request
-        if append:
+        if append or not cls.latest_requests:
             cls.latest_requests.append(request)
         else:
             cls.latest_requests[-1] = request
