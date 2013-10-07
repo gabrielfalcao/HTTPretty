@@ -458,10 +458,6 @@ def fake_getaddrinfo(
 
 
 class Entry(BaseClass):
-    # TODO: rename callable_body to a private name and provide a
-    # public version named `call`, which will be a wrapper that only
-    # calls the callable if suitable. This is how it will decide:
-    # if the transfer-encoding is chunked then it will get the expected size of chunks and only call the callable once per chunk
     def __init__(self, method, uri, body,
                  adding_headers=None,
                  forcing_headers=None,
