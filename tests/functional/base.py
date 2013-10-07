@@ -53,7 +53,8 @@ class JSONEchoHandler(tornado.web.RequestHandler):
 
 
 class JSONEchoServer(threading.Thread):
-    def __init__(self, port=8888, *args, **kw):
+    def __init__(self, lock, port=8888, *args, **kw):
+        self.lock = lock
         self.port = int(port)
         self._stop = threading.Event()
         super(JSONEchoServer, self).__init__(*args, **kw)
@@ -73,18 +74,24 @@ class JSONEchoServer(threading.Thread):
     def run(self):
         application = self.setup_application()
         application.listen(self.port)
+        self.lock.release()
         tornado.ioloop.IOLoop.instance().start()
 
 
 
 def use_tornado_server(callback):
+    lock = threading.Lock()
+    lock.acquire()
+
     @wraps(callback)
     def func(*args, **kw):
-        server = JSONEchoServer(os.getenv('TEST_PORT', 8888))
+        server = JSONEchoServer(lock, os.getenv('TEST_PORT', 8888))
         server.start()
         try:
+            lock.acquire()
             callback(*args, **kw)
         finally:
+            lock.release()
             server.stop()
             if 8888 in POTENTIAL_HTTP_PORTS:
                 POTENTIAL_HTTP_PORTS.remove(8888)
