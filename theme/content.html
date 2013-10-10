@@ -1,32 +1,67 @@
-{% macro render_menu_item(header) -%}
-  <li><a href="{{ header.anchor }}">{{ header.text|safe }}</a></li>
-  {% if 'child' in header %}
-    {% for child in header['child'] %}
-      {{ render_menu_item(child) }}
-    {% endfor %}
-  {% endif %}
-{%- endmacro %}
+    {% macro render_menu_item(header, relative_path) -%}
+      {% if header['level'] < 3 and header['level'] > 1  %}
+      <li><a href="{{ relative_path }}{{ header.anchor }}">{{ header.text|safe }}</a></li>
+      {% endif %}
+      {% if 'child' in header %}
+        {% for child in header['child'] %}
+          {{ render_menu_item(child) }}
+        {% endfor %}
+      {% endif %}
+    {%- endmacro %}
 
-<div class="uk-container uk-container-center">
-  <div class="uk-grid" data-uk-grid-margin="">
-    <div class="tm-sidebar uk-width-medium-1-4 uk-hidden-small">
-      <ul class="tm-nav uk-nav" data-uk-nav="">
-        {% for page in master_index %}
-          <li class="uk-nav-header">{{ page.relative_path.split('/')[-1].split('.')[0].title() }}</li>
-          {% for item in page.indexes %}
-            {{ render_menu_item(item) }}
-          {% endfor %}
-      </ul>
+    <div class="uk-container uk-container-center" style="padding: 120px 0;">
+      <div class="uk-grid" data-uk-grid-margin="">
+        <div class="uk-width-medium-1-4 uk-hidden-small">
+          <div style="clear:both; padding-bottom: 50px;">
+            <img src="{{ project.logo_url }}" width="240"  title="{{ project.name }}" alt="{{ project.name }}" />
+            <h2>{{ project.name }} v{{ project.version }}</h2>
+            <a class="uk-navbar-brand" href="#">Table of Contents</a>
+          </div>
+
+          <ul style="clear:both;" class="uk-nav">
+            {% for page in master_index %}
+                {% if page.relative_path.endswith("intro.md") %}
+                    <li class="uk-nav-header">{{ page.indexes[0].text }}</li>
+                    {% for item in page.indexes %}
+                    {{ render_menu_item(item, page.relative_path) }}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+            {% for page in master_index %}
+                {% if page.relative_path.endswith("docs.md") %}
+                    <li class="uk-nav-header">{{ page.indexes[0].text }}</li>
+                    {% for item in page.indexes %}
+                    {{ render_menu_item(item, page.relative_path) }}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+            {% for page in master_index %}
+                {% if page.relative_path.endswith("about.md") %}
+                    <li class="uk-nav-header">{{ page.indexes[0].text }}</li>
+                    {% for item in page.indexes %}
+                    {{ render_menu_item(item, page.relative_path) }}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+            {% for page in master_index %}
+                {% if page.relative_path.endswith("contributing.md") %}
+                    <li class="uk-nav-header">{{ page.indexes[0].text }}</li>
+                    {% for item in page.indexes %}
+                    {{ render_menu_item(item, page.relative_path) }}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="uk-width-medium-3-4">
+          <article class="uk-article">
+            <h1 class="uk-article-title">{{ project.name }}</h1>
+            <p class="uk-article-lead">{{ project.description }}</p>
+              <div class="uk-width-medium-1-1">
+               {{ documentation|safe }}
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
     </div>
-    <div class="tm-main uk-width-medium-3-4">
-      <article class="uk-article">
-	<h1 class="uk-article-title">Components</h1>
-	<p class="uk-article-lead">All UIkit components at a glance.</p>
-	  <div class="uk-width-medium-1-1">
-           {{ documentation|safe }}
-	  </div>
-	</div>
-      </article>
-    </div>
-  </div>
-</div>

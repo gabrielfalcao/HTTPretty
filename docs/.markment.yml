@@ -17,7 +17,7 @@ project:
   zipball_download_url: https://github.com/gabrielfalcao/HTTPretty/archive/master.zip
   documentation_url: http://falcao.it/HTTPretty
   support_url: http://github.com/gabrielfalcao/HTTPretty/issues
-
+  logo_url: https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg
   full_index: false
 documentation:
-  index: intro.md
+  index: welcome.md

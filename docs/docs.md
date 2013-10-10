@@ -1,3 +1,5 @@
+# Reference
+
 ## testing query strings
 
 ```python
@@ -20,7 +22,7 @@ def test_one():
 ```
 
 
-## ohhhh, really? can that be easier?
+## Using the decorator
 
 **YES** we've got a decorator
 
@@ -41,7 +43,7 @@ the `@httpretty.activate` is a short-hand decorator that wraps the
 decorated function with httpretty.enable() and then calls
 httpretty.disable() right after.
 
-## mocking the status code
+## Providing status code
 
 ```python
 import requests
@@ -58,7 +60,7 @@ def test_github_access():
     expect(response.status_code).to.equal(201)
 ```
 
-## you can tell HTTPretty to return any HTTP headers you want
+## Providing custom heades
 
 **and all you need is to add keyword args in which the keys are always lower-cased and with underscores `_` instead of dashes `-`**
 

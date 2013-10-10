@@ -48,3 +48,21 @@ nav {
 a.uk-button-primary {
   color: white;
 }
+
+
+a {
+  color: #3973A6;
+}
+
+code, code *, pre, pre * {
+  font-family: "Monaco", "Inconsolata", "monospace";
+}
+
+div.highlight pre {
+  box-shadow: inset 0px 1px 2px 1px rgba(80, 80, 80, .15);
+}
+
+
+#docs-body {
+  padding-top: 120px;
+}

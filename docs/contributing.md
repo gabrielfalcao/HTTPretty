@@ -1,6 +1,6 @@
 # Hacking on HTTPretty
 
-#### create a virtual env
+## creating a virtual env
 
 you will need [virtualenvwrapper](http://www.doughellmann.com/projects/virtualenvwrapper/)
 
@@ -9,13 +9,13 @@ you will need [virtualenvwrapper](http://www.doughellmann.com/projects/virtualen
 mkvirtualenv --distribute --no-site-packages HTTPretty
 ```
 
-#### install the dependencies
+## installing the dependencies
 
 ```console
 pip install -r requirements.pip
 ```
 
-#### next steps:
+## next steps
 
 1. run the tests with make:
 ```bash

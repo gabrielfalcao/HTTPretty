@@ -1,6 +1,6 @@
 # Acknowledgements
 
-## caveats with the [requests](http://docs.python-requests.org/en/latest/) library
+## caveats
 
 ### `forcing_headers` + `Content-Length`
 
@@ -9,7 +9,7 @@ if you use the `forcing_headers` options make sure to add the header
 [requests](http://docs.python-requests.org/en/latest/) will try to
 load the response endlessly
 
-# Officially supported libraries
+## supported libraries
 
 Because HTTPretty works in the socket level it should work with any HTTP client libraries, although it is [battle tested](https://github.com/gabrielfalcao/HTTPretty/tree/master/tests/functional) against:
 
