@@ -740,3 +740,12 @@ def test_py26_callback_response():
     )
     os.environ['STOP'] = 'true'
     expect(request_callback.call_count).equal(1)
+
+
+import json
+
+
+def hello():
+    return json.dumps({
+        'href': 'http://foobar.com'
+    })

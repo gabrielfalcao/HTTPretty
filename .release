@@ -1,6 +1,6 @@
 #!/bin/bash
 
-current_version=$(cat .markment.yml  | egrep  version | sed 's,^[^:]*: *,,g')
+current_version=$(cat ./docs/.markment.yml  | egrep  version | sed 's,^[^:]*: *,,g')
 printf "The current version is \033[1;33m$current_version\033[0m, type the new version:\n"
 read newversion
 

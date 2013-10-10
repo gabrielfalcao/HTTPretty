@@ -1,0 +1,32 @@
+{% macro render_menu_item(header) -%}
+  <li><a href="{{ header.anchor }}">{{ header.text|safe }}</a></li>
+  {% if 'child' in header %}
+    {% for child in header['child'] %}
+      {{ render_menu_item(child) }}
+    {% endfor %}
+  {% endif %}
+{%- endmacro %}
+
+<div class="uk-container uk-container-center">
+  <div class="uk-grid" data-uk-grid-margin="">
+    <div class="tm-sidebar uk-width-medium-1-4 uk-hidden-small">
+      <ul class="tm-nav uk-nav" data-uk-nav="">
+        {% for page in master_index %}
+          <li class="uk-nav-header">{{ page.relative_path.split('/')[-1].split('.')[0].title() }}</li>
+          {% for item in page.indexes %}
+            {{ render_menu_item(item) }}
+          {% endfor %}
+      </ul>
+    </div>
+    <div class="tm-main uk-width-medium-3-4">
+      <article class="uk-article">
+	<h1 class="uk-article-title">Components</h1>
+	<p class="uk-article-lead">All UIkit components at a glance.</p>
+	  <div class="uk-width-medium-1-1">
+           {{ documentation|safe }}
+	  </div>
+	</div>
+      </article>
+    </div>
+  </div>
+</div>

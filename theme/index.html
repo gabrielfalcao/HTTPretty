@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{{ project.name }} by {{ project.github_maintainer }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Loading Bootstrap -->
+    <link rel='stylesheet prefetch' href='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/uikit.min.css'>
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Montserrat:400,700'>
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700,900,200italic,300italic,400italic,600italic,700italic,900italic'>
+    <link rel='stylesheet prefetch' href='//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css'>
+    <link href="{{ static_file('css/style.css') }}" rel="stylesheet">
+    <script src="{{ static_file('js/prefixfree.min.js') }}"></script>
+  </head>
+  <body>
+    {% macro render_menu_item(item, relative_path) -%}
+      <li><a href="{{ relative_path }}{{ item.anchor }}">{{ item.text|safe }}</a></li>
+      {% if 'child' in header %}
+        {% for child in header['child'] %}
+          {{ render_menu_item(child) }}
+        {% endfor %}
+      {% endif %}
+    {%- endmacro %}
+
+    <div class="uk-container uk-container-center" style="padding: 120px 0;">
+      <div class="uk-grid" data-uk-grid-margin="">
+        <div class="uk-width-medium-1-4 uk-hidden-small">
+          <div style="clear:both; padding-bottom: 50px;">
+            <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg" width="240"  title="HTTPretty" alt="HTTPretty" />
+            <a class="uk-navbar-brand" href="#">Table of Contents</a>
+          </div>
+
+          <ul style="clear:both;" class="uk-nav">
+            {% for page in master_index %}
+                <li class="uk-nav-header">{{ page.relative_path.split('/')[-1].split('.')[0].title() }}</li>
+                {% for item in page.indexes %}
+                {{ render_menu_item(item, page.relative_path) }}
+                {% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="uk-width-medium-3-4">
+          <article class="uk-article">
+            <h1 class="uk-article-title">{{ project.name }}</h1>
+            <p class="uk-article-lead">{{ project.description }}</p>
+              <div class="uk-width-medium-1-1">
+               {{ documentation|safe }}
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', '{{ project.google_analytics_code }}']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/jquery-2.0.3.min.js'></script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/angular.min.js'></script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/uikit.min.js'></script>
+  </body>
+</html>
