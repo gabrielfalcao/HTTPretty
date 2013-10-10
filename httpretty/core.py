@@ -182,7 +182,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         )
 
     def parse_querystring(self, qs):
-        expanded = decode_utf8(unquote(utf8(qs)))
+        expanded = decode_utf8(unquote(qs))
 
         parsed = parse_qs(expanded)
         result = {}
