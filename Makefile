@@ -38,11 +38,11 @@ release: clean unit functional
 docs: doctests
 	@markment -o . -t ./theme --sitemap-for="http://falcao.it/HTTPretty" docs
 
-deploy-docs: docs
+deploy-docs:
 	@git co master && \
 		(git br -D gh-pages || printf "") && \
 		git checkout --orphan gh-pages && \
-		markment -o . -t HTTPretty --sitemap-for="http://falcao.it/HTTPretty" . && \
+		markment -o . -t ./theme --sitemap-for="http://falcao.it/HTTPretty" docs && \
 		git add . && \
 		git commit -am 'documentation' && \
 		git push --force origin gh-pages && \
