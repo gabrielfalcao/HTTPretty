@@ -4,7 +4,7 @@
       {% endif %}
       {% if 'child' in header %}
         {% for child in header['child'] %}
-          {{ render_menu_item(child) }}
+          {{ render_menu_item(child, relative_path) }}
         {% endfor %}
       {% endif %}
     {%- endmacro %}
@@ -45,6 +45,14 @@
             {% endfor %}
             {% for page in master_index %}
                 {% if page.relative_path.endswith("contributing.md") %}
+                    <li class="uk-nav-header">{{ page.indexes[0].text }}</li>
+                    {% for item in page.indexes %}
+                    {{ render_menu_item(item, page.relative_path) }}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+            {% for page in master_index %}
+                {% if page.relative_path.endswith("NEWS.md") %}
                     <li class="uk-nav-header">{{ page.indexes[0].text }}</li>
                     {% for item in page.indexes %}
                     {{ render_menu_item(item, page.relative_path) }}

@@ -1,4 +1,6 @@
-### New in version 0.7.0
+# Release Notes
+
+## 0.7.0 (current)
 
 Improvements:
 
@@ -8,7 +10,7 @@ Bug fixes:
 
 * POST requests being called twice [#100](https://github.com/gabrielfalcao/HTTPretty/pull/100)
 
-### New in version 0.6.5
+## 0.6.5
 
 Applied pull requests:
 
@@ -21,14 +23,14 @@ Applied pull requests:
 * Adding parsed_body parameter to simplify checks: [#88](https://github.com/gabrielfalcao/HTTPretty/pull/88) by [toumorokoshi](http://github.com/toumorokoshi)
 * Use the real socket if it's not HTTP: [#87](https://github.com/gabrielfalcao/HTTPretty/pull/87) by [mardiros](http://github.com/mardiros)
 
-### New in version 0.6.2
+## 0.6.2
 
 * Fixing bug of lack of trailing slashes [#73](https://github.com/gabrielfalcao/HTTPretty/issues/73)
 * Applied pull requests [#71](https://github.com/gabrielfalcao/HTTPretty/pull/71) and [#72](https://github.com/gabrielfalcao/HTTPretty/pull/72) by @andresriancho
 * Keyword arg coercion fix by @dupuy
 * @papaeye fixed content-length calculation.
 
-### New in version 0.6.1
+## 0.6.1
 
 * New API, no more camel case and everything is available through a simple import:
 
@@ -44,7 +46,7 @@ def test_function():
 
 * Re-organized module into submodules
 
-### New in version 0.5.14
+## 0.5.14
 
 * Delegate calls to other methods on socket
 
@@ -54,24 +56,24 @@ def test_function():
 
 * Normalize urls matching for url quoting
 
-### New in version 0.5.12
+## 0.5.12
 
 * HTTPretty doesn't hang when using other application protocols under
   a @httprettified decorated test.
 
-### New in version 0.5.11
+## 0.5.11
 
 * Ability to know whether HTTPretty is or not enabled through `httpretty.is_enabled()`
 
-### New in version 0.5.10
+## 0.5.10
 
 * Support to multiple methods per registered URL. Thanks @hughsaunders
 
-### New in version 0.5.9
+## 0.5.9
 
 * Fixed python 3 support. Thanks @spulec
 
-### New in version 0.5.8
+## 0.5.8
 
 * Support to [register regular expressions to match urls](#matching-regular-expressions)
 * [Body callback](#dynamic-responses-through-callbacks) suppport
