@@ -37,7 +37,7 @@ def test_yipit_api_returning_deals():
 # A more technical description
 
 HTTPretty is a HTTP client mock library for Python 100% inspired on ruby's [FakeWeb](http://fakeweb.rubyforge.org/).
-If you come from ruby this would probably sound familiar :smiley:
+If you come from ruby this would probably sound familiar :)
 
 # Usage
 
