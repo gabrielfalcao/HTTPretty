@@ -1,6 +1,6 @@
     {% macro render_menu_item(header, relative_path) -%}
       {% if header['level'] < 3 and header['level'] > 1  %}
-      <li><a href="{{ relative_path }}{{ header.anchor }}">{{ header.text|safe }}</a></li>
+      <li><a href="{{ relative_path.replace(".md", ".html") }}{{ header.anchor }}">{{ header.text|safe }}</a></li>
       {% endif %}
       {% if 'child' in header %}
         {% for child in header['child'] %}
