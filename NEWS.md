@@ -8,7 +8,7 @@ Bug fixes:
 
 * POST requests being called twice [#100](https://github.com/gabrielfalcao/HTTPretty/pull/100)
 
-### New in version 0.7.0
+### New in version 0.6.5
 
 Applied pull requests:
 
