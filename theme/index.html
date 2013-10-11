@@ -15,11 +15,7 @@
     <script src="{{ static_file('js/prefixfree.min.js') }}"></script>
   </head>
   <body>
-    {% if info.relative_path.endswith("welcome.md") %}
-      {% include "./logo.html" %}
-    {% else %}
-      {% include "./content.html" %}
-    {% endif %}
+    {% include "./content.html" %}
     <script type="text/javascript">
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', '{{ project.google_analytics_code }}']);
