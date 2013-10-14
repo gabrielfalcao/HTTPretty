@@ -3,8 +3,7 @@
 ![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/gabrielfalcao/httpretty/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
+[![instanc.es Badge](http://instanc.es/bin/gabrielfalcao/HTTPretty.png)](http://instanc.es/)
 [ChangeLog](NEWS.md)
 
 
