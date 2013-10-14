@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>HTTPretty by gabrielfalcao</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Loading Bootstrap -->
+
+    <link rel='stylesheet prefetch' href='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/uikit.min.css'>
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Montserrat:400,700'>
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700,900,200italic,300italic,400italic,600italic,700italic,900italic'>
+    <link rel='stylesheet prefetch' href='//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css'>
+    <link href="./assets/css/github.css" rel="stylesheet">
+    <link href="./assets/css/style.css" rel="stylesheet">
+    <script src="./assets/js/prefixfree.min.js"></script>
+  </head>
+  <body>
+        
+
+    <div class="uk-container uk-container-center" style="padding: 120px 0;">
+      <div class="uk-grid" data-uk-grid-margin="">
+        <div class="uk-width-medium-1-4 uk-hidden-small">
+          <div style="clear:both; padding-bottom: 50px;">
+            <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg" width="240"  title="HTTPretty" alt="HTTPretty" />
+            <h2>HTTPretty v0.7.0</h2>
+            <p>
+              <iframe src="http://instanc.es/bin/btn/watchers-gabrielfalcao-HTTPretty-small.html" allowtransparency="true" frameborder="0" scrolling="0" width="152px" height="30px"></iframe>
+              <iframe src="http://instanc.es/bin/btn/forks-gabrielfalcao-HTTPretty-small.html" allowtransparency="true" frameborder="0" scrolling="0" width="152px" height="30px"></iframe>
+              <iframe src="http://instanc.es/bin/btn/follow-gabrielfalcao-HTTPretty-small.html" allowtransparency="true" frameborder="0" scrolling="0" width="152px" height="30px"></iframe>
+</p>
+            <a class="uk-navbar-brand" href="#">Table of Contents</a>
+          </div>
+
+          <ul style="clear:both;" class="uk-nav">
+            
+                
+            
+                
+            
+                
+            
+                
+                    <li class="uk-nav-header">What is HTTPretty ?</li>
+                    
+                    
+      
+        
+          
+      <li><a href="intro.html#a-more-technical-description">A more technical description</a></li>
+      
+      
+        
+          
+      <li><a href="intro.html#installing">Installing</a></li>
+      
+      
+        
+      
+                    
+                    
+      
+        
+          
+      <li><a href="intro.html#expecting-a-simple-response-body">expecting a simple response body</a></li>
+      
+      
+        
+      
+                    
+                    
+      
+        
+          
+      <li><a href="intro.html#the-idea-behind-httpretty--how-it-works-">The idea behind HTTPretty (how it works)</a></li>
+      
+      
+        
+      
+                    
+                
+            
+                
+            
+            
+                
+            
+                
+            
+                
+                    <li class="uk-nav-header">Reference</li>
+                    
+                    
+      
+        
+          
+      <li><a href="docs.html#testing-query-strings">testing query strings</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#using-the-decorator">Using the decorator</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#providing-status-code">Providing status code</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#providing-custom-heades">Providing custom heades</a></li>
+      
+      
+        
+          
+      
+        
+      
+        
+          
+      <li><a href="docs.html#rotating-responses">rotating responses</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#streaming-responses">streaming responses</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#dynamic-responses-through-callbacks">dynamic responses through callbacks</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#matching-regular-expressions">matching regular expressions</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#expect-for-a-response--and-check-the-request-got-by-the--quot-server-quot--to-make-sure-it-was-fine-">expect for a response, and check the request got by the &quot;server&quot; to make sure it was fine.</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#checking-if-is-enabled">checking if is enabled</a></li>
+      
+      
+        
+      
+                    
+                
+            
+                
+            
+                
+            
+            
+                
+                    <li class="uk-nav-header">Acknowledgements</li>
+                    
+                    
+      
+        
+          
+      <li><a href="about.html#caveats">caveats</a></li>
+      
+      
+        
+          
+      
+        
+      
+        
+          
+      <li><a href="about.html#supported-libraries">supported libraries</a></li>
+      
+      
+        
+      
+                    
+                
+            
+                
+            
+                
+            
+                
+            
+                
+            
+            
+                
+            
+                
+                    <li class="uk-nav-header">Hacking on HTTPretty</li>
+                    
+                    
+      
+        
+          
+      <li><a href="contributing.html#creating-a-virtual-env">creating a virtual env</a></li>
+      
+      
+        
+          
+      <li><a href="contributing.html#installing-the-dependencies">installing the dependencies</a></li>
+      
+      
+        
+          
+      <li><a href="contributing.html#next-steps">next steps</a></li>
+      
+      
+        
+      
+                    
+                    
+      
+                    
+                    
+      
+                    
+                
+            
+                
+            
+                
+            
+                
+            
+            
+                
+            
+                
+            
+                
+            
+                
+            
+                
+                    <li class="uk-nav-header">Release Notes</li>
+                    
+                    
+      
+        
+          
+      <li><a href="NEWS.html#0-7-0--current-">0.7.0 (current)</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-6-5">0.6.5</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-6-2">0.6.2</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-6-1">0.6.1</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-14">0.5.14</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-12">0.5.12</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-11">0.5.11</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-10">0.5.10</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-9">0.5.9</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-8">0.5.8</a></li>
+      
+      
+        
+      
+                    
+                
+            
+          </ul>
+        </div>
+        <div class="uk-width-medium-3-4">
+          <article class="uk-article">
+            <h1 class="uk-article-title">HTTPretty</h1>
+            <p class="uk-article-lead">HTTP request mock tool for python</p>
+              <div class="uk-width-medium-1-1">
+               <h1 id="hacking-on-httpretty" name="hacking-on-httpretty"><a href="#hacking-on-httpretty">Hacking on HTTPretty</a></h1><h2 id="creating-a-virtual-env" name="creating-a-virtual-env"><a href="#creating-a-virtual-env">creating a virtual env</a></h2>
+<p>you will need <a href="http://www.doughellmann.com/projects/virtualenvwrapper/">virtualenvwrapper</a></p>
+<div class="highlight"><pre name="hacking-on-httpretty-example-1"><span class="go">mkvirtualenv --distribute --no-site-packages HTTPretty</span>
+</pre></div><h2 id="installing-the-dependencies" name="installing-the-dependencies"><a href="#installing-the-dependencies">installing the dependencies</a></h2><div class="highlight"><pre name="hacking-on-httpretty-example-2"><span class="go">pip install -r requirements.pip</span>
+</pre></div><h2 id="next-steps" name="next-steps"><a href="#next-steps">next steps</a></h2>
+<ol>
+<li>run the tests with make:
+<code>bash
+make unit functional
+</code></li>
+<li>hack at will</li>
+<li>commit, push etc</li>
+<li>send a pull request</li>
+</ol>
+<h1 id="license" name="license"><a href="#license">License</a></h1><div class="highlight"><pre name="license-example-1"><span class="o">&lt;</span><span class="n">HTTPretty</span> <span class="o">-</span> <span class="n">HTTP</span> <span class="n">client</span> <span class="n">mock</span> <span class="k">for</span> <span class="n">Python</span><span class="o">&gt;</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="o">&lt;</span><span class="mi">2011</span><span class="o">-</span><span class="mi">2013</span><span class="o">&gt;</span>  <span class="n">Gabriel</span> <span class="n">Falc</span><span class="err">&#227;</span><span class="n">o</span> <span class="o">&lt;</span><span class="n">gabriel</span><span class="err">@</span><span class="n">nacaolivre</span><span class="p">.</span><span class="n">org</span><span class="o">&gt;</span>
+
+<span class="n">Permission</span> <span class="n">is</span> <span class="n">hereby</span> <span class="n">granted</span><span class="p">,</span> <span class="n">free</span> <span class="n">of</span> <span class="n">charge</span><span class="p">,</span> <span class="n">to</span> <span class="n">any</span> <span class="n">person</span>
+<span class="n">obtaining</span> <span class="n">a</span> <span class="n">copy</span> <span class="n">of</span> <span class="n">this</span> <span class="n">software</span> <span class="n">and</span> <span class="n">associated</span> <span class="n">documentation</span>
+<span class="n">files</span> <span class="p">(</span><span class="n">the</span> <span class="s">"Software"</span><span class="p">),</span> <span class="n">to</span> <span class="n">deal</span> <span class="n">in</span> <span class="n">the</span> <span class="n">Software</span> <span class="n">without</span>
+<span class="n">restriction</span><span class="p">,</span> <span class="n">including</span> <span class="n">without</span> <span class="n">limitation</span> <span class="n">the</span> <span class="n">rights</span> <span class="n">to</span> <span class="n">use</span><span class="p">,</span>
+<span class="n">copy</span><span class="p">,</span> <span class="n">modify</span><span class="p">,</span> <span class="n">merge</span><span class="p">,</span> <span class="n">publish</span><span class="p">,</span> <span class="n">distribute</span><span class="p">,</span> <span class="n">sublicense</span><span class="p">,</span> <span class="n">and</span><span class="o">/</span><span class="n">or</span> <span class="n">sell</span>
+<span class="n">copies</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Software</span><span class="p">,</span> <span class="n">and</span> <span class="n">to</span> <span class="n">permit</span> <span class="n">persons</span> <span class="n">to</span> <span class="n">whom</span> <span class="n">the</span>
+<span class="n">Software</span> <span class="n">is</span> <span class="n">furnished</span> <span class="n">to</span> <span class="k">do</span> <span class="n">so</span><span class="p">,</span> <span class="n">subject</span> <span class="n">to</span> <span class="n">the</span> <span class="n">following</span>
+<span class="nl">conditions:</span>
+
+<span class="n">The</span> <span class="n">above</span> <span class="n">copyright</span> <span class="n">notice</span> <span class="n">and</span> <span class="n">this</span> <span class="n">permission</span> <span class="n">notice</span> <span class="n">shall</span> <span class="n">be</span>
+<span class="n">included</span> <span class="n">in</span> <span class="n">all</span> <span class="n">copies</span> <span class="n">or</span> <span class="n">substantial</span> <span class="n">portions</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Software</span><span class="p">.</span>
+
+<span class="n">THE</span> <span class="n">SOFTWARE</span> <span class="n">IS</span> <span class="n">PROVIDED</span> <span class="s">"AS IS"</span><span class="p">,</span> <span class="n">WITHOUT</span> <span class="n">WARRANTY</span> <span class="n">OF</span> <span class="n">ANY</span> <span class="n">KIND</span><span class="p">,</span>
+<span class="n">EXPRESS</span> <span class="n">OR</span> <span class="n">IMPLIED</span><span class="p">,</span> <span class="n">INCLUDING</span> <span class="n">BUT</span> <span class="n">NOT</span> <span class="n">LIMITED</span> <span class="n">TO</span> <span class="n">THE</span> <span class="n">WARRANTIES</span>
+<span class="n">OF</span> <span class="n">MERCHANTABILITY</span><span class="p">,</span> <span class="n">FITNESS</span> <span class="n">FOR</span> <span class="n">A</span> <span class="n">PARTICULAR</span> <span class="n">PURPOSE</span> <span class="n">AND</span>
+<span class="n">NONINFRINGEMENT</span><span class="p">.</span> <span class="n">IN</span> <span class="n">NO</span> <span class="n">EVENT</span> <span class="n">SHALL</span> <span class="n">THE</span> <span class="n">AUTHORS</span> <span class="n">OR</span> <span class="n">COPYRIGHT</span>
+<span class="n">HOLDERS</span> <span class="n">BE</span> <span class="n">LIABLE</span> <span class="n">FOR</span> <span class="n">ANY</span> <span class="n">CLAIM</span><span class="p">,</span> <span class="n">DAMAGES</span> <span class="n">OR</span> <span class="n">OTHER</span> <span class="n">LIABILITY</span><span class="p">,</span>
+<span class="n">WHETHER</span> <span class="n">IN</span> <span class="n">AN</span> <span class="n">ACTION</span> <span class="n">OF</span> <span class="n">CONTRACT</span><span class="p">,</span> <span class="n">TORT</span> <span class="n">OR</span> <span class="n">OTHERWISE</span><span class="p">,</span> <span class="n">ARISING</span>
+<span class="n">FROM</span><span class="p">,</span> <span class="n">OUT</span> <span class="n">OF</span> <span class="n">OR</span> <span class="n">IN</span> <span class="n">CONNECTION</span> <span class="n">WITH</span> <span class="n">THE</span> <span class="n">SOFTWARE</span> <span class="n">OR</span> <span class="n">THE</span> <span class="n">USE</span> <span class="n">OR</span>
+<span class="n">OTHER</span> <span class="n">DEALINGS</span> <span class="n">IN</span> <span class="n">THE</span> <span class="n">SOFTWARE</span><span class="p">.</span>
+</pre></div><h1 id="main-contributors" name="main-contributors"><a href="#main-contributors">Main contributors</a></h1>
+<p>There folks made remarkable contributions to HTTPretty:</p>
+
+<ul>
+<li>Steve Pulec ~&gt; @spulec</li>
+<li>Hugh Saunders ~&gt; @hughsaunders</li>
+<li>Matt Luongo ~&gt; @mhluongo</li>
+<li>James Rowe ~&gt; @JNRowe</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-1277640-14']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/jquery-2.0.3.min.js'></script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/angular.min.js'></script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/uikit.min.js'></script>
+  </body>
+</html>

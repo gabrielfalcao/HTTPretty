@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>HTTPretty by gabrielfalcao</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Loading Bootstrap -->
+
+    <link rel='stylesheet prefetch' href='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/uikit.min.css'>
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Montserrat:400,700'>
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700,900,200italic,300italic,400italic,600italic,700italic,900italic'>
+    <link rel='stylesheet prefetch' href='//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css'>
+    <link href="./assets/css/github.css" rel="stylesheet">
+    <link href="./assets/css/style.css" rel="stylesheet">
+    <script src="./assets/js/prefixfree.min.js"></script>
+  </head>
+  <body>
+        
+
+    <div class="uk-container uk-container-center" style="padding: 120px 0;">
+      <div class="uk-grid" data-uk-grid-margin="">
+        <div class="uk-width-medium-1-4 uk-hidden-small">
+          <div style="clear:both; padding-bottom: 50px;">
+            <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg" width="240"  title="HTTPretty" alt="HTTPretty" />
+            <h2>HTTPretty v0.7.0</h2>
+            <p>
+              <iframe src="http://instanc.es/bin/btn/watchers-gabrielfalcao-HTTPretty-small.html" allowtransparency="true" frameborder="0" scrolling="0" width="152px" height="30px"></iframe>
+              <iframe src="http://instanc.es/bin/btn/forks-gabrielfalcao-HTTPretty-small.html" allowtransparency="true" frameborder="0" scrolling="0" width="152px" height="30px"></iframe>
+              <iframe src="http://instanc.es/bin/btn/follow-gabrielfalcao-HTTPretty-small.html" allowtransparency="true" frameborder="0" scrolling="0" width="152px" height="30px"></iframe>
+</p>
+            <a class="uk-navbar-brand" href="#">Table of Contents</a>
+          </div>
+
+          <ul style="clear:both;" class="uk-nav">
+            
+                
+            
+                
+            
+                
+            
+                
+                    <li class="uk-nav-header">What is HTTPretty ?</li>
+                    
+                    
+      
+        
+          
+      <li><a href="intro.html#a-more-technical-description">A more technical description</a></li>
+      
+      
+        
+          
+      <li><a href="intro.html#installing">Installing</a></li>
+      
+      
+        
+      
+                    
+                    
+      
+        
+          
+      <li><a href="intro.html#expecting-a-simple-response-body">expecting a simple response body</a></li>
+      
+      
+        
+      
+                    
+                    
+      
+        
+          
+      <li><a href="intro.html#the-idea-behind-httpretty--how-it-works-">The idea behind HTTPretty (how it works)</a></li>
+      
+      
+        
+      
+                    
+                
+            
+                
+            
+            
+                
+            
+                
+            
+                
+                    <li class="uk-nav-header">Reference</li>
+                    
+                    
+      
+        
+          
+      <li><a href="docs.html#testing-query-strings">testing query strings</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#using-the-decorator">Using the decorator</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#providing-status-code">Providing status code</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#providing-custom-heades">Providing custom heades</a></li>
+      
+      
+        
+          
+      
+        
+      
+        
+          
+      <li><a href="docs.html#rotating-responses">rotating responses</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#streaming-responses">streaming responses</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#dynamic-responses-through-callbacks">dynamic responses through callbacks</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#matching-regular-expressions">matching regular expressions</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#expect-for-a-response--and-check-the-request-got-by-the--quot-server-quot--to-make-sure-it-was-fine-">expect for a response, and check the request got by the &quot;server&quot; to make sure it was fine.</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#checking-if-is-enabled">checking if is enabled</a></li>
+      
+      
+        
+      
+                    
+                
+            
+                
+            
+                
+            
+            
+                
+                    <li class="uk-nav-header">Acknowledgements</li>
+                    
+                    
+      
+        
+          
+      <li><a href="about.html#caveats">caveats</a></li>
+      
+      
+        
+          
+      
+        
+      
+        
+          
+      <li><a href="about.html#supported-libraries">supported libraries</a></li>
+      
+      
+        
+      
+                    
+                
+            
+                
+            
+                
+            
+                
+            
+                
+            
+            
+                
+            
+                
+                    <li class="uk-nav-header">Hacking on HTTPretty</li>
+                    
+                    
+      
+        
+          
+      <li><a href="contributing.html#creating-a-virtual-env">creating a virtual env</a></li>
+      
+      
+        
+          
+      <li><a href="contributing.html#installing-the-dependencies">installing the dependencies</a></li>
+      
+      
+        
+          
+      <li><a href="contributing.html#next-steps">next steps</a></li>
+      
+      
+        
+      
+                    
+                    
+      
+                    
+                    
+      
+                    
+                
+            
+                
+            
+                
+            
+                
+            
+            
+                
+            
+                
+            
+                
+            
+                
+            
+                
+                    <li class="uk-nav-header">Release Notes</li>
+                    
+                    
+      
+        
+          
+      <li><a href="NEWS.html#0-7-0--current-">0.7.0 (current)</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-6-5">0.6.5</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-6-2">0.6.2</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-6-1">0.6.1</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-14">0.5.14</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-12">0.5.12</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-11">0.5.11</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-10">0.5.10</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-9">0.5.9</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-8">0.5.8</a></li>
+      
+      
+        
+      
+                    
+                
+            
+          </ul>
+        </div>
+        <div class="uk-width-medium-3-4">
+          <article class="uk-article">
+            <h1 class="uk-article-title">HTTPretty</h1>
+            <p class="uk-article-lead">HTTP request mock tool for python</p>
+              <div class="uk-width-medium-1-1">
+               <h1 id="reference" name="reference"><a href="#reference">Reference</a></h1><h2 id="testing-query-strings" name="testing-query-strings"><a href="#testing-query-strings">testing query strings</a></h2><div class="highlight"><pre name="reference-example-1"><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
+<span class="kn">import</span> <span class="nn">httpretty</span>
+
+<span class="k">def</span> <span class="nf">test_one</span><span class="p">():</span>
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>  <span class="c"># enable HTTPretty so that it will monkey patch the socket module</span>
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://yipit.com/login"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">"Find the best daily deals"</span><span class="p">)</span>
+
+    <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://yipit.com/login?email=user@github.com&amp;password=foobar123'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">last_request</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">have</span><span class="o">.</span><span class="n">property</span><span class="p">(</span><span class="s">"querystring"</span><span class="p">)</span><span class="o">.</span><span class="n">being</span><span class="o">.</span><span class="n">equal</span><span class="p">({</span>
+        <span class="s">"email"</span><span class="p">:</span> <span class="s">"user@github.com"</span><span class="p">,</span>
+        <span class="s">"password"</span><span class="p">:</span> <span class="s">"foobar123"</span><span class="p">,</span>
+    <span class="p">})</span>
+
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>  <span class="c"># disable afterwards, so that you will have no problems in code that uses that socket module</span>
+</pre></div><h2 id="using-the-decorator" name="using-the-decorator"><a href="#using-the-decorator">Using the decorator</a></h2>
+<p><strong>YES</strong> we&#39;ve got a decorator</p>
+<div class="highlight"><pre name="reference-example-2"><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">httpretty</span>
+
+<span class="nd">@httpretty.activate</span>
+<span class="k">def</span> <span class="nf">test_one</span><span class="p">():</span>
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://yipit.com/"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">"Find the best daily deals"</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://yipit.com'</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s">"Find the best daily deals"</span>
+</pre></div>
+<p>the <code>@httpretty.activate</code> is a short-hand decorator that wraps the
+decorated function with httpretty.enable() and then calls
+httpretty.disable() right after.</p>
+<h2 id="providing-status-code" name="providing-status-code"><a href="#providing-status-code">Providing status code</a></h2><div class="highlight"><pre name="reference-example-3"><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
+<span class="kn">import</span> <span class="nn">httpretty</span>
+
+<span class="nd">@httpretty.activate</span>
+<span class="k">def</span> <span class="nf">test_github_access</span><span class="p">():</span>
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://github.com/"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">"here is the mocked body"</span><span class="p">,</span>
+                           <span class="n">status</span><span class="o">=</span><span class="mi">201</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://github.com'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span>
+</pre></div><h2 id="providing-custom-heades" name="providing-custom-heades"><a href="#providing-custom-heades">Providing custom heades</a></h2>
+<p><strong>and all you need is to add keyword args in which the keys are always lower-cased and with underscores <code>_</code> instead of dashes <code>-</code></strong></p>
+
+<p>For example, let&#39;s say you want to mock that server returns <code>content-type</code>.
+To do so, use the argument <code>content_type</code>, <strong>all the keyword args are taken by HTTPretty and transformed in the RFC2616 equivalent name</strong>.</p>
+<div class="highlight"><pre name="reference-example-4"><span class="nd">@httpretty.activate</span>
+<span class="k">def</span> <span class="nf">test_some_api</span><span class="p">():</span>
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://foo-api.com/gabrielfalcao"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">'{"success": false}'</span><span class="p">,</span>
+                           <span class="n">status</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                           <span class="n">content_type</span><span class="o">=</span><span class="s">'text/json'</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://foo-api.com/gabrielfalcao'</span><span class="p">)</span>
+
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">({</span><span class="s">'success'</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+</pre></div><h3 id="adding-extra-headers-and-forcing-headers" name="adding-extra-headers-and-forcing-headers"><a href="#adding-extra-headers-and-forcing-headers">Adding extra headers and forcing headers</a></h3>
+<p>You can pass the <code>adding_headers</code> argument as a dictionary and your
+headers will be
+<a href="http://en.wikipedia.org/wiki/Union_(set_theory">united</a>) to the
+existing headers.</p>
+<div class="highlight"><pre name="reference-example-5"><span class="nd">@httpretty.activate</span>
+<span class="k">def</span> <span class="nf">test_some_api</span><span class="p">():</span>
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://foo-api.com/gabrielfalcao"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">'{"success": false}'</span><span class="p">,</span>
+                           <span class="n">status</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                           <span class="n">content_type</span><span class="o">=</span><span class="s">'text/json'</span><span class="p">,</span>
+                           <span class="n">adding_headers</span><span class="o">=</span><span class="p">{</span>
+                               <span class="s">'X-foo'</span><span class="p">:</span> <span class="s">'bar'</span>
+                           <span class="p">})</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://foo-api.com/gabrielfalcao'</span><span class="p">)</span>
+
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">({</span><span class="s">'success'</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+</pre></div>
+<p>Although there are some situation where some headers line
+<code>content-length</code> will be calculated by HTTPretty based on the
+specified fake response body.</p>
+
+<p>So you might want to <em>&ldquo;force&rdquo;</em> those headers:</p>
+<div class="highlight"><pre name="reference-example-6"><span class="nd">@httpretty.activate</span>
+<span class="k">def</span> <span class="nf">test_some_api</span><span class="p">():</span>
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://foo-api.com/gabrielfalcao"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">'{"success": false}'</span><span class="p">,</span>
+                           <span class="n">status</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                           <span class="n">content_type</span><span class="o">=</span><span class="s">'text/json'</span><span class="p">,</span>
+                           <span class="n">forcing_headers</span><span class="o">=</span><span class="p">{</span>
+                               <span class="s">'content-length'</span><span class="p">:</span> <span class="s">'100'</span>
+                           <span class="p">})</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://foo-api.com/gabrielfalcao'</span><span class="p">)</span>
+
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">({</span><span class="s">'success'</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+</pre></div>
+<p>You should, though, be careful with it. The HTTP client is likely to
+rely on the content length to know how many bytes of response payload
+should be loaded. Forcing a <code>content-length</code> that is bigger than the
+action response body might cause the HTTP client to hang because it is
+waiting for data. Read more in the &ldquo;caveats&rdquo; session on the bottom.</p>
+<h2 id="rotating-responses" name="rotating-responses"><a href="#rotating-responses">rotating responses</a></h2>
+<p>Same URL, same request method, the first request return the first
+httpretty.Response, all the subsequent ones return the last (status 202).</p>
+
+<p>Notice that the <code>responses</code> argument is a list and you can pass as
+many responses as you want.</p>
+<div class="highlight"><pre name="reference-example-7"><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
+
+
+<span class="nd">@httpretty.activate</span>
+<span class="k">def</span> <span class="nf">test_rotating_responses</span><span class="p">():</span>
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"http://github.com/gabrielfalcao/httpretty"</span><span class="p">,</span>
+                           <span class="n">responses</span><span class="o">=</span><span class="p">[</span>
+                               <span class="n">httpretty</span><span class="o">.</span><span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="s">"first response"</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">201</span><span class="p">),</span>
+                               <span class="n">httpretty</span><span class="o">.</span><span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="s">'second and last response'</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">202</span><span class="p">),</span>
+                            <span class="p">])</span>
+
+    <span class="n">response1</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response1</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response1</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'first response'</span><span class="p">)</span>
+
+    <span class="n">response2</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response2</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">202</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response2</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'second and last response'</span><span class="p">)</span>
+
+    <span class="n">response3</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://github.com/gabrielfalcao/httpretty'</span><span class="p">)</span>
+
+    <span class="n">expect</span><span class="p">(</span><span class="n">response3</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="mi">202</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response3</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'second and last response'</span><span class="p">)</span>
+</pre></div><h2 id="streaming-responses" name="streaming-responses"><a href="#streaming-responses">streaming responses</a></h2>
+<p>Mock a streaming response by registering a generator response body.</p>
+<div class="highlight"><pre name="reference-example-8"><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
+<span class="kn">import</span> <span class="nn">httpretty</span>
+
+<span class="c"># mock a streaming response body with a generator</span>
+<span class="k">def</span> <span class="nf">mock_streaming_tweets</span><span class="p">(</span><span class="n">tweets</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tweets</span><span class="p">:</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">t</span>
+
+<span class="nd">@httpretty.activate</span>
+<span class="k">def</span> <span class="nf">test_twitter_api_integration</span><span class="p">(</span><span class="n">now</span><span class="p">):</span>
+    <span class="n">twitter_response_lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">'{"text":"If @BarackObama requests to follow me one more time I</span><span class="se">\'</span><span class="s">m calling the police."}</span><span class="se">\r\n</span><span class="s">'</span><span class="p">,</span>
+        <span class="s">'</span><span class="se">\r\n</span><span class="s">'</span><span class="p">,</span>
+        <span class="s">'{"text":"Thanks for all your #FollowMe1D requests Directioners! We</span><span class="se">\u2019</span><span class="s">ll be following 10 people throughout the day starting NOW. G ..."}</span><span class="se">\r\n</span><span class="s">'</span>
+    <span class="p">]</span>
+
+    <span class="n">TWITTER_STREAMING_URL</span> <span class="o">=</span> <span class="s">"https://stream.twitter.com/1/statuses/filter.json"</span>
+
+    <span class="c"># set the body to a generator and set `streaming=True` to mock a streaming response body</span>
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="n">TWITTER_STREAMING_URL</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="n">mock_streaming_tweets</span><span class="p">(</span><span class="n">twitter_response_lines</span><span class="p">),</span>
+                           <span class="n">streaming</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c"># taken from the requests docs</span>
+    <span class="c"># http://docs.python-requests.org/en/latest/user/advanced/#streaming-requests</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">TWITTER_STREAMING_URL</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s">'track'</span><span class="p">:</span><span class="s">'requests'</span><span class="p">},</span>
+                            <span class="n">auth</span><span class="o">=</span><span class="p">(</span><span class="s">'username'</span><span class="p">,</span><span class="s">'password'</span><span class="p">),</span> <span class="n">prefetch</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="c">#test iterating by line</span>
+    <span class="n">line_iter</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_lines</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">twitter_response_lines</span><span class="p">)):</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">line_iter</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">twitter_response_lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+</pre></div><h2 id="dynamic-responses-through-callbacks" name="dynamic-responses-through-callbacks"><a href="#dynamic-responses-through-callbacks">dynamic responses through callbacks</a></h2>
+<p>Set a callback to allow for dynamic responses based on the request.</p>
+<div class="highlight"><pre name="reference-example-9"><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
+<span class="kn">import</span> <span class="nn">httpretty</span>
+
+<span class="nd">@httpretty.activate</span>
+<span class="k">def</span> <span class="nf">test_response_callbacks</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="nf">request_callback</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">uri</span><span class="p">,</span> <span class="n">headers</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="s">"The {} response from {}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">uri</span><span class="p">))</span>
+
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span>
+        <span class="n">httpretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="s">"https://api.yahoo.com/test"</span><span class="p">,</span>
+        <span class="n">body</span><span class="o">=</span><span class="n">request_callback</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'https://api.yahoo.com/test'</span><span class="p">)</span>
+
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'The GET response from https://api.yahoo.com/test'</span><span class="p">)</span>
+</pre></div><h2 id="matching-regular-expressions" name="matching-regular-expressions"><a href="#matching-regular-expressions">matching regular expressions</a></h2>
+<p>You can register a
+<a href="http://docs.python.org/2/library/re.html#re.compile">compiled regex</a>
+and it will be matched against the requested urls.</p>
+<div class="highlight"><pre name="reference-example-10"><span class="nd">@httpretty.activate</span>
+<span class="k">def</span> <span class="nf">test_httpretty_should_allow_registering_regexes</span><span class="p">():</span>
+    <span class="s">u"HTTPretty should allow registering regexes"</span>
+
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span>
+        <span class="n">httpretty</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">"api.yipit.com/v2/deal;brand=(\w+)"</span><span class="p">),</span>
+        <span class="n">body</span><span class="o">=</span><span class="s">"Found brand"</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'https://api.yipit.com/v2/deal;brand=GAP'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'Found brand'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">last_request</span><span class="p">()</span><span class="o">.</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'GET'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">last_request</span><span class="p">()</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'/v1/deal;brand=GAP'</span><span class="p">)</span>
+</pre></div>
+<p>By default, the regexp you register will match the requests without looking at
+the querystring. If you want the querystring to be considered, you can set
+<code>match_querystring=True</code> when calling <code>register_uri</code>.</p>
+<h2 id="expect-for-a-response--and-check-the-request-got-by-the--quot-server-quot--to-make-sure-it-was-fine-" name="expect-for-a-response--and-check-the-request-got-by-the--quot-server-quot--to-make-sure-it-was-fine-"><a href="#expect-for-a-response--and-check-the-request-got-by-the--quot-server-quot--to-make-sure-it-was-fine-">expect for a response, and check the request got by the &ldquo;server&rdquo; to make sure it was fine.</a></h2><div class="highlight"><pre name="reference-example-11"><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">sure</span> <span class="kn">import</span> <span class="n">expect</span>
+<span class="kn">import</span> <span class="nn">httpretty</span>
+
+
+<span class="nd">@httpretty.activate</span>
+<span class="k">def</span> <span class="nf">test_yipit_api_integration</span><span class="p">():</span>
+    <span class="n">httpretty</span><span class="o">.</span><span class="n">register_uri</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="s">"http://api.yipit.com/foo/"</span><span class="p">,</span>
+                           <span class="n">body</span><span class="o">=</span><span class="s">'{"repositories": ["HTTPretty", "lettuce"]}'</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">'http://api.yipit.com/foo'</span><span class="p">,</span>
+                            <span class="s">'{"username": "gabrielfalcao"}'</span><span class="p">,</span>
+                            <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
+                                <span class="s">'content-type'</span><span class="p">:</span> <span class="s">'text/json'</span><span class="p">,</span>
+                            <span class="p">})</span>
+
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'{"repositories": ["HTTPretty", "lettuce"]}'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">last_request</span><span class="p">()</span><span class="o">.</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">"POST"</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">httpretty</span><span class="o">.</span><span class="n">last_request</span><span class="p">()</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">'content-type'</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="s">'text/json'</span><span class="p">)</span>
+</pre></div><h2 id="checking-if-is-enabled" name="checking-if-is-enabled"><a href="#checking-if-is-enabled">checking if is enabled</a></h2><div class="highlight"><pre name="reference-example-12"><span class="n">httpretty</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>
+<span class="n">httpretty</span><span class="o">.</span><span class="n">is_enabled</span><span class="p">()</span><span class="o">.</span><span class="n">should</span><span class="o">.</span><span class="n">be</span><span class="o">.</span><span class="n">true</span>
+
+<span class="n">httpretty</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+<span class="n">httpretty</span><span class="o">.</span><span class="n">is_enabled</span><span class="p">()</span><span class="o">.</span><span class="n">should</span><span class="o">.</span><span class="n">be</span><span class="o">.</span><span class="n">false</span>
+</pre></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-1277640-14']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/jquery-2.0.3.min.js'></script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/angular.min.js'></script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/uikit.min.js'></script>
+  </body>
+</html>

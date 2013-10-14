@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>HTTPretty by gabrielfalcao</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Loading Bootstrap -->
+
+    <link rel='stylesheet prefetch' href='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/uikit.min.css'>
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Montserrat:400,700'>
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700,900,200italic,300italic,400italic,600italic,700italic,900italic'>
+    <link rel='stylesheet prefetch' href='//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css'>
+    <link href="./assets/css/github.css" rel="stylesheet">
+    <link href="./assets/css/style.css" rel="stylesheet">
+    <script src="./assets/js/prefixfree.min.js"></script>
+  </head>
+  <body>
+        
+
+    <div class="uk-container uk-container-center" style="padding: 120px 0;">
+      <div class="uk-grid" data-uk-grid-margin="">
+        <div class="uk-width-medium-1-4 uk-hidden-small">
+          <div style="clear:both; padding-bottom: 50px;">
+            <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg" width="240"  title="HTTPretty" alt="HTTPretty" />
+            <h2>HTTPretty v0.7.0</h2>
+            <p>
+              <iframe src="http://instanc.es/bin/btn/watchers-gabrielfalcao-HTTPretty-small.html" allowtransparency="true" frameborder="0" scrolling="0" width="152px" height="30px"></iframe>
+              <iframe src="http://instanc.es/bin/btn/forks-gabrielfalcao-HTTPretty-small.html" allowtransparency="true" frameborder="0" scrolling="0" width="152px" height="30px"></iframe>
+              <iframe src="http://instanc.es/bin/btn/follow-gabrielfalcao-HTTPretty-small.html" allowtransparency="true" frameborder="0" scrolling="0" width="152px" height="30px"></iframe>
+</p>
+            <a class="uk-navbar-brand" href="#">Table of Contents</a>
+          </div>
+
+          <ul style="clear:both;" class="uk-nav">
+            
+                
+            
+                
+            
+                
+            
+                
+                    <li class="uk-nav-header">What is HTTPretty ?</li>
+                    
+                    
+      
+        
+          
+      <li><a href="intro.html#a-more-technical-description">A more technical description</a></li>
+      
+      
+        
+          
+      <li><a href="intro.html#installing">Installing</a></li>
+      
+      
+        
+      
+                    
+                    
+      
+        
+          
+      <li><a href="intro.html#expecting-a-simple-response-body">expecting a simple response body</a></li>
+      
+      
+        
+      
+                    
+                    
+      
+        
+          
+      <li><a href="intro.html#the-idea-behind-httpretty--how-it-works-">The idea behind HTTPretty (how it works)</a></li>
+      
+      
+        
+      
+                    
+                
+            
+                
+            
+            
+                
+            
+                
+            
+                
+                    <li class="uk-nav-header">Reference</li>
+                    
+                    
+      
+        
+          
+      <li><a href="docs.html#testing-query-strings">testing query strings</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#using-the-decorator">Using the decorator</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#providing-status-code">Providing status code</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#providing-custom-heades">Providing custom heades</a></li>
+      
+      
+        
+          
+      
+        
+      
+        
+          
+      <li><a href="docs.html#rotating-responses">rotating responses</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#streaming-responses">streaming responses</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#dynamic-responses-through-callbacks">dynamic responses through callbacks</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#matching-regular-expressions">matching regular expressions</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#expect-for-a-response--and-check-the-request-got-by-the--quot-server-quot--to-make-sure-it-was-fine-">expect for a response, and check the request got by the &quot;server&quot; to make sure it was fine.</a></li>
+      
+      
+        
+          
+      <li><a href="docs.html#checking-if-is-enabled">checking if is enabled</a></li>
+      
+      
+        
+      
+                    
+                
+            
+                
+            
+                
+            
+            
+                
+                    <li class="uk-nav-header">Acknowledgements</li>
+                    
+                    
+      
+        
+          
+      <li><a href="about.html#caveats">caveats</a></li>
+      
+      
+        
+          
+      
+        
+      
+        
+          
+      <li><a href="about.html#supported-libraries">supported libraries</a></li>
+      
+      
+        
+      
+                    
+                
+            
+                
+            
+                
+            
+                
+            
+                
+            
+            
+                
+            
+                
+                    <li class="uk-nav-header">Hacking on HTTPretty</li>
+                    
+                    
+      
+        
+          
+      <li><a href="contributing.html#creating-a-virtual-env">creating a virtual env</a></li>
+      
+      
+        
+          
+      <li><a href="contributing.html#installing-the-dependencies">installing the dependencies</a></li>
+      
+      
+        
+          
+      <li><a href="contributing.html#next-steps">next steps</a></li>
+      
+      
+        
+      
+                    
+                    
+      
+                    
+                    
+      
+                    
+                
+            
+                
+            
+                
+            
+                
+            
+            
+                
+            
+                
+            
+                
+            
+                
+            
+                
+                    <li class="uk-nav-header">Release Notes</li>
+                    
+                    
+      
+        
+          
+      <li><a href="NEWS.html#0-7-0--current-">0.7.0 (current)</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-6-5">0.6.5</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-6-2">0.6.2</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-6-1">0.6.1</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-14">0.5.14</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-12">0.5.12</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-11">0.5.11</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-10">0.5.10</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-9">0.5.9</a></li>
+      
+      
+        
+          
+      <li><a href="NEWS.html#0-5-8">0.5.8</a></li>
+      
+      
+        
+      
+                    
+                
+            
+          </ul>
+        </div>
+        <div class="uk-width-medium-3-4">
+          <article class="uk-article">
+            <h1 class="uk-article-title">HTTPretty</h1>
+            <p class="uk-article-lead">HTTP request mock tool for python</p>
+              <div class="uk-width-medium-1-1">
+               <h1 id="acknowledgements" name="acknowledgements"><a href="#acknowledgements">Acknowledgements</a></h1><h2 id="caveats" name="caveats"><a href="#caveats">caveats</a></h2><h3 id="-code-forcing_headers--code-----code-content-length--code-" name="-code-forcing_headers--code-----code-content-length--code-"><a href="#-code-forcing_headers--code-----code-content-length--code-"><code>forcing_headers</code> + <code>Content-Length</code></a></h3>
+<p>if you use the <code>forcing_headers</code> options make sure to add the header
+<code>Content-Length</code> otherwise the
+<a href="http://docs.python-requests.org/en/latest/">requests</a> will try to
+load the response endlessly</p>
+<h2 id="supported-libraries" name="supported-libraries"><a href="#supported-libraries">supported libraries</a></h2>
+<p>Because HTTPretty works in the socket level it should work with any HTTP client libraries, although it is <a href="https://github.com/gabrielfalcao/HTTPretty/tree/master/tests/functional">battle tested</a> against:</p>
+
+<ul>
+<li><a href="http://docs.python-requests.org/en/latest/">requests</a></li>
+<li><a href="http://code.google.com/p/httplib2/">httplib2</a></li>
+<li><a href="http://docs.python.org/2/library/urllib2.html">urllib2</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-1277640-14']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/jquery-2.0.3.min.js'></script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/angular.min.js'></script>
+    <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/uikit.min.js'></script>
+  </body>
+</html>

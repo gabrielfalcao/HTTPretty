@@ -1,0 +1,25 @@
+#!/bin/bash
+
+current_version=$(cat ./docs/.markment.yml  | egrep  version | sed 's,^[^:]*: *,,g')
+printf "The current version is \033[1;33m$current_version\033[0m, type the new version:\n"
+read newversion
+
+
+find_files () {
+    find . -name '*.py' -or -name '*.yml' -or -name '*.md'
+}
+
+update_files (){
+    find_files | xargs gsed -i "s,$current_version,$newversion,g"
+}
+
+printf "\033[A\033[A\rI will make a new commit named \033[1;33m'New release $newversion'\033[0m\n"
+printf "Are you sure? [\033[1;32myes\033[0m or \033[1;31mno\033[0m]\n"
+read sure
+
+if [ $sure == "yes" ]; then
+    update_files
+    printf "New release: \033[1;32m$newversion\033[0m\n"
+    git add `find_files`
+    git commit -am "New release: $newversion"
+fi;

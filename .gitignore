@@ -1,0 +1,13 @@
+*.pyc
+.coverage
+docs/_build/
+httpretty.egg-info/
+build/
+dist/
+.DS_Store
+*.swp
+.#*
+#*
+.tox/
+_public/
+tests/functional/fixtures/recording-*.json
