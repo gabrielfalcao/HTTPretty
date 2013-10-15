@@ -3,7 +3,7 @@
 ![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
 
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
-[![instanc.es Badge](http://instanc.es/bin/gabrielfalcao/HTTPretty.png)](http://instanc.es/bin/gabrielfalcao/HTTPretty.png)
+[![instanc.es Badge](https://instanc.es/bin/gabrielfalcao/HTTPretty.png)](http://instanc.es)
 [ChangeLog](NEWS.md)
 
 
