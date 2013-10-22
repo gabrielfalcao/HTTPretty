@@ -50,6 +50,7 @@ from .compat import (
     urlsplit,
     parse_qs,
     unquote,
+    unquote_utf8,
     ClassTypes,
     basestring
 )
@@ -182,12 +183,11 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         )
 
     def parse_querystring(self, qs):
-        expanded = decode_utf8(unquote(utf8(qs)))
-
+        expanded = unquote_utf8(qs)
         parsed = parse_qs(expanded)
         result = {}
-        for k, v in parsed.iteritems():
-            result[k] = map(decode_utf8, v)
+        for k in parsed:
+            result[k] = map(decode_utf8, parsed[k])
 
         return result
 
