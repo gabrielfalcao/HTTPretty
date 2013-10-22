@@ -649,11 +649,7 @@ def test_httpretty_should_check_post_payload():
     expect(HTTPretty.last_request.body).to.equal(b'name=Lollipop')
     expect(response.json()).to.equal({"id": 12, "status": "Created"})
 
-    try:
-        response = requests.post(
-            "https://api.imaginary.com/v1/sweet/",
-            {"wrong": "data"}
-        )
-        raise Exception("Payload checked didn't work")
-    except ValueError:
-        pass
+    requests.post.when.called_with(
+        "https://api.imaginary.com/v1/sweet/",
+        {'wrong': 'data'}
+    ).should.throw(ValueError)

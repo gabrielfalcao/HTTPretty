@@ -278,13 +278,7 @@ class fakesock(object):
 
             for matcher, value in httpretty._entries.items():
                 if matcher.matches(info):
-                    if matcher.expected_data is not None:
-                        body_dict = dict(parse_qsl(request.body))
-                        if body_dict != matcher.expected_data:
-                            raise ValueError("Body Post didn't match, expected %s, got %s" % (
-                                matcher.expected_data,
-                                body_dict
-                            ))
+                    matcher.check_expected_data(request)
                     entries = value
                     break
 
@@ -626,6 +620,15 @@ class URIMatcher(object):
             return self.info == info
         else:
             return self.regex.search(info.full_url(use_querystring=False))
+
+    def check_expected_data(self, request):
+        if self.expected_data is not None:
+            body_dict = dict(parse_qsl(request.body))
+            if body_dict != self.expected_data:
+                raise ValueError("Body Post didn't match, expected %s, got %s" % (
+                    self.expected_data,
+                    body_dict
+                ))
 
     def __str__(self):
         wrap = 'URLMatcher({0})'
