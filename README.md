@@ -7,6 +7,18 @@
 [ChangeLog](NEWS.md)
 
 
+# Installing
+
+Since you are interested in HTTPretty you should also be insterested in speeding up your build.
+Replace `pip` with [`curdling`](http://clarete.github.io/curdling/) and see your build running a lot faster.
+
+You can use curdling to install not only HTTPretty but every dependency in your project and see the speed gains.
+
+```bash
+$ easy_install curdling
+$ curd install HTTPretty
+```
+
 # In a nutshell
 
 Once upon a time a python developer wanted to use a RESTful api,
