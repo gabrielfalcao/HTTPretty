@@ -60,7 +60,7 @@ def test_github_access():
     expect(response.status_code).to.equal(201)
 ```
 
-## Providing custom heades
+## Providing custom headers
 
 **and all you need is to add keyword args in which the keys are always lower-cased and with underscores `_` instead of dashes `-`**
 
