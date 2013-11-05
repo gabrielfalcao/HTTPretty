@@ -1,4 +1,4 @@
-# HTTPretty 0.7.0
+# HTTPretty 0.7.1
 
 ![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
 
