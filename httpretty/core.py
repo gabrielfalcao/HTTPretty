@@ -182,12 +182,23 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
             len(self.body),
         )
 
+    def parse_request(self):
+        super(HTTPrettyRequest, self).parse_request()
+        self.headers = dict(self.headers)
+        headers = self.headers.items()
+        for key, value in headers:
+            self.headers.pop(key)
+            case_sensitive_key = '-'.join([x.title() for x in key.split('-')])
+            self.headers[case_sensitive_key] = value
+
+        return True
+
     def parse_querystring(self, qs):
         expanded = unquote_utf8(qs)
         parsed = parse_qs(expanded)
         result = {}
         for k in parsed:
-            result[k] = map(decode_utf8, parsed[k])
+            result[k] = parsed[k]
 
         return result
 
@@ -372,7 +383,7 @@ class fakesock(object):
             # path might come with
             s = urlsplit(path)
             POTENTIAL_HTTP_PORTS.add(int(s.port or 80))
-            headers, body = map(utf8, data.split(b'\r\n\r\n', 1))
+            headers, body = list(map(utf8, data.split(b'\r\n\r\n', 1)))
 
             request = httpretty.historify_request(headers, body)
 
@@ -393,7 +404,7 @@ class fakesock(object):
         def debug(self, func, *a, **kw):
             if self.is_http:
                 frame = inspect.stack()[0][0]
-                lines = map(utf8, traceback.format_stack(frame))
+                lines = list(map(utf8, traceback.format_stack(frame)))
 
                 message = [
                     "HTTPretty intercepted and unexpected socket method call.",
@@ -490,7 +501,7 @@ class Entry(BaseClass):
         self.forcing_headers = forcing_headers or {}
         self.status = int(status)
 
-        for k, v in headers.items():
+        for k, v in list(headers.items()):
             name = "-".join(k.split("_")).title()
             self.adding_headers[name] = v
 
@@ -578,7 +589,7 @@ class Entry(BaseClass):
 
             string_list.append('server: %s' % headers.pop('server'))
 
-        for k, v in headers.items():
+        for k, v in list(headers.items()):
             string_list.append(
                 '{0}: {1}'.format(k, v),
             )
@@ -779,7 +790,7 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def match_uriinfo(cls, info):
-        for matcher, value in cls._entries.items():
+        for matcher, value in list(cls._entries.items()):
             if matcher.matches(info):
                 return (matcher, info)
 
