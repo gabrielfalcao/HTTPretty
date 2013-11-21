@@ -35,22 +35,21 @@ def test_request_stubs_internals():
 
     # Then it should have parsed the headers
     dict(request.headers).should.equal({
-        'accept-encoding': 'identity',
-        'connection': 'close',
-        'content-type': 'application/json',
-        'host': 'github.com',
-        'user-agent': 'Python-urllib/2.7'
+        'Accept-Encoding': 'identity',
+        'Connection': 'close',
+        'Content-Type': 'application/json',
+        'Host': 'github.com',
+        'User-Agent': 'Python-urllib/2.7'
     })
 
     # And the `rfile` should be a StringIO
-    request.should.have.property('rfile').being.a('StringIO.StringIO')
+    request.should.have.property('rfile').being.a('httpretty.compat.StringIO')
 
     # And the `wfile` should be a StringIO
-    request.should.have.property('wfile').being.a('StringIO.StringIO')
+    request.should.have.property('wfile').being.a('httpretty.compat.StringIO')
 
     # And the `method` should be available
     request.should.have.property('method').being.equal('POST')
-
 
 
 def test_request_parse_querystring():
