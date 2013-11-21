@@ -60,6 +60,7 @@ class BaseClass(object):
 try:  # pragma: no cover
     from urllib.parse import urlsplit, urlunsplit, parse_qs, quote, quote_plus, unquote
     unquote_utf8 = unquote
+
 except ImportError:  # pragma: no cover
     from urlparse import urlsplit, urlunsplit, parse_qs, unquote
     from urllib import quote, quote_plus
@@ -71,7 +72,6 @@ except ImportError:  # pragma: no cover
             return s.decode("utf-8")
         else:
             return s
-
 
 try:  # pragma: no cover
     from http.server import BaseHTTPRequestHandler

@@ -195,6 +195,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
     def parse_querystring(self, qs):
         expanded = unquote_utf8(qs)
+
         parsed = parse_qs(expanded)
         result = {}
         for k in parsed:
