@@ -27,12 +27,15 @@
 
 from __future__ import unicode_literals
 
-
+import os
 import re
+import json
 import requests
 from sure import within, microseconds, expect
 from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
+
+from base import FIXTURE_FILE, use_tornado_server
 
 try:
     xrange = xrange
@@ -45,6 +48,9 @@ except NameError:
     def advance_iterator(it):
         return it.next()
 next = advance_iterator
+
+PORT = int(os.getenv('TEST_PORT') or 8888)
+server_url = lambda path: "http://localhost:{0}/{1}".format(PORT, path.lstrip('/'))
 
 
 @httprettified
@@ -520,6 +526,28 @@ def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
 
 
 @httprettified
+def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
+    "HTTPretty should provide a way to not match regexes that have a different querystring"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("https://example.org/(?P<endpoint>\w+)/$"),
+        body="Nudge, nudge, wink, wink. Know what I mean?",
+        match_querystring=True
+    )
+
+    response = requests.get('https://example.org/what/')
+    expect(response.text).to.equal('Nudge, nudge, wink, wink. Know what I mean?')
+    try:
+        requests.get('https://example.org/what/?flying=coconuts')
+        raised = False
+    except requests.ConnectionError:
+        raised = True
+
+    assert raised is True
+
+
+@httprettified
 def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
     "HTTPretty should allow registering multiple methods for the same uri"
 
@@ -536,17 +564,16 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
         request_action = getattr(requests, method.lower())
         expect(request_action(url).text).to.equal(method)
 
-data_received = []
-
-def my_callback(request, url, headers):
-    if request.body.strip():
-        data_received.append(request.body.strip())
-    return 200, headers, "Received"
-
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
-    "HTTPretty should allow registering regexes with requests"
+    "HTTPretty should allow registering regexes with streaming responses"
+    import os
+    os.environ['DEBUG'] = 'true'
+
+    def my_callback(request, url, headers):
+        request.body.should.equal('hithere')
+        return 200, headers, "Received"
 
     HTTPretty.register_uri(
         HTTPretty.POST,
@@ -562,14 +589,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
         'https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris',
         data=gen(),
     )
-    expect(data_received).to.equal([
-        b'2',
-        b'hi',
-        b'5',
-        b'there',
-        b'0',
-        b'0',
-    ])
+    expect(response.content).to.equal("Received")
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
@@ -653,3 +673,105 @@ def test_httpretty_should_check_post_payload():
         "https://api.imaginary.com/v1/sweet/",
         {'wrong': 'data'}
     ).should.throw(ValueError)
+
+
+def test_unicode_querystrings():
+    ("Querystrings should accept unicode characters")
+    HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/login",
+                           body="Find the best daily deals")
+    requests.get('http://yipit.com/login?user=Gabriel+Falcão')
+    expect(HTTPretty.last_request.querystring['user'][0]).should.be.equal('Gabriel Falcão')
+
+
+@use_tornado_server
+def test_recording_calls():
+    ("HTTPretty should be able to record calls")
+    # Given a destination path:
+    destination = FIXTURE_FILE("recording-.json")
+
+    # When I record some calls
+    with HTTPretty.record(destination):
+        requests.get(server_url("/foobar?name=Gabriel&age=25"))
+        requests.post(server_url("/foobar"), data=json.dumps({'test': '123'}))
+
+    # Then the destination path should exist
+    os.path.exists(destination).should.be.true
+
+    # And the contents should be json
+    raw = open(destination).read()
+    json.loads.when.called_with(raw).should_not.throw(ValueError)
+
+    # And the contents should be expected
+    data = json.loads(raw)
+    data.should.be.a(list)
+    data.should.have.length_of(2)
+
+    # And the responses should have the expected keys
+    response = data[0]
+    response.should.have.key("request").being.length_of(5)
+    response.should.have.key("response").being.length_of(3)
+
+    response['request'].should.have.key("method").being.equal("GET")
+    response['request'].should.have.key("headers").being.a(dict)
+    response['request'].should.have.key("querystring").being.equal({
+        "age": [
+            "25"
+        ],
+        "name": [
+            "Gabriel"
+        ]
+    })
+    response['response'].should.have.key("status").being.equal(200)
+    response['response'].should.have.key("body").being.an(unicode)
+    response['response'].should.have.key("headers").being.a(dict)
+    response['response']["headers"].should.have.key("server").being.equal("TornadoServer/2.4")
+
+
+def test_playing_calls():
+    ("HTTPretty should be able to record calls")
+    # Given a destination path:
+    destination = FIXTURE_FILE("playback-1.json")
+
+    # When I playback some previously recorded calls
+    with HTTPretty.playback(destination):
+        # And make the expected requests
+        response1 = requests.get(server_url("/foobar?name=Gabriel&age=25"))
+        response2 = requests.post(server_url("/foobar"), data=json.dumps({'test': '123'}))
+
+    # Then the responses should be the expected
+    response1.json().should.equal({"foobar": {"age": "25", "name": "Gabriel"}})
+    response2.json().should.equal({"foobar": {}})
+
+
+@httprettified
+def test_py26_callback_response():
+    ("HTTPretty should call a callback function *once* and set its return value"
+    " as the body of the response requests")
+
+    from mock import Mock
+
+    def _request_callback(request, uri, headers):
+        return [200, headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+
+    request_callback = Mock()
+    request_callback.side_effect = _request_callback
+
+    HTTPretty.register_uri(
+        HTTPretty.POST, "https://api.yahoo.com/test_post",
+        body=request_callback)
+
+    response = requests.post(
+        "https://api.yahoo.com/test_post",
+        {"username": "gabrielfalcao"}
+    )
+    os.environ['STOP'] = 'true'
+    expect(request_callback.call_count).equal(1)
+
+
+import json
+
+
+def hello():
+    return json.dumps({
+        'href': 'http://foobar.com'
+    })

@@ -1,0 +1,33 @@
+<div class="uk-container uk-container-center uk-text-center">
+  <div class="logo">
+    <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg" width="300"  title="HTTPretty" alt="HTTPretty" />
+    <h1>{{ project.name }} <small>{{ project.version }}</small></h1>
+  </div>
+  <p class="uk-text-large">{{ project.tagline }}</p>
+  <p><a class="uk-button uk-button-primary" href="./docs.html">Check the documentation</a></p>
+  <ul class="tm-subnav uk-subnav">
+    <li>
+      <a href="https://twitter.com/{{ project.twitter }}" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @{{ project.twitter }}</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></li>
+      <li><a href="https://twitter.com/intent/tweet?button_hashtag=HTTPretty&text={{ project.twitter_message }}" class="twitter-hashtag-button" data-related="gabrielfalcao" data-url="{{ project.documentation_url }}" data-dnt="true">Tweet #{{ project.name }}</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script></li>
+  </ul>
+  <ul class="tm-subnav uk-subnav">
+    <li>
+      <iframe src="http://ghbtns.com/github-btn.html?user={{ project.github_maintainer }}&type=follow&count=true"
+              allowtransparency="true"
+              frameborder="0"
+              scrolling="0"
+              width="165"
+              height="20"></iframe>
+    </li>
+    <li>
+      <iframe src="http://ghbtns.com/github-btn.html?user={{ project.github_maintainer }}&repo=github-buttons&type=watch&count=true"
+              allowtransparency="true"
+              frameborder="0"
+              scrolling="0"
+              width="110"
+              height="20"></iframe>
+    </li>
+  </ul>
+</div>

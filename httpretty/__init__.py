@@ -25,9 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-__version__ = version = '0.6.2'
-
-import sys
+__version__ = version = '0.7.0'
 
 from .core import httpretty, httprettified
 from .errors import HTTPrettyError
@@ -36,10 +34,23 @@ from .core import URIInfo
 HTTPretty = httpretty
 activate = httprettified
 
-SELF = sys.modules[__name__]
+enable = httpretty.enable
+register_uri = httpretty.register_uri
+disable = httpretty.disable
+is_enabled = httpretty.is_enabled
+reset = httpretty.reset
+Response = httpretty.Response
 
-for attr in [name.decode() for name in httpretty.METHODS] + ['register_uri', 'enable', 'disable', 'is_enabled', 'Response']:
-    setattr(SELF, attr, getattr(httpretty, attr))
+GET = httpretty.GET
+PUT = httpretty.PUT
+POST = httpretty.POST
+DELETE = httpretty.DELETE
+HEAD = httpretty.HEAD
+PATCH = httpretty.PATCH
+OPTIONS = httpretty.OPTIONS
+CONNECT = httpretty.CONNECT
+
 
 def last_request():
+    """returns the last request"""
     return httpretty.last_request

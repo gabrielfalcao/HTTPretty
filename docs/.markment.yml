@@ -1,8 +1,11 @@
 project:
   name: "HTTPretty"
-  version: 0.6.2
-  description: HTTP client mock for Python
-
+  version: 0.7.0
+  description: HTTP request mock tool for python
+  tagline: Intercept real HTTP calls in python, test your software better.
+  twitter: gabrielfalcao
+  twitter_message: Python%20library%20for%20intercepting%20and%20mocking%20HTTP%20calls
+  google_analytics_code: UA-1277640-14
   github_maintainer: gabrielfalcao
   github_maintainer_name: Gabriel Falc&atilde;o
   github_maintainer_url: http://github.com/gabrielfalcao
@@ -12,7 +15,9 @@ project:
   github_fork_url: https://github.com/gabrielfalcao/HTTPretty/archive/master.tar.gz
   tarball_download_url: https://github.com/gabrielfalcao/HTTPretty/archive/master.tar.gz
   zipball_download_url: https://github.com/gabrielfalcao/HTTPretty/archive/master.zip
-
+  documentation_url: http://falcao.it/HTTPretty
+  support_url: http://github.com/gabrielfalcao/HTTPretty/issues
+  logo_url: https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg
   full_index: false
 documentation:
-  index: README.md
+  index: intro.md

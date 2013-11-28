@@ -1,75 +1,4 @@
-# HTTPretty 0.7.0
-
-![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
-
-[![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
-[![instanc.es Badge](https://instanc.es/bin/gabrielfalcao/HTTPretty.png)](http://instanc.es)
-[ChangeLog](NEWS.md)
-
-
-# Installing
-
-Since you are interested in HTTPretty you should also be insterested in speeding up your build.
-Replace `pip` with [`curdling`](http://clarete.github.io/curdling/) and see your build running a lot faster.
-
-You can use curdling to install not only HTTPretty but every dependency in your project and see the speed gains.
-
-```bash
-$ easy_install curdling
-$ curd install HTTPretty
-```
-
-# In a nutshell
-
-Once upon a time a python developer wanted to use a RESTful api,
-everything was fine but until the day he needed to test the code that
-hits the RESTful API: what if the API server is down? What if its
-content has changed ?
-
-Don't worry, HTTPretty is here for you:
-
-```python
-import requests
-from sure import expect
-import httpretty
-
-
-@httpretty.activate
-def test_yipit_api_returning_deals():
-    httpretty.register_uri(httpretty.GET, "http://api.yipit.com/v1/deals/",
-                           body='[{"title": "Test Deal"}]',
-                           content_type="application/json")
-
-    response = requests.get('http://api.yipit.com/v1/deals/')
-
-    expect(response.json()).to.equal([{"title": "Test Deal"}])
-```
-
-# A more technical description
-
-HTTPretty is a HTTP client mock library for Python 100% inspired on ruby's [FakeWeb](http://fakeweb.rubyforge.org/).
-If you come from ruby this would probably sound familiar :)
-
-# Usage
-
-## expecting a simple response body
-
-```python
-import requests
-import httpretty
-
-def test_one():
-    httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
-    httpretty.register_uri(httpretty.GET, "http://yipit.com/",
-                           body="Find the best daily deals")
-
-    response = requests.get('http://yipit.com')
-
-    assert response.text == "Find the best daily deals"
-
-    httpretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
-    httpretty.reset()    # reset HTTPretty state (clean up registered urls and request history)
-```
+# Reference
 
 ## testing query strings
 
@@ -93,7 +22,7 @@ def test_one():
 ```
 
 
-## ohhhh, really? can that be easier?
+## Using the decorator
 
 **YES** we've got a decorator
 
@@ -114,7 +43,7 @@ the `@httpretty.activate` is a short-hand decorator that wraps the
 decorated function with httpretty.enable() and then calls
 httpretty.disable() right after.
 
-## mocking the status code
+## Providing status code
 
 ```python
 import requests
@@ -131,7 +60,7 @@ def test_github_access():
     expect(response.status_code).to.equal(201)
 ```
 
-## you can tell HTTPretty to return any HTTP headers you want
+## Providing custom heades
 
 **and all you need is to add keyword args in which the keys are always lower-cased and with underscores `_` instead of dashes `-`**
 
@@ -368,107 +297,3 @@ httpretty.disable()
 httpretty.is_enabled().should.be.false
 
 ```
-# Motivation
-
-When building systems that access external resources such as RESTful
-webservices, XMLRPC or even simple HTTP requests, we stumble in the
-problem:
-
-    "I'm gonna need to mock all those requests"
-
-It brings a lot of hassle, you will need to use a generic mocking
-tool, mess with scope and so on.
-
-## The idea behind HTTPretty (how it works)
-
-HTTPretty [monkey patches](http://en.wikipedia.org/wiki/Monkey_patch)
-Python's [socket](http://docs.python.org/library/socket.html) core
-module, reimplementing the HTTP protocol, by mocking requests and
-responses.
-
-As for it works in this way, you don't need to worry what http library
-you're gonna use.
-
-HTTPretty will mock the response for you :) *(and also give you the latest requests so that you can check them)*
-
-# Acknowledgements
-
-## caveats with the [requests](http://docs.python-requests.org/en/latest/) library
-
-### `forcing_headers` + `Content-Length`
-
-if you use the `forcing_headers` options make sure to add the header
-`Content-Length` otherwise the
-[requests](http://docs.python-requests.org/en/latest/) will try to
-load the response endlessly
-
-# Officially supported libraries
-
-Because HTTPretty works in the socket level it should work with any HTTP client libraries, although it is [battle tested](https://github.com/gabrielfalcao/HTTPretty/tree/master/tests/functional) against:
-
-* [requests](http://docs.python-requests.org/en/latest/)
-* [httplib2](http://code.google.com/p/httplib2/)
-* [urllib2](http://docs.python.org/2/library/urllib2.html)
-
-# Hacking on HTTPretty
-
-#### create a virtual env
-
-you will need [virtualenvwrapper](http://www.doughellmann.com/projects/virtualenvwrapper/)
-
-
-```console
-mkvirtualenv --distribute --no-site-packages HTTPretty
-```
-
-#### install the dependencies
-
-```console
-pip install -r requirements.pip
-```
-
-#### next steps:
-
-1. run the tests with make:
-```bash
-make unit functional
-```
-2. hack at will
-3. commit, push etc
-4. send a pull request
-
-# License
-
-    <HTTPretty - HTTP client mock for Python>
-    Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
-
-    Permission is hereby granted, free of charge, to any person
-    obtaining a copy of this software and associated documentation
-    files (the "Software"), to deal in the Software without
-    restriction, including without limitation the rights to use,
-    copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following
-    conditions:
-
-    The above copyright notice and this permission notice shall be
-    included in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-    HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-    OTHER DEALINGS IN THE SOFTWARE.
-
-
-# Main contributors
-
-There folks made remarkable contributions to HTTPretty:
-
-* Steve Pulec ~> @spulec
-* Hugh Saunders ~> @hughsaunders
-* Matt Luongo ~> @mhluongo
-* James Rowe ~> @JNRowe

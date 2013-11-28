@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011>  Gabriel Falcao <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -28,22 +28,11 @@
 
 import os
 from httpretty import version, HTTPretty
-from setuptools import setup
+from setuptools import setup, find_packages
 
 HTTPretty.disable()
 
 HTTPRETTY_PATH = os.path.abspath(os.path.join(__file__, os.pardir))
-
-
-def get_packages():
-    # setuptools can't do the job :(
-    packages = []
-    for root, dirnames, filenames in os.walk(os.path.join(HTTPRETTY_PATH, 'httpretty')):
-        path = root.replace(HTTPRETTY_PATH, '').strip('/')
-        if '__init__.py' in filenames:
-            packages.append(".".join(os.path.split(path)).strip("."))
-
-    return packages
 
 
 def test_packages():
@@ -61,8 +50,9 @@ setup(name='httpretty',
     author_email='gabriel@nacaolivre.org',
     url='http://github.com/gabrielfalcao/httpretty',
     zip_safe=False,
-    packages=get_packages(),
+    packages=find_packages(HTTPRETTY_PATH, ('tests')),
     tests_require=test_packages(),
+    install_requires=['urllib3'],
     license='MIT',
     classifiers=["Intended Audience :: Developers",
                  "License :: OSI Approved :: MIT License",

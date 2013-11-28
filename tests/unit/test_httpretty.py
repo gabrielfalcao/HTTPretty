@@ -25,15 +25,22 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
+import json
 from sure import expect
 from httpretty import HTTPretty, HTTPrettyError, core
-from httpretty.core import URIInfo, BaseClass, Entry, FakeSockFile
+from httpretty.core import URIInfo, BaseClass, Entry, FakeSockFile, HTTPrettyRequest
 from httpretty.http import STATUSES
 
 try:
     from mock import MagicMock
 except ImportError:
     from unittest.mock import MagicMock
+
+TEST_HEADER = """
+GET /test/test.html HTTP/1.1
+Host: www.host1.com:80
+Content-Type: %(content_type)s
+"""
 
 
 def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
@@ -60,11 +67,9 @@ def test_httpretty_should_raise_on_socket_send_when_uri_registered():
     import socket
     HTTPretty.enable()
 
-    defaults = core.POTENTIAL_HTTP_PORTS[:]
-    core.POTENTIAL_HTTP_PORTS = [80, 443]
     HTTPretty.register_uri(HTTPretty.GET,
                            'http://127.0.0.1:5000')
-    expect(core.POTENTIAL_HTTP_PORTS).to.be.equal([80, 443, 5000])
+    expect(core.POTENTIAL_HTTP_PORTS).to.be.equal(set([80, 443, 5000]))
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(('127.0.0.1', 5000))
@@ -72,7 +77,7 @@ def test_httpretty_should_raise_on_socket_send_when_uri_registered():
     sock.close()
 
     # restore the previous value
-    core.POTENTIAL_HTTP_PORTS = defaults
+    core.POTENTIAL_HTTP_PORTS.remove(5000)
     HTTPretty.reset()
     HTTPretty.disable()
 
@@ -184,7 +189,6 @@ def test_status_codes():
         599: "Network connect timeout error",
     })
 
-
 def test_uri_info_full_url():
     uri_info = URIInfo(
         username='johhny',
@@ -205,6 +209,31 @@ def test_uri_info_full_url():
         "http://johhny:password@google.com/"
     )
 
+def test_uri_info_eq_ignores_case():
+    """Test that URIInfo.__eq__ method ignores case for
+    hostname matching.
+    """
+    uri_info_uppercase = URIInfo(
+        username='johhny',
+        password='password',
+        hostname=b'GOOGLE.COM',
+        port=80,
+        path=b'/',
+        query=b'foo=bar&baz=test',
+        fragment='',
+        scheme='',
+    )
+    uri_info_lowercase = URIInfo(
+        username='johhny',
+        password='password',
+        hostname=b'google.com',
+        port=80,
+        path=b'/',
+        query=b'foo=bar&baz=test',
+        fragment='',
+        scheme='',
+    )
+    expect(uri_info_uppercase).to.equal(uri_info_lowercase)
 
 def test_global_boolean_enabled():
     expect(HTTPretty.is_enabled()).to.be.falsy
@@ -322,3 +351,36 @@ def test_fake_socket_passes_through_shutdown():
     s.truesock = MagicMock()
     expect(s.shutdown).called_with(socket.SHUT_RD).should_not.throw(AttributeError)
     s.truesock.shutdown.assert_called_with(socket.SHUT_RD)
+
+
+def test_HTTPrettyRequest_json_body():
+    """ A content-type of application/json should parse a valid json body """
+    header = TEST_HEADER % {'content_type': 'application/json'}
+    test_dict = {'hello': 'world'}
+    request = HTTPrettyRequest(header, json.dumps(test_dict))
+    expect(request.parsed_body).to.equal(test_dict)
+
+
+def test_HTTPrettyRequest_invalid_json_body():
+    """ A content-type of application/json with an invalid json body should return the content unaltered """
+    header = TEST_HEADER % {'content_type': 'application/json'}
+    invalid_json = u"{'hello', 'world','thisstringdoesntstops}"
+    request = HTTPrettyRequest(header, invalid_json)
+    expect(request.parsed_body).to.equal(invalid_json)
+
+
+def test_HTTPrettyRequest_queryparam():
+    """ A content-type of x-www-form-urlencoded with a valid queryparam body should return parsed content """
+    header = TEST_HEADER % {'content_type': 'application/x-www-form-urlencoded'}
+    valid_queryparam = u"hello=world&this=isavalidquerystring"
+    valid_results = {'hello': ['world'], 'this': ['isavalidquerystring']}
+    request = HTTPrettyRequest(header, valid_queryparam)
+    expect(request.parsed_body).to.equal(valid_results)
+
+
+def test_HTTPrettyRequest_arbitrarypost():
+    """ A non-handled content type request's post body should return the content unaltered """
+    header = TEST_HEADER % {'content_type': 'thisis/notarealcontenttype'}
+    gibberish_body = "1234567890!@#$%^&*()"
+    request = HTTPrettyRequest(header, gibberish_body)
+    expect(request.parsed_body).to.equal(gibberish_body)

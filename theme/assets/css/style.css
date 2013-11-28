@@ -1,0 +1,68 @@
+html {
+  background: #faf9f4;
+}
+body {
+  background: transparent;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+.logo {
+  padding-top: 30px;
+}
+.logo h1 {
+  font-size: 60px;
+}
+.logo h1 small {
+  font-size: 30px;
+}
+*,
+body,
+html,
+.article,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+div,
+span,
+strong,
+a,
+li,
+ul,
+ol,
+nav {
+  font-family: "Montserrat";
+}
+.httpretty-navbar .uk-navbar-brand {
+  font-size: 28px;
+  padding-top: 4px;
+}
+.httpretty-navbar .uk-navbar-brand small {
+  font-size: 14px;
+}
+a.uk-button-primary {
+  color: white;
+}
+
+
+a {
+  color: #3973A6;
+}
+
+code, code *, pre, pre * {
+  font-family: "Monaco", "Inconsolata", "monospace";
+}
+
+div.highlight pre {
+  box-shadow: inset 0px 1px 2px 1px rgba(80, 80, 80, .15);
+}
+
+
+#docs-body {
+  padding-top: 120px;
+}
