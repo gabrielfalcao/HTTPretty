@@ -1,7 +1,7 @@
 # HTTPretty 0.7.1
 
 ![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
-
+[![tip for next commit](http://tip4commit.com/projects/133.svg)](http://tip4commit.com/projects/133)
 [![Build Status](https://secure.travis-ci.org/gabrielfalcao/HTTPretty.png)](http://travis-ci.org/gabrielfalcao/HTTPretty)
 [![instanc.es Badge](https://instanc.es/bin/gabrielfalcao/HTTPretty.png)](http://instanc.es)
 [ChangeLog](NEWS.md)
