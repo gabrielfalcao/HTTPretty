@@ -76,7 +76,7 @@ Python's [socket](http://docs.python.org/library/socket.html) core
 module, reimplementing the HTTP protocol, by mocking requests and
 responses.
 
-As for it works in this way, you don't need to worry what http library
+As for how it works this way, you don't need to worry what http library
 you're gonna use.
 
 HTTPretty will mock the response for you :) *(and also give you the latest requests so that you can check them)*
