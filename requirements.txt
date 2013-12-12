@@ -22,8 +22,8 @@ redis==2.7.1
 requests==1.1.0
 speakers==0.0.3
 steadymark==0.4.5
-sure==1.2.1
 tornado==2.4
 tox==1.4.2
 virtualenv==1.8.2
 Werkzeug==0.9.1
+sure==1.2.2
