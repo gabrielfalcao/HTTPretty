@@ -1,9 +1,1 @@
-coverage
-httplib2
-mock
-nose
-requests
-tornado
-tox
-sure
 urllib3
