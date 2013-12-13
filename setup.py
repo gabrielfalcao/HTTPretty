@@ -35,13 +35,13 @@ HTTPretty.disable()
 HTTPRETTY_PATH = os.path.abspath(os.path.join(__file__, os.pardir))
 
 
-def test_packages():
-    test_reqs = os.path.join(HTTPRETTY_PATH, 'requirements.txt')
-    tests_require = [
-            line.strip() for line in open(test_reqs).readlines()
-            if not line.startswith("#")
-        ]
-    return tests_require
+def parse_requirements(reqs_path):
+    target_path = os.path.join(HTTPRETTY_PATH, reqs_path)
+    return [
+        line.strip() for line in open(target_path).readlines()
+        if not line.startswith("#")
+    ]
+
 
 setup(name='httpretty',
     version=version,
@@ -51,8 +51,8 @@ setup(name='httpretty',
     url='http://github.com/gabrielfalcao/httpretty',
     zip_safe=False,
     packages=['httpretty'],
-    tests_require=test_packages(),
-    install_requires=['urllib3'],
+    tests_require=parse_requirements('test-requirements.txt'),
+    install_requires=parse_requirements('requirements.txt'),
     license='MIT',
     test_suite='nose.collector',
     classifiers=["Intended Audience :: Developers",

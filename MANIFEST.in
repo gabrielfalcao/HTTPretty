@@ -1,4 +1,5 @@
 include requirements.txt
+include test-requirements.txt
 include dev-requirements.txt
 recursive-include tests *.py
 include tests/functional/fixtures/playback-*.json
