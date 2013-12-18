@@ -343,7 +343,7 @@ class fakesock(object):
             self._sent_data.append(data)
 
             try:
-                requestline, _ = data.split(b'\r\n', 1)
+                requestline, _ = data.split('\r\n', 1)
                 method, path, version = parse_requestline(requestline)
                 is_parsing_headers = True
             except ValueError:
@@ -372,7 +372,7 @@ class fakesock(object):
             # path might come with
             s = urlsplit(path)
             POTENTIAL_HTTP_PORTS.add(int(s.port or 80))
-            headers, body = map(utf8, data.split(b'\r\n\r\n', 1))
+            headers, body = map(utf8, data.split('\r\n\r\n', 1))
 
             request = httpretty.historify_request(headers, body)
 
