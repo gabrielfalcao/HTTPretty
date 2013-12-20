@@ -27,3 +27,4 @@ tox==1.4.2
 virtualenv==1.8.2
 Werkzeug==0.9.1
 sure==1.2.2
+urllib3==1.7.1
