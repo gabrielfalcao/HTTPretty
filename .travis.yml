@@ -11,8 +11,3 @@ install:
 
 script:
   - make $TEST_TYPE
-
-
-branches:
-  only:
-    - master
