@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.7.0 (current)
+## 0.7.1 (current)
 
 Improvements:
 

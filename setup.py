@@ -36,7 +36,7 @@ HTTPRETTY_PATH = os.path.abspath(os.path.join(__file__, os.pardir))
 
 
 def test_packages():
-    test_reqs = os.path.join(HTTPRETTY_PATH, 'requirements.pip')
+    test_reqs = os.path.join(HTTPRETTY_PATH, 'requirements.txt')
     tests_require = [
             line.strip() for line in open(test_reqs).readlines()
             if not line.startswith("#")
