@@ -35,7 +35,7 @@ from sure import within, microseconds, expect
 from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
 
-from base import FIXTURE_FILE, use_tornado_server
+from .base import FIXTURE_FILE, use_tornado_server
 from tornado import version as tornado_version
 
 try:
