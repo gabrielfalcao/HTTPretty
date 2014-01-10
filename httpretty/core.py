@@ -344,7 +344,7 @@ class fakesock(object):
             self._sent_data.append(data)
 
             try:
-                requestline, _ = data.split('\r\n', 1)
+                requestline, _ = data.split(b'\r\n', 1)
                 method, path, version = parse_requestline(requestline)
                 is_parsing_headers = True
             except ValueError:
