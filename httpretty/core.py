@@ -345,7 +345,7 @@ class fakesock(object):
 
             try:
                 requestline, _ = data.split(b'\r\n', 1)
-                method, path, version = parse_requestline(requestline)
+                method, path, version = parse_requestline(decode_utf8(requestline))
                 is_parsing_headers = True
             except ValueError:
                 is_parsing_headers = False

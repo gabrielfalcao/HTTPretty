@@ -27,6 +27,7 @@ from __future__ import unicode_literals
 
 import re
 from .compat import BaseClass
+from .utils import decode_utf8
 
 
 STATUSES = {
@@ -109,14 +110,14 @@ STATUSES = {
 
 
 class HttpBaseClass(BaseClass):
-    GET = b'GET'
-    PUT = b'PUT'
-    POST = b'POST'
-    DELETE = b'DELETE'
-    HEAD = b'HEAD'
-    PATCH = b'PATCH'
-    OPTIONS = b'OPTIONS'
-    CONNECT = b'CONNECT'
+    GET = 'GET'
+    PUT = 'PUT'
+    POST = 'POST'
+    DELETE = 'DELETE'
+    HEAD = 'HEAD'
+    PATCH = 'PATCH'
+    OPTIONS = 'OPTIONS'
+    CONNECT = 'CONNECT'
     METHODS = (GET, PUT, POST, DELETE, HEAD, PATCH, OPTIONS, CONNECT)
 
 
@@ -133,8 +134,8 @@ def parse_requestline(s):
         ...
     ValueError: Not a Request-Line
     """
-    methods = b'|'.join(HttpBaseClass.METHODS)
-    m = re.match(br'(' + methods + b')\s+(.*)\s+HTTP/(1.[0|1])', s, re.I)
+    methods = '|'.join(HttpBaseClass.METHODS)
+    m = re.match(r'(' + methods + ')\s+(.*)\s+HTTP/(1.[0|1])', s, re.I)
     if m:
         return m.group(1).upper(), m.group(2), m.group(3)
     else:
@@ -147,7 +148,7 @@ def last_requestline(sent_data):
     """
     for line in reversed(sent_data):
         try:
-            parse_requestline(line)
+            parse_requestline(decode_utf8(line))
         except ValueError:
             pass
         else:
