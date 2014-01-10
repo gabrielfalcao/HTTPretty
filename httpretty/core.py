@@ -187,7 +187,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         parsed = parse_qs(expanded)
         result = {}
         for k in parsed:
-            result[k] = map(decode_utf8, parsed[k])
+            result[k] = list(map(decode_utf8, parsed[k]))
 
         return result
 
@@ -373,7 +373,7 @@ class fakesock(object):
             # path might come with
             s = urlsplit(path)
             POTENTIAL_HTTP_PORTS.add(int(s.port or 80))
-            headers, body = map(utf8, data.split('\r\n\r\n', 1))
+            headers, body = list(map(utf8, data.split(b'\r\n\r\n', 1)))
 
             request = httpretty.historify_request(headers, body)
 
@@ -394,7 +394,7 @@ class fakesock(object):
         def debug(self, func, *a, **kw):
             if self.is_http:
                 frame = inspect.stack()[0][0]
-                lines = map(utf8, traceback.format_stack(frame))
+                lines = list(map(utf8, traceback.format_stack(frame)))
 
                 message = [
                     "HTTPretty intercepted and unexpected socket method call.",
