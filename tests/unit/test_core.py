@@ -8,6 +8,7 @@ from datetime import datetime
 from mock import Mock, patch, call
 from sure import expect
 
+from httpretty.compat import StringIO
 from httpretty.core import HTTPrettyRequest, FakeSSLSocket, fakesock, httpretty
 
 
@@ -43,10 +44,12 @@ def test_request_stubs_internals():
     })
 
     # And the `rfile` should be a StringIO
-    request.should.have.property('rfile').being.a('StringIO.StringIO')
+    type_as_str = StringIO.__module__ + '.' + StringIO.__name__
+
+    request.should.have.property('rfile').being.a(type_as_str)
 
     # And the `wfile` should be a StringIO
-    request.should.have.property('wfile').being.a('StringIO.StringIO')
+    request.should.have.property('wfile').being.a(type_as_str)
 
     # And the `method` should be available
     request.should.have.property('method').being.equal('POST')
