@@ -808,12 +808,12 @@ class httpretty(HttpBaseClass):
                     'uri': uri,
                     'method': request.method,
                     'headers': dict(request.headers),
-                    'body': request.body,
+                    'body': decode_utf8(request.body),
                     'querystring': request.querystring
                 },
                 'response': {
                     'status': response.status,
-                    'body': response.data,
+                    'body': decode_utf8(response.data),
                     'headers': dict(response.headers)
                 }
             })
