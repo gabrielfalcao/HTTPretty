@@ -24,11 +24,11 @@ def test_request_stubs_internals():
     # Given a valid HTTP request header string
     headers = "\r\n".join([
         'POST /somewhere/?name=foo&age=bar HTTP/1.1',
-        'Accept-Encoding: identity',
-        'Host: github.com',
-        'Content-Type: application/json',
-        'Connection: close',
-        'User-Agent: Python-urllib/2.7',
+        'accept-encoding: identity',
+        'host: github.com',
+        'content-type: application/json',
+        'connection: close',
+        'user-agent: Python-urllib/2.7',
     ])
 
     # When I create a HTTPrettyRequest with an empty body
