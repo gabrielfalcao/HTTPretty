@@ -204,6 +204,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         content_type = self.headers.get('content-type', '')
 
         do_parse = PARSING_FUNCTIONS.get(content_type, FALLBACK_FUNCTION)
+        body = decode_utf8(body)
         try:
             return do_parse(body)
         except:
