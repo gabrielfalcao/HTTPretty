@@ -575,7 +575,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
     os.environ['DEBUG'] = 'true'
 
     def my_callback(request, url, headers):
-        request.body.should.equal('hithere')
+        request.body.should.equal(b'hithere')
         return 200, headers, "Received"
 
     HTTPretty.register_uri(
@@ -592,7 +592,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
         'https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris',
         data=gen(),
     )
-    expect(response.content).to.equal("Received")
+    expect(response.content).to.equal(b"Received")
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 

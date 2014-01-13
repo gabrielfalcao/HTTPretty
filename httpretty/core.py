@@ -363,10 +363,10 @@ class fakesock(object):
             if not is_parsing_headers:
                 if len(self._sent_data) > 1:
                     headers = utf8(last_requestline(self._sent_data))
-                    meta = dict(self._entry.request.headers)
+                    meta = self._entry.request.headers
                     body = utf8(self._sent_data[-1])
                     if meta.get('transfer-encoding', '') == 'chunked':
-                        if not body.isdigit() and body != '\r\n' and body != '0\r\n\r\n':
+                        if not body.isdigit() and body != b'\r\n' and body != b'0\r\n\r\n':
                             self._entry.request.body += body
                     else:
                         self._entry.request.body += body
