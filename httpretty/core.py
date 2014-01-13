@@ -166,6 +166,10 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         # Now 2 convenient attributes for the HTTPretty API:
 
         # `querystring` holds a dictionary with the parsed query string
+        try:
+            self.path = self.path.encode('iso-8859-1')
+        except UnicodeDecodeError:
+            pass
         self.path = decode_utf8(self.path)
 
         qstring = self.path.split("?", 1)[-1]
