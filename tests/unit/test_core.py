@@ -525,7 +525,7 @@ def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS,
     # Using a mocked entry
     entry = Mock()
     entry.request.headers = {}
-    entry.request.body = ''
+    entry.request.body = b''
 
     # Given an instance of that socket
     socket = MySocket()
@@ -539,7 +539,7 @@ def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS,
     socket.sendall(b"BLABLABLABLA")
 
     # Then the entry should have that body
-    entry.request.body.should.equal('BLABLABLABLA')
+    entry.request.body.should.equal(b'BLABLABLABLA')
 
 
 @patch('httpretty.core.old_socket')
@@ -556,7 +556,7 @@ def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTT
     entry.request.headers = {
         'transfer-encoding': 'chunked',
     }
-    entry.request.body = ''
+    entry.request.body = b''
 
     # Given an instance of that socket
     socket = MySocket()
@@ -569,4 +569,4 @@ def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTT
     socket.sendall(b"BLABLABLABLA")
 
     # Then the entry should have that body
-    httpretty.last_request.body.should.equal('BLABLABLABLA')
+    httpretty.last_request.body.should.equal(b'BLABLABLABLA')
