@@ -36,6 +36,7 @@ from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
 
 from base import FIXTURE_FILE, use_tornado_server
+from tornado import version as tornado_version
 
 try:
     xrange = xrange
@@ -698,7 +699,7 @@ def test_recording_calls():
     response['response'].should.have.key("status").being.equal(200)
     response['response'].should.have.key("body").being.an(unicode)
     response['response'].should.have.key("headers").being.a(dict)
-    response['response']["headers"].should.have.key("server").being.equal("TornadoServer/2.4")
+    response['response']["headers"].should.have.key("server").being.equal("TornadoServer/" + tornado_version)
 
 
 def test_playing_calls():
