@@ -15,11 +15,11 @@ test: unit functional doctests
 
 unit: prepare
 	@echo "Running unit tests ..."
-	@nosetests -s --verbosity=2 --with-coverage --cover-erase --cover-inclusive tests/unit --cover-package=httpretty
+	@nosetests -s tests/unit
 
 functional: prepare
 	@echo "Running functional tests ..."
-	@nosetests -s --verbosity=2 --with-coverage --cover-erase --cover-inclusive tests/functional --cover-package=httpretty
+	@nosetests -s tests/functional
 
 doctests: prepare
 	@echo "Running documentation tests tests ..."
