@@ -843,6 +843,8 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def reset(cls):
+        global POTENTIAL_HTTP_PORTS
+        POTENTIAL_HTTP_PORTS = set([80, 443])
         cls._entries.clear()
         cls.latest_requests = []
         cls.last_request = HTTPrettyRequestEmpty()
