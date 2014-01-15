@@ -460,7 +460,7 @@ def test_callback_setting_headers_and_status_response(now):
     response = requests.get('https://api.yahoo.com/test')
     expect(response.text).to.equal("The GET response from https://api.yahoo.com/test")
     expect(response.headers).to.have.key('a').being.equal("b")
-    expect(response.status_code).to.be(418)
+    expect(response.status_code).to.equal(418)
 
     HTTPretty.register_uri(
         HTTPretty.POST, "https://api.yahoo.com/test_post",
@@ -473,7 +473,7 @@ def test_callback_setting_headers_and_status_response(now):
 
     expect(response.text).to.equal("The POST response from https://api.yahoo.com/test_post")
     expect(response.headers).to.have.key('a').being.equal("b")
-    expect(response.status_code).to.be(418)
+    expect(response.status_code).to.equal(418)
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_the_callback():
