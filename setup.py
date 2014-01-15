@@ -28,7 +28,7 @@
 
 import os
 from httpretty import version, HTTPretty
-from setuptools import setup, find_packages
+from setuptools import setup
 
 HTTPretty.disable()
 
@@ -50,7 +50,7 @@ setup(name='httpretty',
     author_email='gabriel@nacaolivre.org',
     url='http://github.com/gabrielfalcao/httpretty',
     zip_safe=False,
-    packages=find_packages(HTTPRETTY_PATH, ('tests')),
+    packages=['httpretty'],
     tests_require=test_packages(),
     install_requires=['urllib3'],
     license='MIT',
