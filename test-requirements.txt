@@ -1,0 +1,12 @@
+# test runner
+coverage
+nose
+
+# testing utilities
+mock
+sure
+
+# external frameworks tested against
+httplib2
+requests
+tornado

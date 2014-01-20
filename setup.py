@@ -24,38 +24,9 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+import setuptools
 
-
-import os
-from httpretty import version, HTTPretty
-from setuptools import setup, find_packages
-
-HTTPretty.disable()
-
-HTTPRETTY_PATH = os.path.abspath(os.path.join(__file__, os.pardir))
-
-
-def test_packages():
-    test_reqs = os.path.join(HTTPRETTY_PATH, 'requirements.txt')
-    tests_require = [
-            line.strip() for line in open(test_reqs).readlines()
-            if not line.startswith("#")
-        ]
-    return tests_require
-
-setup(name='httpretty',
-    version=version,
-    description='HTTP client mock for Python',
-    author='Gabriel Falcao',
-    author_email='gabriel@nacaolivre.org',
-    url='http://github.com/gabrielfalcao/httpretty',
-    zip_safe=False,
-    packages=find_packages(HTTPRETTY_PATH, ('tests')),
-    tests_require=test_packages(),
-    install_requires=['urllib3'],
-    license='MIT',
-    test_suite='nose.collector',
-    classifiers=["Intended Audience :: Developers",
-                 "License :: OSI Approved :: MIT License",
-                 "Topic :: Software Development :: Testing"],
+setuptools.setup(
+    setup_requires=['pbr'],
+    pbr=True
 )

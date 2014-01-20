@@ -11,3 +11,9 @@ dist/
 .tox/
 _public/
 tests/functional/fixtures/recording-*.json
+*.egg
+
+# Remove me to enable tracking automatically generated AUTHORS and
+# ChangeLog files granted by pbr
+AUTHORS
+ChangeLog
