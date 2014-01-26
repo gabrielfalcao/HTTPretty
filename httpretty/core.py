@@ -100,8 +100,10 @@ except ImportError:  # pragma: no cover
     ssl = None
 
 
-POTENTIAL_HTTP_PORTS = set([80, 443])
-DEFAULT_HTTP_PORTS = tuple(POTENTIAL_HTTP_PORTS)
+DEFAULT_HTTP_PORTS = frozenset([80])
+POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
+DEFAULT_HTTPS_PORTS = set([443])
+POTENTIAL_HTTPS_PORTS = set(DEFAULT_HTTPS_PORTS)
 
 
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
@@ -283,7 +285,7 @@ class fakesock(object):
         def connect(self, address):
             self._address = (self._host, self._port) = address
             self._closed = False
-            self.is_http = self._port in POTENTIAL_HTTP_PORTS
+            self.is_http = self._port in POTENTIAL_HTTP_PORTS | POTENTIAL_HTTPS_PORTS
 
             if not self.is_http:
                 self.truesock.connect(self._address)
@@ -317,12 +319,15 @@ class fakesock(object):
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
+            # Don't get stuck in connect() if the protocol does not
+            # match the request's protocol.
+            self.truesock.settimeout(0)
+
             if self.is_http:  # no need to connect if `self.is_http` is
                               # False because self.connect already did
                               # that
                 self.truesock.connect(self._address)
 
-            self.truesock.settimeout(0)
             self.truesock.sendall(data, *args, **kw)
 
             should_continue = True
@@ -376,7 +381,8 @@ class fakesock(object):
 
             request = httpretty.historify_request(headers, body)
 
-            info = URIInfo(hostname=self._host, port=self._port,
+            info = URIInfo(hostname=self._host,
+                           port=self._port,
                            path=s.path,
                            query=s.query,
                            last_request=request)
@@ -630,7 +636,12 @@ class URIInfo(BaseClass):
         self.port = port or 80
         self.path = path or ''
         self.query = query or ''
-        self.scheme = scheme or (self.port == 443 and "https" or "http")
+        if scheme:
+            self.scheme = scheme
+        elif self.port in POTENTIAL_HTTPS_PORTS:
+            self.scheme = 'https'
+        else:
+            self.scheme = 'http'
         self.fragment = fragment or ''
         self.last_request = last_request
 
@@ -682,7 +693,8 @@ class URIInfo(BaseClass):
 
     def get_full_domain(self):
         hostname = decode_utf8(self.hostname)
-        if self.port not in DEFAULT_HTTP_PORTS:
+        # Port 80/443 should not be appended to the url
+        if self.port not in DEFAULT_HTTP_PORTS | DEFAULT_HTTPS_PORTS:
             return ":".join([hostname, str(self.port)])
 
         return hostname
@@ -690,7 +702,10 @@ class URIInfo(BaseClass):
     @classmethod
     def from_uri(cls, uri, entry):
         result = urlsplit(uri)
-        POTENTIAL_HTTP_PORTS.add(int(result.port or 80))
+        if result.scheme == 'https':
+            POTENTIAL_HTTPS_PORTS.add(int(result.port or 443))
+        else:
+            POTENTIAL_HTTP_PORTS.add(int(result.port or 80))
         return cls(result.username,
                    result.password,
                    result.hostname,
@@ -710,6 +725,11 @@ class URIMatcher(object):
         self._match_querystring = match_querystring
         if type(uri).__name__ == 'SRE_Pattern':
             self.regex = uri
+            result = urlsplit(uri.pattern)
+            if result.scheme == 'https':
+                POTENTIAL_HTTPS_PORTS.add(int(result.port or 443))
+            else:
+                POTENTIAL_HTTP_PORTS.add(int(result.port or 80))
         else:
             self.info = URIInfo.from_uri(uri, entries)
 
@@ -843,8 +863,8 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def reset(cls):
-        global POTENTIAL_HTTP_PORTS
-        POTENTIAL_HTTP_PORTS = set([80, 443])
+        POTENTIAL_HTTP_PORTS.intersection_update(DEFAULT_HTTP_PORTS)
+        POTENTIAL_HTTPS_PORTS.intersection_update(DEFAULT_HTTPS_PORTS)
         cls._entries.clear()
         cls.latest_requests = []
         cls.last_request = HTTPrettyRequestEmpty()
