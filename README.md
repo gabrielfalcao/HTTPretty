@@ -22,7 +22,7 @@ $ curd install HTTPretty
 # In a nutshell
 
 Once upon a time a python developer wanted to use a RESTful api,
-everything was fine but until the day he needed to test the code that
+everything was fine but until the day they needed to test the code that
 hits the RESTful API: what if the API server is down? What if its
 content has changed ?
 
