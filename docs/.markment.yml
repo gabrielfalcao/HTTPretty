@@ -1,6 +1,6 @@
 project:
   name: "HTTPretty"
-  version: 0.7.1
+  version: 0.8.0
   description: HTTP request mock tool for python
   tagline: Intercept real HTTP calls in python, test your software better.
   twitter: gabrielfalcao
