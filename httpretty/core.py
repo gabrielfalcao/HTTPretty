@@ -166,6 +166,10 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         # Now 2 convenient attributes for the HTTPretty API:
 
         # `querystring` holds a dictionary with the parsed query string
+        try:
+            self.path = self.path.encode('iso-8859-1')
+        except UnicodeDecodeError:
+            pass
         self.path = decode_utf8(self.path)
 
         qstring = self.path.split("?", 1)[-1]
@@ -187,7 +191,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         parsed = parse_qs(expanded)
         result = {}
         for k in parsed:
-            result[k] = map(decode_utf8, parsed[k])
+            result[k] = list(map(decode_utf8, parsed[k]))
 
         return result
 
@@ -204,6 +208,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         content_type = self.headers.get('content-type', '')
 
         do_parse = PARSING_FUNCTIONS.get(content_type, FALLBACK_FUNCTION)
+        body = decode_utf8(body)
         try:
             return do_parse(body)
         except:
@@ -343,8 +348,8 @@ class fakesock(object):
             self._sent_data.append(data)
 
             try:
-                requestline, _ = data.split('\r\n', 1)
-                method, path, version = parse_requestline(requestline)
+                requestline, _ = data.split(b'\r\n', 1)
+                method, path, version = parse_requestline(decode_utf8(requestline))
                 is_parsing_headers = True
             except ValueError:
                 is_parsing_headers = False
@@ -358,10 +363,10 @@ class fakesock(object):
             if not is_parsing_headers:
                 if len(self._sent_data) > 1:
                     headers = utf8(last_requestline(self._sent_data))
-                    meta = dict(self._entry.request.headers)
+                    meta = self._entry.request.headers
                     body = utf8(self._sent_data[-1])
                     if meta.get('transfer-encoding', '') == 'chunked':
-                        if not body.isdigit() and body != '\r\n' and body != '0\r\n\r\n':
+                        if not body.isdigit() and body != b'\r\n' and body != b'0\r\n\r\n':
                             self._entry.request.body += body
                     else:
                         self._entry.request.body += body
@@ -372,7 +377,7 @@ class fakesock(object):
             # path might come with
             s = urlsplit(path)
             POTENTIAL_HTTP_PORTS.add(int(s.port or 80))
-            headers, body = map(utf8, data.split('\r\n\r\n', 1))
+            headers, body = list(map(utf8, data.split(b'\r\n\r\n', 1)))
 
             request = httpretty.historify_request(headers, body)
 
@@ -393,7 +398,7 @@ class fakesock(object):
         def debug(self, func, *a, **kw):
             if self.is_http:
                 frame = inspect.stack()[0][0]
-                lines = map(utf8, traceback.format_stack(frame))
+                lines = list(map(utf8, traceback.format_stack(frame)))
 
                 message = [
                     "HTTPretty intercepted and unexpected socket method call.",
@@ -807,12 +812,12 @@ class httpretty(HttpBaseClass):
                     'uri': uri,
                     'method': request.method,
                     'headers': dict(request.headers),
-                    'body': request.body,
+                    'body': decode_utf8(request.body),
                     'querystring': request.querystring
                 },
                 'response': {
                     'status': response.status,
-                    'body': response.data,
+                    'body': decode_utf8(response.data),
                     'headers': dict(response.headers)
                 }
             })

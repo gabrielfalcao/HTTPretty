@@ -32,10 +32,12 @@ import re
 import json
 import requests
 from sure import within, microseconds, expect
+from tornado import version as tornado_version
 from httpretty import HTTPretty, httprettified
+from httpretty.compat import text_type
 from httpretty.core import decode_utf8
 
-from base import FIXTURE_FILE, use_tornado_server
+from .base import FIXTURE_FILE, use_tornado_server
 from tornado import version as tornado_version
 
 try:
@@ -573,7 +575,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
     os.environ['DEBUG'] = 'true'
 
     def my_callback(request, url, headers):
-        request.body.should.equal('hithere')
+        request.body.should.equal(b'hithere')
         return 200, headers, "Received"
 
     HTTPretty.register_uri(
@@ -590,7 +592,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
         'https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris',
         data=gen(),
     )
-    expect(response.content).to.equal("Received")
+    expect(response.content).to.equal(b"Received")
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
@@ -697,7 +699,7 @@ def test_recording_calls():
         ]
     })
     response['response'].should.have.key("status").being.equal(200)
-    response['response'].should.have.key("body").being.an(unicode)
+    response['response'].should.have.key("body").being.an(text_type)
     response['response'].should.have.key("headers").being.a(dict)
     response['response']["headers"].should.have.key("server").being.equal("TornadoServer/" + tornado_version)
 
