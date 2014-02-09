@@ -294,8 +294,8 @@ import httpretty
 @httpretty.activate
 def test_response_callbacks():
 
-    def request_callback(method, uri, headers):
-        return (200, headers, "The {} response from {}".format(method, uri))
+    def request_callback(request, uri, headers):
+        return (200, headers, "The {} response from {}".format(request.method, uri))
 
     httpretty.register_uri(
         httpretty.GET, "https://api.yahoo.com/test",
