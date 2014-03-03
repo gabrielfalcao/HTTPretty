@@ -380,6 +380,29 @@ def test_multiline():
 
 
 @httprettified
+def test_octet_stream():
+    url = 'http://httpbin.org/post'
+    data = b"\xf5\x00\x00\x00"  # utf-8 with invalid start byte
+    headers = {
+        'Content-Type': 'application/octet-stream',
+    }
+    HTTPretty.register_uri(
+        HTTPretty.POST,
+        url,
+    )
+    response = requests.post(url, data=data, headers=headers)
+
+    expect(response.status_code).to.equal(200)
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.path).to.equal('/post')
+    expect(HTTPretty.last_request.body).to.equal(data)
+    expect(HTTPretty.last_request.headers['content-length']).to.equal('4')
+    expect(HTTPretty.last_request.headers['content-type']).to.equal('application/octet-stream')
+    expect(len(HTTPretty.latest_requests)).to.equal(1)
+
+
+
+@httprettified
 def test_multipart():
     url = 'http://httpbin.org/post'
     data = b'--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="content"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 68\r\n\r\nAction: comment\nText: Comment with attach\nAttachment: x1.txt, x2.txt\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_2"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_1"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz--\r\n'
