@@ -674,7 +674,7 @@ def test_recording_calls():
 
     # And the contents should be json
     raw = open(destination).read()
-    json.loads.when.called_with(raw).should_not.throw(ValueError)
+    #json.loads.when.called_with(raw).should_not.throw(ValueError)
 
     # And the contents should be expected
     data = json.loads(raw)
