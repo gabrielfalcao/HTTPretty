@@ -236,6 +236,7 @@ def test_uri_info_eq_ignores_case():
     expect(uri_info_uppercase).to.equal(uri_info_lowercase)
 
 def test_global_boolean_enabled():
+    expect(HTTPretty.is_enabled()).to.be.falsy
     HTTPretty.enable()
     expect(HTTPretty.is_enabled()).to.be.truthy
     HTTPretty.disable()
@@ -275,8 +276,8 @@ def test_fake_socket_passes_through_setblocking():
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.truesock = MagicMock()
-    expect(s.setblocking).called_with().should_not.throw(AttributeError)
-    s.truesock.setblocking.assert_called_with()
+    expect(s.setblocking).called_with(0).should_not.throw(AttributeError)
+    s.truesock.setblocking.assert_called_with(0)
 
 def test_fake_socket_passes_through_fileno():
     import socket
@@ -292,8 +293,8 @@ def test_fake_socket_passes_through_getsockopt():
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.truesock = MagicMock()
-    expect(s.getsockopt).called_with().should_not.throw(AttributeError)
-    s.truesock.getsockopt.assert_called_with()
+    expect(s.getsockopt).called_with(socket.SOL_SOCKET, 1).should_not.throw(AttributeError)
+    s.truesock.getsockopt.assert_called_with(socket.SOL_SOCKET, 1)
 
 def test_fake_socket_passes_through_bind():
     import socket
@@ -348,8 +349,8 @@ def test_fake_socket_passes_through_shutdown():
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.truesock = MagicMock()
-    expect(s.shutdown).called_with().should_not.throw(AttributeError)
-    s.truesock.shutdown.assert_called_with()
+    expect(s.shutdown).called_with(socket.SHUT_RD).should_not.throw(AttributeError)
+    s.truesock.shutdown.assert_called_with(socket.SHUT_RD)
 
 
 def test_HTTPrettyRequest_json_body():
