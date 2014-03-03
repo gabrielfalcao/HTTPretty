@@ -30,7 +30,6 @@ from sure import expect
 from httpretty import HTTPretty, HTTPrettyError, core
 from httpretty.core import URIInfo, BaseClass, Entry, FakeSockFile, HTTPrettyRequest
 from httpretty.http import STATUSES
-from unittest import skip
 
 try:
     from mock import MagicMock
@@ -83,7 +82,6 @@ def test_httpretty_should_raise_on_socket_send_when_uri_registered():
     HTTPretty.disable()
 
 
-@skip
 def test_httpretty_should_not_raise_on_socket_send_when_uri_not_registered():
     """HTTPretty should not raise a RuntimeError when the fakesocket is used in
     an invalid usage.
