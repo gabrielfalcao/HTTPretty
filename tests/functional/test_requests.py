@@ -594,8 +594,6 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
 @httprettified
 def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
     "HTTPretty should allow registering regexes with streaming responses"
-    import os
-    os.environ['DEBUG'] = 'true'
 
     def my_callback(request, url, headers):
         request.body.should.equal(b'hithere')
