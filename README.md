@@ -9,7 +9,7 @@
 
 # Installing
 
-Since you are interested in HTTPretty you should also be insterested in speeding up your build.
+Since you are interested in HTTPretty you should also be interested in speeding up your build.
 Replace `pip` with [`curdling`](http://clarete.github.io/curdling/) and see your build running a lot faster.
 
 You can use curdling to install not only HTTPretty but every dependency in your project and see the speed gains.
