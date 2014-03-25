@@ -102,7 +102,7 @@ except ImportError:  # pragma: no cover
 
 DEFAULT_HTTP_PORTS = frozenset([80])
 POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
-DEFAULT_HTTPS_PORTS = set([443])
+DEFAULT_HTTPS_PORTS = frozenset([443])
 POTENTIAL_HTTPS_PORTS = set(DEFAULT_HTTPS_PORTS)
 
 
@@ -381,8 +381,7 @@ class fakesock(object):
 
             request = httpretty.historify_request(headers, body)
 
-            info = URIInfo(hostname=self._host,
-                           port=self._port,
+            info = URIInfo(hostname=self._host, port=self._port,
                            path=s.path,
                            query=s.query,
                            last_request=request)

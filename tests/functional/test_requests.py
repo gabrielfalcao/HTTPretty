@@ -743,6 +743,7 @@ def test_py26_callback_response():
     expect(request_callback.call_count).equal(1)
 
 
+import json
 @httprettified
 def test_httpretty_should_work_with_non_standard_ports():
     "HTTPretty should work with a non-standard port number"
