@@ -819,3 +819,9 @@ def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_
     expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
+
+def hello():
+    return json.dumps({
+        'href': 'http://foobar.com'
+    })

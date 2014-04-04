@@ -319,15 +319,12 @@ class fakesock(object):
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
-            # Don't get stuck in connect() if the protocol does not
-            # match the request's protocol.
-            self.truesock.settimeout(0)
-
             if self.is_http:  # no need to connect if `self.is_http` is
                               # False because self.connect already did
                               # that
                 self.truesock.connect(self._address)
 
+            self.truesock.settimeout(0)
             self.truesock.sendall(data, *args, **kw)
 
             should_continue = True
