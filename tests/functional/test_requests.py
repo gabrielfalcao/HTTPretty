@@ -769,6 +769,81 @@ def test_py26_callback_response():
 
 
 import json
+@httprettified
+def test_httpretty_should_work_with_non_standard_ports():
+    "HTTPretty should work with a non-standard port number"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
+        body=lambda method, uri, headers: [200, headers, uri]
+    )
+
+    HTTPretty.register_uri(
+        HTTPretty.POST,
+        "https://asdf.com:666/meow",
+        body=lambda method, uri, headers: [200, headers, uri]
+    )
+
+    response = requests.get('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
+    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
+    response = requests.post('https://asdf.com:666/meow')
+
+    expect(response.text).to.equal('https://asdf.com:666/meow')
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.path).to.equal('/meow')
+
+
+@httprettified
+def test_httpretty_reset_by_switching_protocols_for_same_port():
+    "HTTPretty should reset protocol/port associations"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        "http://api.yipit.com:1234/v1/deal",
+        body=lambda method, uri, headers: [200, headers, uri]
+    )
+
+    response = requests.get('http://api.yipit.com:1234/v1/deal')
+
+    expect(response.text).to.equal('http://api.yipit.com:1234/v1/deal')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal')
+
+    HTTPretty.reset()
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        "https://api.yipit.com:1234/v1/deal",
+        body=lambda method, uri, headers: [200, headers, uri]
+    )
+
+    response = requests.get('https://api.yipit.com:1234/v1/deal')
+
+    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal')
+
+
+@httprettified
+def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_match_to_the_callback():
+    "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile("https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
+        body=lambda method, uri, headers: [200, headers, uri]
+    )
+
+    response = requests.get('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
+    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
 
 def hello():

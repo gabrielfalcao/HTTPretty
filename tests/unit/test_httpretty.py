@@ -69,7 +69,8 @@ def test_httpretty_should_raise_on_socket_send_when_uri_registered():
 
     HTTPretty.register_uri(HTTPretty.GET,
                            'http://127.0.0.1:5000')
-    expect(core.POTENTIAL_HTTP_PORTS).to.be.equal(set([80, 443, 5000]))
+    expect(core.POTENTIAL_HTTP_PORTS).to.be.equal(set([80, 5000]))
+    expect(core.POTENTIAL_HTTPS_PORTS).to.be.equal(set([443]))
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(('127.0.0.1', 5000))
