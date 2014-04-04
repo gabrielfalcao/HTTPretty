@@ -32,10 +32,12 @@ import re
 import json
 import requests
 from sure import within, microseconds, expect
+from tornado import version as tornado_version
 from httpretty import HTTPretty, httprettified
+from httpretty.compat import text_type
 from httpretty.core import decode_utf8
 
-from base import FIXTURE_FILE, use_tornado_server
+from .base import FIXTURE_FILE, use_tornado_server
 from tornado import version as tornado_version
 
 try:
@@ -378,6 +380,29 @@ def test_multiline():
 
 
 @httprettified
+def test_octet_stream():
+    url = 'http://httpbin.org/post'
+    data = b"\xf5\x00\x00\x00"  # utf-8 with invalid start byte
+    headers = {
+        'Content-Type': 'application/octet-stream',
+    }
+    HTTPretty.register_uri(
+        HTTPretty.POST,
+        url,
+    )
+    response = requests.post(url, data=data, headers=headers)
+
+    expect(response.status_code).to.equal(200)
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.path).to.equal('/post')
+    expect(HTTPretty.last_request.body).to.equal(data)
+    expect(HTTPretty.last_request.headers['content-length']).to.equal('4')
+    expect(HTTPretty.last_request.headers['content-type']).to.equal('application/octet-stream')
+    expect(len(HTTPretty.latest_requests)).to.equal(1)
+
+
+
+@httprettified
 def test_multipart():
     url = 'http://httpbin.org/post'
     data = b'--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="content"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 68\r\n\r\nAction: comment\nText: Comment with attach\nAttachment: x1.txt, x2.txt\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_2"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_1"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz--\r\n'
@@ -573,7 +598,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
     os.environ['DEBUG'] = 'true'
 
     def my_callback(request, url, headers):
-        request.body.should.equal('hithere')
+        request.body.should.equal(b'hithere')
         return 200, headers, "Received"
 
     HTTPretty.register_uri(
@@ -590,7 +615,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
         'https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris',
         data=gen(),
     )
-    expect(response.content).to.equal("Received")
+    expect(response.content).to.equal(b"Received")
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
@@ -697,7 +722,7 @@ def test_recording_calls():
         ]
     })
     response['response'].should.have.key("status").being.equal(200)
-    response['response'].should.have.key("body").being.an(unicode)
+    response['response'].should.have.key("body").being.an(text_type)
     response['response'].should.have.key("headers").being.a(dict)
     response['response']["headers"].should.have.key("server").being.equal("TornadoServer/" + tornado_version)
 

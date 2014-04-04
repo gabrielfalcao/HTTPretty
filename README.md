@@ -1,4 +1,4 @@
-# HTTPretty 0.7.1
+# HTTPretty 0.8.0
 
 ![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
 [![tip for next commit](http://tip4commit.com/projects/133.svg)](http://tip4commit.com/projects/133)
@@ -9,7 +9,7 @@
 
 # Installing
 
-Since you are interested in HTTPretty you should also be insterested in speeding up your build.
+Since you are interested in HTTPretty you should also be interested in speeding up your build.
 Replace `pip` with [`curdling`](http://clarete.github.io/curdling/) and see your build running a lot faster.
 
 You can use curdling to install not only HTTPretty but every dependency in your project and see the speed gains.
@@ -22,7 +22,7 @@ $ curd install HTTPretty
 # In a nutshell
 
 Once upon a time a python developer wanted to use a RESTful api,
-everything was fine but until the day he needed to test the code that
+everything was fine but until the day they needed to test the code that
 hits the RESTful API: what if the API server is down? What if its
 content has changed ?
 
@@ -294,8 +294,8 @@ import httpretty
 @httpretty.activate
 def test_response_callbacks():
 
-    def request_callback(method, uri, headers):
-        return (200, headers, "The {} response from {}".format(method, uri))
+    def request_callback(request, uri, headers):
+        return (200, headers, "The {} response from {}".format(request.method, uri))
 
     httpretty.register_uri(
         httpretty.GET, "https://api.yahoo.com/test",
