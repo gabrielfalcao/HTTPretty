@@ -499,6 +499,7 @@ def test_callback_setting_headers_and_status_response(now):
     expect(response.headers).to.have.key('a').being.equal("b")
     expect(response.status_code).to.equal(418)
 
+
 @httprettified
 def test_httpretty_should_respect_matcher_priority():
     HTTPretty.register_uri(
@@ -515,6 +516,25 @@ def test_httpretty_should_respect_matcher_priority():
     )
     response = requests.get('http://api.yipit.com/v1/')
     expect(response.text).to.equal('high priority')
+
+
+@within(two=microseconds)
+def test_callback_setting_content_length_on_head(now):
+    ("HTTPretty should call a callback function, use it's return tuple as status code, headers and body"
+     " requests and respect the content-length header when responding to HEAD")
+
+    def request_callback(request, uri, headers):
+        headers.update({'content-length': 12345})
+        return [200, headers, ""]
+
+    HTTPretty.register_uri(
+        HTTPretty.HEAD, "https://api.yahoo.com/test",
+        body=request_callback)
+
+    response = requests.head('https://api.yahoo.com/test')
+    expect(response.headers).to.have.key('content-length').being.equal("12345")
+    expect(response.status_code).to.equal(200)
+
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_the_callback():
@@ -862,64 +882,6 @@ def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
-@httprettified
-def test_httpretty_should_work_with_non_standard_ports():
-    "HTTPretty should work with a non-standard port number"
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        re.compile("https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-    HTTPretty.register_uri(
-        HTTPretty.POST,
-        "https://asdf.com:666/meow",
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-    response = requests.post('https://asdf.com:666/meow')
-
-    expect(response.text).to.equal('https://asdf.com:666/meow')
-    expect(HTTPretty.last_request.method).to.equal('POST')
-    expect(HTTPretty.last_request.path).to.equal('/meow')
-
-
-@httprettified
-def test_httpretty_reset_by_switching_protocols_for_same_port():
-    "HTTPretty should reset protocol/port associations"
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        "http://api.yipit.com:1234/v1/deal",
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('http://api.yipit.com:1234/v1/deal')
-
-    expect(response.text).to.equal('http://api.yipit.com:1234/v1/deal')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal')
-
-    HTTPretty.reset()
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        "https://api.yipit.com:1234/v1/deal",
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('https://api.yipit.com:1234/v1/deal')
-
-    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal')
-
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_match_to_the_callback():
@@ -936,9 +898,6 @@ def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_
     expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-
-import json
 
 
 def hello():
