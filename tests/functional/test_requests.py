@@ -501,6 +501,24 @@ def test_callback_setting_headers_and_status_response(now):
     expect(response.status_code).to.equal(418)
 
 @httprettified
+@within(two=microseconds)
+def test_callback_setting_content_length_on_head(now):
+    ("HTTPretty should call a callback function, use it's return tuple as status code, headers and body"
+     " requests and respect the content-length header when responding to HEAD")
+
+    def request_callback(request, uri, headers):
+        headers.update({'content-length': 12345})
+        return [200,headers, ""]
+
+    HTTPretty.register_uri(
+        HTTPretty.HEAD, "https://api.yahoo.com/test",
+        body=request_callback)
+
+    response = requests.head('https://api.yahoo.com/test')
+    expect(response.headers).to.have.key('content-length').being.equal("12345")
+    expect(response.status_code).to.equal(200)
+
+@httprettified
 def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_the_callback():
     "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
 
