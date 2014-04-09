@@ -251,7 +251,7 @@ class fakesock(object):
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
             self._sock = self
             self.is_http = False
-            self._bufsize = 16
+            self._bufsize = httpretty.sock_bufsize
 
         def getpeercert(self, *a, **kw):
             now = datetime.now()
@@ -327,7 +327,8 @@ class fakesock(object):
                               # that
                 self.truesock.connect(self._address)
 
-            self.truesock.settimeout(0)
+            # Don`t let zero timeout
+            self.truesock.settimeout(httpretty.sock_timeout)
             self.truesock.sendall(data, *args, **kw)
 
             should_continue = True
@@ -781,6 +782,11 @@ class httpretty(HttpBaseClass):
 
     last_request = HTTPrettyRequestEmpty()
     _is_enabled = False
+
+    # Timeout for real_sendall
+    sock_timeout = 3
+    # *Real* bufsize for real_sendall
+    sock_bufsize = 32 * 1024
 
     @classmethod
     def match_uriinfo(cls, info):
