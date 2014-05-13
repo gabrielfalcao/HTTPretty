@@ -3,7 +3,6 @@
 ![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
 [![tip for next commit](http://tip4commit.com/projects/133.svg)](http://tip4commit.com/projects/133)
 [![Build Status](https://travis-ci.org/gabrielfalcao/HTTPretty.png?branch=master)](https://travis-ci.org/gabrielfalcao/HTTPretty)
-[![instanc.es Badge](https://instanc.es/bin/gabrielfalcao/HTTPretty.png)](http://instanc.es)
 [ChangeLog](NEWS.md)
 
 
