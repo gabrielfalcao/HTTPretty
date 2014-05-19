@@ -510,6 +510,7 @@ class Entry(BaseClass):
             if got is None:
                 continue
 
+            igot = None
             try:
                 igot = int(got)
             except ValueError:
@@ -518,7 +519,7 @@ class Entry(BaseClass):
                     'with "%r" which is not a number' % got,
                 )
 
-            if igot > self.body_length:
+            if igot and igot > self.body_length:
                 raise HTTPrettyError(
                     'HTTPretty got inconsistent parameters. The header ' \
                     'Content-Length you registered expects size "%d" but ' \

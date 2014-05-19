@@ -133,6 +133,7 @@ def test_httpretty_should_allow_forcing_headers_urllib2():
                            body="this is supposed to be the response",
                            forcing_headers={
                                'Content-Type': 'application/xml',
+                               'Content-Length': '35a',
                            })
 
     request = urlopen('http://github.com')
@@ -141,6 +142,7 @@ def test_httpretty_should_allow_forcing_headers_urllib2():
 
     expect(headers).to.equal({
         'content-type': 'application/xml',
+        'content-length': '35a',
     })
 
 
