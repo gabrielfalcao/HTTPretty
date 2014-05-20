@@ -173,7 +173,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         self.path = decode_utf8(self.path)
 
         qstring = self.path.split("?", 1)[-1]
-        self.querystring = self.parse_querystring(qstring)
+        self.querystring = HTTPrettyRequest.parse_querystring(qstring)
 
         # And the body will be attempted to be parsed as
         # `application/json` or `application/x-www-form-urlencoded`
@@ -186,7 +186,8 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
             len(self.body),
         )
 
-    def parse_querystring(self, qs):
+    @classmethod
+    def parse_querystring(cls, qs):
         expanded = unquote_utf8(qs)
         parsed = parse_qs(expanded)
         result = {}
@@ -201,7 +202,8 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         PARSING_FUNCTIONS = {
             'application/json': json.loads,
             'text/json': json.loads,
-            'application/x-www-form-urlencoded': self.parse_querystring,
+            'application/x-www-form-urlencoded':
+                HTTPrettyRequest.parse_querystring,
         }
         FALLBACK_FUNCTION = lambda x: x
 
