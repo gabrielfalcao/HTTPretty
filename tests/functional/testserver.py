@@ -61,6 +61,8 @@ def utf8(s):
 
 true_socket = socket.socket
 
+socket.setdefaulttimeout(.5)
+
 PY3 = sys.version_info[0] == 3
 
 if not PY3:
