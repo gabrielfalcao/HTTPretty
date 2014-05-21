@@ -522,6 +522,9 @@ def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS,
     class MySocket(fakesock.socket):
         def real_sendall(self, data):
             raise AssertionError('should have never been called')
+        def _get_next_entry(self, info, request):
+            return entry
+
     # Using a mocked entry
     entry = Mock()
     entry.request.headers = {}
@@ -529,14 +532,15 @@ def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS,
 
     # Given an instance of that socket
     socket = MySocket()
-    socket._entry = entry
-
 
     # And that is is considered http
     socket.connect(('foo.com', 80))
 
     # When I try to send data
-    socket.sendall(b"BLABLABLABLA")
+    socket.sendall(b"POST foo.com HTTP/1.1\r\n"
+                   b"Content-Length: 12\r\n"
+                   b"\r\n"
+                   b"BLABLABLABLA")
 
     # Then the entry should have that body
     entry.request.body.should.equal(b'BLABLABLABLA')
@@ -551,6 +555,9 @@ def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTT
     class MySocket(fakesock.socket):
         def real_sendall(self, data):
             raise AssertionError('should have never been called')
+        def _get_next_entry(self, info, request):
+            return entry
+
     # Using a mocked entry
     entry = Mock()
     entry.request.headers = {
@@ -566,7 +573,12 @@ def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTT
     socket.connect(('foo.com', 80))
 
     # When I try to send data
-    socket.sendall(b"BLABLABLABLA")
+    socket.sendall(b"POST foo.com HTTP/1.1\r\n"
+                   b"Transfer-Encoding: chunked\r\n"
+                   b"\r\n"
+                   b"3\r\nabc\r\n"
+                   b"6\r\ndefghi\r\n"
+                   b"0\r\n\r\n")
 
     # Then the entry should have that body
-    httpretty.last_request.body.should.equal(b'BLABLABLABLA')
+    httpretty.last_request.body.should.equal(b'abcdefghi')

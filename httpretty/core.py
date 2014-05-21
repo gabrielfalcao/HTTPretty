@@ -240,9 +240,19 @@ class FakeSSLSocket(object):
 
 class fakesock(object):
     class socket(object):
+
+        "True if we're mocking, False if not, None if not sure yet."
+        _mocking = None
+
+        """Partial request data that is appended to, if it takes multiple
+        socket reads to accept an entire request (including its body).
+        """
+        _sent_data = b''
+
+        "The entry used to handle the most recently completed request."
         _entry = None
+
         debuglevel = 0
-        _sent_data = []
 
         def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM,
                      protocol=0):
@@ -347,55 +357,91 @@ class fakesock(object):
             self.fd.seek(0)
 
         def sendall(self, data, *args, **kw):
-            self._sent_data.append(data)
 
-            try:
-                requestline, _ = data.split(b'\r\n', 1)
-                method, path, version = parse_requestline(decode_utf8(requestline))
-                is_parsing_headers = True
-            except ValueError:
-                is_parsing_headers = False
+            if self._mocking is None:
+                try:
+                    requestline, _ = data.split(b'\r\n', 1)
+                    parse_requestline(decode_utf8(requestline))
+                    self._mocking = True
+                except ValueError:
+                    self._mocking = False
 
-                if not self._entry:
-                    # If the previous request wasn't mocked, don't mock the subsequent sending of data
-                    return self.real_sendall(data, *args, **kw)
+            if not self._mocking:
+                return self.real_sendall(data, *args, **kw)
 
-            self.fd.seek(0)
+            self._sent_data += bytes(data)
 
-            if not is_parsing_headers:
-                if len(self._sent_data) > 1:
-                    headers = utf8(last_requestline(self._sent_data))
-                    meta = self._entry.request.headers
-                    body = utf8(self._sent_data[-1])
-                    if meta.get('transfer-encoding', '') == 'chunked':
-                        if not body.isdigit() and body != b'\r\n' and body != b'0\r\n\r\n':
-                            self._entry.request.body += body
-                    else:
-                        self._entry.request.body += body
+            r = self._pop_request()
+            if r is not None:
+                method, path, version, headers, body = r
+                self.fd.seek(0)
 
-                    httpretty.historify_request(headers, body, False)
-                    return
+                s = urlsplit(path)
+                POTENTIAL_HTTP_PORTS.add(int(s.port or 80))
 
-            # path might come with
-            s = urlsplit(path)
-            POTENTIAL_HTTP_PORTS.add(int(s.port or 80))
-            headers, body = list(map(utf8, data.split(b'\r\n\r\n', 1)))
+                request = httpretty.historify_request(headers, body)
 
-            request = httpretty.historify_request(headers, body)
+                info = URIInfo(hostname=self._host, port=self._port,
+                               path=s.path, query=s.query, last_request=request)
 
-            info = URIInfo(hostname=self._host, port=self._port,
-                           path=s.path,
-                           query=s.query,
-                           last_request=request)
+                self._entry = self._get_next_entry(info, request)
+                if self._entry is None:
+                    self.real_sendall(data)
+                else:
+                    self._entry.request = request
 
+        def _get_next_entry(self, info, request):
             matcher, entries = httpretty.match_uriinfo(info)
+            if entries:
+                return matcher.get_next_entry(info, request)
 
-            if not entries:
-                self._entry = None
-                self.real_sendall(data)
-                return
+        def _pop_request(self):
 
-            self._entry = matcher.get_next_entry(method, info, request)
+            data = self._sent_data
+            requestline, data = data.split(b'\r\n', 1)
+            method, path, version = \
+                parse_requestline(decode_utf8(requestline))
+            header_string, data = data.split(b'\r\n\r\n', 1)
+            headers = '\r\n'.join([requestline, header_string])
+            header_dict = dict((
+                decode_utf8(line).split(': ', 1)
+                for line in header_string.split('\r\n')
+            ))
+
+            if header_dict.get('Transfer-Encoding') == 'chunked':
+                body = b''
+                while True:
+
+                    split = data.split(b'\r\n', 1)
+                    if len(split) != 2:
+                        return None
+                    chunk_length_hex, data = split
+
+                    chunk_length = int(chunk_length_hex, 16)
+                    if len(data) < chunk_length:
+                        return None
+
+                    body += data[:chunk_length]
+                    data = data[chunk_length:]
+
+                    if len(data) < 2:
+                        return None
+                    assert data[:2] == b'\r\n'
+                    data = data[2:]
+
+                    if chunk_length == 0:
+                        self._sent_data = data
+                        return method, path, version, headers, body
+
+            else:
+                content_length = int(header_dict.get('Content-Length', 0))
+                if len(data) < content_length:
+                    return None
+                body = data[:content_length]
+                data = data[content_length:]
+
+                self._sent_data = data
+                return method, path, version, headers, body
 
         def debug(self, func, *a, **kw):
             if self.is_http:
@@ -470,6 +516,8 @@ class Entry(BaseClass):
                  forcing_headers=None,
                  status=200,
                  streaming=False,
+                 query_params=None,
+                 request_body=None,
                  **headers):
 
         self.method = method
@@ -500,6 +548,16 @@ class Entry(BaseClass):
         for k, v in headers.items():
             name = "-".join(k.split("_")).title()
             self.adding_headers[name] = v
+
+        self.query_params = (
+            dict((
+                (key, map(str, value if isinstance(value, list) else [value]))
+                for key, value in query_params.iteritems()
+            ))
+            if query_params is not None else None
+        )
+
+        self.request_body = request_body
 
         self.validate()
 
@@ -603,6 +661,21 @@ class Entry(BaseClass):
             fk.write(utf8(self.body))
 
         fk.seek(0)
+
+    def matches(self, info, request):
+        return (self.matches_method(request.method) and
+                self.matches_query_params(info.query) and
+                self.matches_body(request.body))
+
+    def matches_method(self, method):
+        return self.method == method
+
+    def matches_query_params(self, querystring):
+        return (self.query_params is None or self.query_params ==
+                HTTPrettyRequest.parse_querystring(querystring))
+
+    def matches_body(self, body):
+        return self.request_body is None or self.request_body == body
 
 
 def url_fix(s, charset='utf-8'):
@@ -722,9 +795,6 @@ class URIMatcher(object):
 
         self.entries = entries
 
-        #hash of current_entry pointers, per method.
-        self.current_entries = {}
-
     def matches(self, info):
         if self.info:
             return self.info == info
@@ -739,26 +809,19 @@ class URIMatcher(object):
         else:
             return wrap.format(self.regex.pattern)
 
-    def get_next_entry(self, method, info, request):
+    def get_next_entry(self, info, request):
         """Cycle through available responses, but only once.
         Any subsequent requests will receive the last response"""
 
-        if method not in self.current_entries:
-            self.current_entries[method] = 0
+        matches = [e for e in self.entries if e.matches(info, request)]
 
-        #restrict selection to entries that match the requested method
-        entries_for_method = [e for e in self.entries if e.method == method]
+        if len(matches) == 0:
+            raise ValueError('I have no entries matching request %s: %s'
+                             % (request, self))
 
-        if self.current_entries[method] >= len(entries_for_method):
-            self.current_entries[method] = -1
+        unused = [e for e in matches if e.request is None]
 
-        if not self.entries or not entries_for_method:
-            raise ValueError('I have no entries for method %s: %s'
-                             % (method, self))
-
-        entry = entries_for_method[self.current_entries[method]]
-        if self.current_entries[method] != -1:
-            self.current_entries[method] += 1
+        entry = unused[0] if len(unused) != 0 else matches[-1]
 
         # Attach more info to the entry
         # So the callback can be more clever about what to do
@@ -857,13 +920,10 @@ class httpretty(HttpBaseClass):
         cls.last_request = HTTPrettyRequestEmpty()
 
     @classmethod
-    def historify_request(cls, headers, body='', append=True):
+    def historify_request(cls, headers, body=''):
         request = HTTPrettyRequest(headers, body)
         cls.last_request = request
-        if append or not cls.latest_requests:
-            cls.latest_requests.append(request)
-        else:
-            cls.latest_requests[-1] = request
+        cls.latest_requests.append(request)
         return request
 
     @classmethod
@@ -872,6 +932,7 @@ class httpretty(HttpBaseClass):
                      forcing_headers=None,
                      status=200,
                      responses=None, match_querystring=False,
+                     query_params=None, request_body=None,
                      **headers):
 
         uri_is_string = isinstance(uri, basestring)
@@ -891,7 +952,8 @@ class httpretty(HttpBaseClass):
             headers[str('status')] = status
 
             entries_for_this_uri = [
-                cls.Response(method=method, uri=uri, **headers),
+                cls.Response(method=method, query_params=query_params,
+                             request_body=request_body, uri=uri, **headers),
             ]
 
         matcher = URIMatcher(uri, entries_for_this_uri,
@@ -906,7 +968,8 @@ class httpretty(HttpBaseClass):
         return '<HTTPretty with %d URI entries>' % len(self._entries)
 
     @classmethod
-    def Response(cls, body, method=None, uri=None, adding_headers=None, forcing_headers=None,
+    def Response(cls, body, method=None, query_params=None, request_body=None,
+                 uri=None, adding_headers=None, forcing_headers=None,
                  status=200, streaming=False, **headers):
 
         headers[str('body')] = body
@@ -914,7 +977,8 @@ class httpretty(HttpBaseClass):
         headers[str('forcing_headers')] = forcing_headers
         headers[str('status')] = int(status)
         headers[str('streaming')] = streaming
-        return Entry(method, uri, **headers)
+        return Entry(method, uri, query_params=query_params,
+                     request_body=request_body, **headers)
 
     @classmethod
     def disable(cls):
