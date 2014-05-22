@@ -768,6 +768,71 @@ def test_py26_callback_response():
     expect(request_callback.call_count).equal(1)
 
 
+@httprettified
+def test_query_param_matching():
+
+    HTTPretty.register_uri(
+        HTTPretty.GET, "https://api.internetstore.com/cart",
+        query_params={'user': 1},
+        body="""{"items": [725, 8191]}""")
+
+    HTTPretty.register_uri(
+        HTTPretty.GET, "https://api.internetstore.com/cart",
+        query_params={},
+        body="""{"errors": ["User is required."]}""")
+
+    HTTPretty.register_uri(
+        HTTPretty.GET, "https://api.internetstore.com/cart",
+        query_params={'user': 2, 'order_by': ['date', 'price']},
+        body="""{"items": [3152]}""")
+
+    requests.get('https://api.internetstore.com/cart?user=1') \
+        .json().should.equal({'items': [725, 8191]})
+
+    requests.get('https://api.internetstore.com/cart?'
+                 'user=2&order_by=date&order_by=price') \
+        .json().should.equal({'items': [3152]})
+
+    requests.get('https://api.internetstore.com/cart?') \
+        .json().should.equal({'errors': ['User is required.']})
+
+
+@httprettified
+def test_body_matching():
+
+    HTTPretty.register_uri(
+        HTTPretty.POST, "https://api.internetstore.com/purchase",
+        request_body="""{"items": [3,8]}""",
+        body=b"""{"confirmation_number": 916492}""",
+        content_type='application/json')
+
+    HTTPretty.register_uri(
+        HTTPretty.POST, "https://api.internetstore.com/purchase",
+        request_body="""{"items": [95]}""",
+        body=b"""{"confirmation_number": 451936}""",
+        content_type='application/json')
+
+    HTTPretty.register_uri(
+        HTTPretty.POST, "https://api.internetstore.com/purchase",
+        request_body="""{"items": [6,7]}""",
+        body=b"""{"errors": ["Item 6 is unavailable."]}""",
+        content_type='application/json')
+
+    for _ in xrange(2):
+        requests.post(
+            'https://api.internetstore.com/purchase',
+            data=b"""{"items": [3,8]}""",
+            headers={'content-type': 'text/json'},
+        ).json().should.equal({'confirmation_number': 916492})
+
+    for _ in xrange(2):
+        requests.post(
+            'https://api.internetstore.com/purchase',
+            data=b"""{"items": [6,7]}""",
+            headers={'content-type': 'text/json'},
+        ).json().should.equal({'errors': ['Item 6 is unavailable.']})
+
+
 import json
 
 

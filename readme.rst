@@ -353,6 +353,62 @@ looking at the querystring. If you want the querystring to be
 considered, you can set ``match_querystring=True`` when calling
 ``register_uri``.
 
+matching query-string parameters
+--------------------------------
+
+.. code:: python
+
+    @httprettified
+    def test_query_param_matching():
+
+        HTTPretty.register_uri(
+            HTTPretty.GET, "https://api.internetstore.com/cart",
+            query_params={'user': 1},
+            body="""{"items": [725, 8191]}""")
+
+        HTTPretty.register_uri(
+            HTTPretty.GET, "https://api.internetstore.com/cart",
+            query_params={},
+            body="""{"errors": ["User is required."]}""")
+
+        requests.get('https://api.internetstore.com/cart?user=1') \
+            .json().should.equal({'items': [725, 8191]})
+
+        requests.get('https://api.internetstore.com/cart?') \
+            .json().should.equal({'errors': ['User is required.']})
+
+matching request bodies
+-----------------------
+
+.. code:: python
+
+    @httprettified
+    def test_body_matching():
+
+        HTTPretty.register_uri(
+            HTTPretty.POST, "https://api.internetstore.com/purchase",
+            request_body=b"""{"items": [3,8]}""",
+            body="""{"confirmation_number": 916492}""",
+            content_type='application/json')
+
+        HTTPretty.register_uri(
+            HTTPretty.POST, "https://api.internetstore.com/purchase",
+            request_body=b"""{"items": [6,7]}""",
+            body="""{"errors": ["Item 6 is unavailable."]}""",
+            content_type='application/json')
+
+        requests.post(
+            'https://api.internetstore.com/purchase',
+            data=b"""{"items": [3,8]}""",
+            headers={'content-type': 'text/json'},
+        ).json().should.equal({'confirmation_number': 916492})
+
+        requests.post(
+            'https://api.internetstore.com/purchase',
+            data=b"""{"items": [6,7]}""",
+            headers={'content-type': 'text/json'},
+        ).json().should.equal({'errors': ['Item 6 is unavailable.']})
+
 expect for a response, and check the request got by the "server" to make sure it was fine.
 ------------------------------------------------------------------------------------------
 
