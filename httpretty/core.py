@@ -991,8 +991,37 @@ class httpretty(HttpBaseClass):
 
 
 def httprettified(test):
-    "A decorator tests that use HTTPretty"
-    def decorate_class(klass):
+
+    def decorate_unittest_TestCase_setUp(klass):
+
+        # Prefer addCleanup (added in python 2.7), but fall back
+        # to using tearDown if it isn't available
+        use_addCleanup = hasattr(klass, 'addCleanup')
+
+        original_setUp = (klass.setUp
+                          if hasattr(klass, 'setUp')
+                          else None)
+        def new_setUp(self):
+            httpretty.enable()
+            if use_addCleanup:
+                self.addCleanup(httpretty.disable)
+            if original_setUp:
+                original_setUp(self)
+        klass.setUp = new_setUp
+
+        if not use_addCleanup:
+            original_tearDown = (klass.setUp
+                                 if hasattr(klass, 'tearDown')
+                                 else None)
+            def new_tearDown(self):
+                httpretty.disable()
+                if original_tearDown:
+                    original_tearDown(self)
+            klass.tearDown = new_tearDown
+
+        return klass
+
+    def decorate_test_methods(klass):
         for attr in dir(klass):
             if not attr.startswith('test_'):
                 continue
@@ -1003,6 +1032,19 @@ def httprettified(test):
 
             setattr(klass, attr, decorate_callable(attr_value))
         return klass
+
+    def is_unittest_TestCase(klass):
+        try:
+            import unittest
+            return issubclass(klass, unittest.TestCase)
+        except ImportError:
+            return False
+
+    "A decorator for tests that use HTTPretty"
+    def decorate_class(klass):
+        if is_unittest_TestCase(klass):
+            return decorate_unittest_TestCase_setUp(klass)
+        return decorate_test_methods(klass)
 
     def decorate_callable(test):
         @functools.wraps(test)
