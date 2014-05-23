@@ -28,7 +28,7 @@ from __future__ import unicode_literals
 __version__ = version = '0.8.0'
 
 from .core import httpretty, httprettified
-from .errors import HTTPrettyError
+from .errors import HTTPrettyError, UnmockedError
 from .core import URIInfo
 
 HTTPretty = httpretty
