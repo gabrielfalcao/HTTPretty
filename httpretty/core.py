@@ -141,7 +141,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         # unicode strings, it must be converted into a utf-8 encoded
         # byte string
         self.raw_headers = utf8(headers.strip())
-        self.body = utf8(body)
+        self._body = utf8(body)
 
         # Now let's concatenate the headers with the body, and create
         # `rfile` based on it
@@ -177,7 +177,19 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
         # And the body will be attempted to be parsed as
         # `application/json` or `application/x-www-form-urlencoded`
-        self.parsed_body = self.parse_request_body(self.body)
+        self.parsed_body = self.parse_request_body(self._body)
+
+    @property
+    def body(self):
+        return self._body
+
+    @body.setter
+    def body(self, value):
+        self._body = utf8(value)
+
+        # And the body will be attempted to be parsed as
+        # `application/json` or `application/x-www-form-urlencoded`
+        self.parsed_body = self.parse_request_body(self._body)
 
     def __str__(self):
         return '<HTTPrettyRequest("{0}", total_headers={1}, body_length={2})>'.format(
