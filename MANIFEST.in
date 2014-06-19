@@ -6,5 +6,5 @@ include tests/functional/fixtures/playback-*.json
 include COPYING
 include Makefile
 include README.md
-include readme.rst
+include README.rst
 include tox.ini

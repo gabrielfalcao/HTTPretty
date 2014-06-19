@@ -36,7 +36,7 @@ release: clean unit functional
 	@python setup.py sdist register upload
 
 docs: doctests
-	@pandoc -o readme.rst README.md
+	@pandoc -o README.rst README.md
 	@markment -o . -t ./theme --sitemap-for="http://falcao.it/HTTPretty" docs
 
 deploy-docs:
