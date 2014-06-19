@@ -328,7 +328,7 @@ def test_response_callbacks():
         body=request_callback)
 
     response = requests.get('https://api.brilliant-api.com/')
-    ...
+
 ```
 
 ## matching regular expressions
