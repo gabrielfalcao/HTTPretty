@@ -8,5 +8,5 @@ sure==1.2.3
 
 # external frameworks tested against
 httplib2==0.8
-requests==2.2.0
+requests
 tornado==3.2
