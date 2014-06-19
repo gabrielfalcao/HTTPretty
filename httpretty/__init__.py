@@ -25,7 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-__version__ = version = '0.8.2'
+__version__ = version = '0.8.3'
 
 from .core import httpretty, httprettified
 from .errors import HTTPrettyError
