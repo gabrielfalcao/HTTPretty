@@ -2,7 +2,7 @@
 
 ## 0.8.4 (current)
 
-* Nothing yet.
+* Fix compatibility with urllib3 >= 1.8.
 
 ## 0.8.3
 
