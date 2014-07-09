@@ -9,7 +9,7 @@
 # Installing
 
 Since you are interested in HTTPretty you should also be interested in speeding up your build.
-Replace `pip` with [`curdling`](http://clarete.github.io/curdling/) and see your build running a lot faster.
+Replace `pip` with [curdling](http://clarete.github.io/curdling/) and see your build running a lot faster.
 
 You can use curdling to install not only HTTPretty but every dependency in your project and see the speed gains.
 
@@ -385,7 +385,6 @@ def test_yipit_api_integration():
 ## checking if is enabled
 
 ```python
-
 httpretty.enable()
 httpretty.is_enabled().should.be.true
 
@@ -437,7 +436,7 @@ Because HTTPretty works in the socket level it should work with any HTTP client 
 
 # Hacking on HTTPretty
 
-#### create a virtual env
+## create a virtual env
 
 you will need [virtualenvwrapper](http://www.doughellmann.com/projects/virtualenvwrapper/)
 
@@ -446,13 +445,13 @@ you will need [virtualenvwrapper](http://www.doughellmann.com/projects/virtualen
 mkvirtualenv --distribute --no-site-packages HTTPretty
 ```
 
-#### install the dependencies
+## install the dependencies
 
 ```console
 pip install -r requirements.txt
 ```
 
-#### next steps:
+## next steps:
 
 1. run the tests with make:
 ```bash
