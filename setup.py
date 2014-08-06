@@ -25,10 +25,16 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 import ast
+import io
 import os
 import re
+import sys
 from setuptools import setup, find_packages
 
+if sys.version_info > (3, 0):
+    strip = str.strip
+else:
+    strip = unicode.strip
 
 class VersionFinder(ast.NodeVisitor):
 
@@ -43,7 +49,7 @@ class VersionFinder(ast.NodeVisitor):
 def read_version():
     """Read version from httpretty/version.py without loading any files"""
     finder = VersionFinder()
-    finder.visit(ast.parse(local_file('httpretty', '__init__.py')))
+    finder.visit(ast.parse(local_bytes_file('httpretty', '__init__.py')))
     return finder.version
 
 
@@ -55,7 +61,7 @@ def parse_requirements(path):
     function properly.
     """
     try:
-        requirements = map(str.strip, local_file(path).splitlines())
+        requirements = map(strip, local_text_file(path).splitlines())
     except IOError:
         raise RuntimeError("Couldn't find the `requirements.txt' file :(")
 
@@ -74,8 +80,11 @@ def parse_requirements(path):
     return pkgs, links
 
 
-local_file = lambda *f: \
-    open(os.path.join(os.path.dirname(__file__), *f)).read()
+local_bytes_file = lambda *f: \
+    open(os.path.join(os.path.dirname(__file__), *f), 'rb').read()
+
+local_text_file = lambda *f: \
+    io.open(os.path.join(os.path.dirname(__file__), *f), encoding='utf-8').read()
 
 
 install_requires, dependency_links = \
@@ -85,7 +94,7 @@ install_requires, dependency_links = \
 setup(name='httpretty',
     version=read_version(),
     description='HTTP client mock for Python',
-    long_description=local_file('README.rst'),
+    long_description=local_text_file('README.rst'),
     author='Gabriel Falcao',
     author_email='gabriel@nacaolivre.org',
     url='http://github.com/gabrielfalcao/httpretty',
