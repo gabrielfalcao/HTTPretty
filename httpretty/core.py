@@ -289,7 +289,7 @@ class fakesock(object):
 
         def connect(self, address):
             if len(address)>2: #a string unix socket file name
-                self._address = (address, None)
+                (self._address, self._port) = (address, None)
             else:
                 self._address = (self._host, self._port) = address
             self._closed = False
