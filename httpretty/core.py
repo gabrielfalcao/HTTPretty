@@ -288,7 +288,10 @@ class fakesock(object):
             self.type = type
 
         def connect(self, address):
-            self._address = (self._host, self._port) = address
+            if len(address)<2:
+                self._address = (address[0], None)
+            else:
+                self._address = (self._host, self._port) = address
             self._closed = False
             self.is_http = self._port in POTENTIAL_HTTP_PORTS | POTENTIAL_HTTPS_PORTS
 
