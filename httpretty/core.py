@@ -288,8 +288,8 @@ class fakesock(object):
             self.type = type
 
         def connect(self, address):
-            if len(address)<2:
-                self._address = (address[0], None)
+            if len(address)>2: #a string unix socket file name
+                self._address = (address, None)
             else:
                 self._address = (self._host, self._port) = address
             self._closed = False
