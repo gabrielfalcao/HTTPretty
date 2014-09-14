@@ -81,7 +81,7 @@ def test_httpretty_should_mock_headers_httplib2(now):
         'content-length': '35',
         'status': '201',
         'server': 'Python/HTTPretty',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S -0000'),
     })
 
 
@@ -134,7 +134,7 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2(now):
         'content-length': '27',
         'status': '200',
         'server': 'Apache',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S -0000'),
     })
 
 
@@ -187,7 +187,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
         'content-length': '27',
         'status': '200',
         'server': 'Apache',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S -0000'),
     })
 
 
