@@ -288,7 +288,7 @@ class fakesock(object):
             self.type = type
 
         def connect(self, address):
-            if type(address) != type(tuple()): #a string unix socket file name
+            if isinstance(address, str): #a string unix socket file name
                 (self._address, self._port) = (address, None)
             else:
                 self._address = (self._host, self._port) = address
