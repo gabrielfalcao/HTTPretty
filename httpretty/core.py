@@ -514,11 +514,11 @@ class Entry(BaseClass):
 
             try:
                 igot = int(got)
-            except ValueError:
+            except (ValueError, TypeError):
                 warnings.warn(
                     'HTTPretty got to register the Content-Length header ' \
-                    'with "%r" which is not a number' % got,
-                )
+                    'with "%r" which is not a number' % got)
+                return
 
             if igot > self.body_length:
                 raise HTTPrettyError(
