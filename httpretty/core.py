@@ -348,6 +348,7 @@ class fakesock(object):
 
         def sendall(self, data, *args, **kw):
             self._sent_data.append(data)
+            self._header_data.append(data)
 
             try:
                 requestline, _ = data.split(b'\r\n', 1)
@@ -364,7 +365,11 @@ class fakesock(object):
 
             if not is_parsing_headers:
                 if len(self._sent_data) > 1:
-                    headers = utf8(last_requestline(self._sent_data))
+                    try:
+                        _ = parse_requestline(data)
+                    except ValueError:
+                        self._header_data.pop()
+                    headers = utf8(last_requestline(self._header_data))
                     meta = self._entry.request.headers
                     body = utf8(self._sent_data[-1])
                     if meta.get('transfer-encoding', '') == 'chunked':
