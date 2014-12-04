@@ -1006,6 +1006,17 @@ class httpretty(HttpBaseClass):
                 ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
 
 
+class httprettized(object):
+
+    def __enter__(self):
+        httpretty.reset()
+        httpretty.enable()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        httpretty.disable()
+        httpretty.reset()
+
+
 def httprettified(test):
     "A decorator tests that use HTTPretty"
     def decorate_class(klass):
@@ -1023,12 +1034,8 @@ def httprettified(test):
     def decorate_callable(test):
         @functools.wraps(test)
         def wrapper(*args, **kw):
-            httpretty.reset()
-            httpretty.enable()
-            try:
+            with httprettized():
                 return test(*args, **kw)
-            finally:
-                httpretty.disable()
         return wrapper
 
     if isinstance(test, ClassTypes):
