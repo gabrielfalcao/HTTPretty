@@ -450,6 +450,7 @@ mkvirtualenv --distribute --no-site-packages HTTPretty
 
 ```console
 pip install -r requirements.txt
+pip install -r test-requirements.txt
 ```
 
 #### next steps:
