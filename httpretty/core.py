@@ -563,7 +563,7 @@ class Entry(BaseClass):
         if self.body_is_callable:
             status, headers, self.body = self.callable_body(self.request, self.info.full_url(), headers)
             headers.update({
-                'content-length': "{}".format(len(self.body))
+                'content-length': "{0}".format(len(self.body))
             })
 
         string_list = [
