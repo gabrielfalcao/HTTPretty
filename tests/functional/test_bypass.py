@@ -34,8 +34,10 @@ except ImportError:
 from .testserver import TornadoServer, TCPServer, TCPClient
 from sure import expect, that_with_context
 
+import functools
+
 import httpretty
-from httpretty import core
+from httpretty import core, HTTPretty
 
 
 def start_http_server(context):
@@ -134,3 +136,68 @@ def test_using_httpretty_with_other_tcp_protocols(context):
     expect(got1).to.equal(b'BAR')
 
     expect(context.client.send("foobar")).to.equal(b"RECEIVED: foobar")
+
+
+def disallow_net_connect(test):
+    @functools.wraps(test)
+    def wrapper(*args, **kwargs):
+        HTTPretty.allow_net_connect = False
+        try:
+            return test(*args, **kwargs)
+        finally:
+            HTTPretty.allow_net_connect = True
+    return wrapper
+
+
+@disallow_net_connect
+@httpretty.activate
+@that_with_context(start_http_server, stop_http_server)
+def test_disallow_net_connect_1(context):
+    """
+    When allow_net_connect = False, a request that otherwise
+    would have worked results in UnmockedError.
+    """
+    httpretty.register_uri(httpretty.GET, "http://falcao.it/foo/",
+                           body="BAR")
+
+    def foo():
+        fd = None
+        try:
+            fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
+        finally:
+            if fd:
+                fd.close()
+
+    foo.should.throw(httpretty.UnmockedError)
+
+
+@disallow_net_connect
+@httpretty.activate
+def test_disallow_net_connect_2():
+    """
+    When allow_net_connect = False, a request that would have
+    failed results in UnmockedError.
+    """
+
+    def foo():
+        fd = None
+        try:
+            fd = urllib2.urlopen('http://example.com/nonsense')
+        finally:
+            if fd:
+                fd.close()
+
+    foo.should.throw(httpretty.UnmockedError)
+
+
+@disallow_net_connect
+@httpretty.activate
+def test_disallow_net_connect_3():
+    "When allow_net_connect = False, mocked requests still work correctly."
+
+    httpretty.register_uri(httpretty.GET, "http://falcao.it/foo/",
+                           body="BAR")
+    fd = urllib2.urlopen('http://falcao.it/foo/')
+    got1 = fd.read()
+    fd.close()
+    expect(got1).to.equal(b'BAR')

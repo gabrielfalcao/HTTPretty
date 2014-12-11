@@ -29,3 +29,11 @@ from __future__ import unicode_literals
 
 class HTTPrettyError(Exception):
     pass
+
+
+class UnmockedError(HTTPrettyError):
+    def __init__(self):
+        super(UnmockedError, self).__init__(
+            'No mocking was registered, and real connections are '
+            'not allowed (httpretty.allow_net_connect = False).'
+        )

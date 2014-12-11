@@ -66,7 +66,7 @@ from .utils import (
     decode_utf8,
 )
 
-from .errors import HTTPrettyError
+from .errors import HTTPrettyError, UnmockedError
 
 from datetime import datetime
 from datetime import timedelta
@@ -247,7 +247,9 @@ class fakesock(object):
         def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM,
                      protocol=0):
             self.setsockopt(family, type, protocol)
-            self.truesock = old_socket(family, type, protocol)
+            self.truesock = (old_socket(family, type, protocol)
+                             if httpretty.allow_net_connect
+                             else None)
             self._closed = True
             self.fd = FakeSockFile()
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
@@ -293,11 +295,15 @@ class fakesock(object):
             self.is_http = self._port in POTENTIAL_HTTP_PORTS | POTENTIAL_HTTPS_PORTS
 
             if not self.is_http:
-                self.truesock.connect(self._address)
+                if self.truesock:
+                    self.truesock.connect(self._address)
+                else:
+                    raise UnmockedError()
 
         def close(self):
             if not (self.is_http and self._closed):
-                self.truesock.close()
+                if self.truesock:
+                    self.truesock.close()
             self._closed = True
 
         def makefile(self, mode='r', bufsize=-1):
@@ -324,6 +330,10 @@ class fakesock(object):
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
+
+            if not self.truesock:
+                raise UnmockedError()
+
             if self.is_http:  # no need to connect if `self.is_http` is
                               # False because self.connect already did
                               # that
@@ -397,7 +407,7 @@ class fakesock(object):
 
             self._entry = matcher.get_next_entry(method, info, request)
 
-        def debug(self, func, *a, **kw):
+        def debug(self, truesock_func, *a, **kw):
             if self.is_http:
                 frame = inspect.stack()[0][0]
                 lines = list(map(utf8, traceback.format_stack(frame)))
@@ -410,30 +420,34 @@ class fakesock(object):
                     "".join(decode_utf8(lines)),
                 ]
                 raise RuntimeError("\n".join(message))
-            return func(*a, **kw)
+            if not self.truesock:
+                raise UnmockedError()
+            return getattr(self.truesock, truesock_func)(*a, **kw)
 
         def settimeout(self, new_timeout):
             self.timeout = new_timeout
 
         def send(self, *args, **kwargs):
-            return self.debug(self.truesock.send, *args, **kwargs)
+            return self.debug('send', *args, **kwargs)
 
         def sendto(self, *args, **kwargs):
-            return self.debug(self.truesock.sendto, *args, **kwargs)
+            return self.debug('sendto', *args, **kwargs)
 
         def recvfrom_into(self, *args, **kwargs):
-            return self.debug(self.truesock.recvfrom_into, *args, **kwargs)
+            return self.debug('recvfrom_into', *args, **kwargs)
 
         def recv_into(self, *args, **kwargs):
-            return self.debug(self.truesock.recv_into, *args, **kwargs)
+            return self.debug('recv_into', *args, **kwargs)
 
         def recvfrom(self, *args, **kwargs):
-            return self.debug(self.truesock.recvfrom, *args, **kwargs)
+            return self.debug('recvfrom', *args, **kwargs)
 
         def recv(self, *args, **kwargs):
-            return self.debug(self.truesock.recv, *args, **kwargs)
+            return self.debug('recv', *args, **kwargs)
 
         def __getattr__(self, name):
+            if not self.truesock:
+                raise UnmockedError()
             return getattr(self.truesock, name)
 
 
@@ -797,6 +811,7 @@ class httpretty(HttpBaseClass):
 
     last_request = HTTPrettyRequestEmpty()
     _is_enabled = False
+    allow_net_connect = True
 
     @classmethod
     def match_uriinfo(cls, info):
