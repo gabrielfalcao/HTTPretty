@@ -1,6 +1,10 @@
 # Release Notes
 
-## 0.8.3 (current)
+## 0.8.4 (current)
+
+* Fix compatibility with urllib3 >= 1.8.
+
+## 0.8.3
 
 Improvements:
 
