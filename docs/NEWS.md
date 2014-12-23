@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.8.4 (unreleased)
+
+Bug fixes:
+
+* UnicodeDecodeError with locale set to pt_BR [#190](https://github.com/gabrielfalcao/HTTPretty/issues/190)
+
 ## 0.8.3 (current)
 
 Improvements:

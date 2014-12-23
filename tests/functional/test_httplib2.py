@@ -81,8 +81,35 @@ def test_httpretty_should_mock_headers_httplib2(now):
         'content-length': '35',
         'status': '201',
         'server': 'Python/HTTPretty',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S -0000'),
     })
+
+
+@httprettified
+@within(two=microseconds)
+def test_httpretty_should_not_use_locale(now):
+    "HTTPretty should not format date using locale settings"
+    from email.utils import formatdate
+    import locale
+    # Set locale to something other than en_US
+    # thus datetime(2014,9,13,12,22,11).strftime('%a, %d %b %Y %H:%M:%S -0000')
+    # should return 'Sa, 13 Sep 2014 12:22:11 -0000' not
+    # 'Sat, 13 Sep 2014 12:22:11 -0000'
+    locale.setlocale(locale.LC_ALL, b'de_DE')
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
+                           body="this is supposed to be the response",
+                           status=201)
+
+    headers, _ = httplib2.Http().request('http://github.com', 'GET')
+
+    expect(headers['status']).to.equal('201')
+
+    expect(dict(headers).get('date')).to.equal(
+        formatdate()
+    )
+    # Set locale to en_US (which should always return proper dates)
+    locale.setlocale(locale.LC_ALL, b'en_US')
 
 
 @httprettified
@@ -107,7 +134,7 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2(now):
         'content-length': '27',
         'status': '200',
         'server': 'Apache',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S -0000'),
     })
 
 
@@ -160,7 +187,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
         'content-length': '27',
         'status': '200',
         'server': 'Apache',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': now.strftime('%a, %d %b %Y %H:%M:%S -0000'),
     })
 
 

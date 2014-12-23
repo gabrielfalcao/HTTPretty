@@ -70,6 +70,7 @@ from .errors import HTTPrettyError, UnmockedError
 
 from datetime import datetime
 from datetime import timedelta
+from email.utils import formatdate
 from errno import EAGAIN
 
 old_socket = socket.socket
@@ -557,11 +558,10 @@ class Entry(BaseClass):
         return new
 
     def fill_filekind(self, fk):
-        now = datetime.utcnow()
 
         headers = {
             'status': self.status,
-            'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+            'date': formatdate(),
             'server': 'Python/HTTPretty',
             'connection': 'close',
         }
