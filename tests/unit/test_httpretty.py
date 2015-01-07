@@ -353,6 +353,18 @@ def test_fake_socket_passes_through_shutdown():
     expect(s.shutdown).called_with(socket.SHUT_RD).should_not.throw(AttributeError)
     s.truesock.shutdown.assert_called_with(socket.SHUT_RD)
 
+def test_unix_socket():
+    import socket
+    HTTPretty.enable()
+
+    # Create a UDS socket
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    server_address = './not-exist-socket'
+    try:
+        sock.connect(server_address)
+    except socket.error:
+        # We expect this, since the server_address does not exist
+        pass
 
 def test_HTTPrettyRequest_json_body():
     """ A content-type of application/json should parse a valid json body """
