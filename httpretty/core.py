@@ -597,7 +597,9 @@ class Entry(BaseClass):
             if not self.streaming:
                 string_list.append('content-length: %s' % content_length)
 
-            string_list.append('server: %s' % headers.pop('server'))
+            server = headers.pop('server', None)
+            if server:
+                string_list.append('server: %s' % server)
 
         for k, v in headers.items():
             string_list.append(
