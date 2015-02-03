@@ -290,9 +290,18 @@ class fakesock(object):
             self.type = type
 
         def connect(self, address):
-            self._address = (self._host, self._port) = address
             self._closed = False
-            self.is_http = self._port in POTENTIAL_HTTP_PORTS | POTENTIAL_HTTPS_PORTS
+
+            try:
+                self._address = (self._host, self._port) = address
+            except ValueError:
+                # We get here when the address is just a string pointing to a
+                # unix socket path/file
+                #
+                # See issue #206
+                self.is_http = False
+            else:
+                self.is_http = self._port in POTENTIAL_HTTP_PORTS | POTENTIAL_HTTPS_PORTS
 
             if not self.is_http:
                 if self.truesock:
