@@ -15,7 +15,8 @@ env:
   - TEST_TYPE=functional
 
 install:
-  - pip install -r requirements.txt -r test-requirements.txt
+  - pip install -r requirements.txt
+  - pip install -r test-requirements.txt
 
 script:
   - make $TEST_TYPE
