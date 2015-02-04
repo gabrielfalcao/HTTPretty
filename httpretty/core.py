@@ -32,7 +32,6 @@ import socket
 import functools
 import itertools
 import warnings
-import logging
 import traceback
 import json
 import contextlib
@@ -49,7 +48,6 @@ from .compat import (
     urlunsplit,
     urlsplit,
     parse_qs,
-    unquote,
     unquote_utf8,
     ClassTypes,
     basestring
@@ -77,10 +75,12 @@ old_create_connection = socket.create_connection
 old_gethostbyname = socket.gethostbyname
 old_gethostname = socket.gethostname
 old_getaddrinfo = socket.getaddrinfo
+old_fileobject = None
 old_socksocket = None
 old_ssl_wrap_socket = None
 old_sslwrap_simple = None
 old_sslsocket = None
+old_openssl_ssl_connection = None
 
 if PY3:  # pragma: no cover
     basestring = (bytes, str)
@@ -99,6 +99,11 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     ssl = None
 
+try:  # pragma: no cover
+    import OpenSSL
+    old_openssl_ssl_connection = OpenSSL.SSL.Connection
+except ImportError:  # pragma: no cover
+    OpenSSL = None
 
 DEFAULT_HTTP_PORTS = frozenset([80])
 POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
@@ -231,8 +236,27 @@ class FakeSockFile(StringIO):
 
 
 class FakeSSLSocket(object):
+    """
+    This is for mocking python's embedded "ssl" module
+    """
     def __init__(self, sock, *args, **kw):
         self._httpretty_sock = sock
+
+    def __getattr__(self, attr):
+        return getattr(self._httpretty_sock, attr)
+
+
+class FakeOpenSSLConnection(object):
+    """
+    This is for mocking pyopenssl's OpenSSL module
+    """
+    def __init__(self, context, sock, *args, **kw):
+        self._httpretty_sock = sock
+
+    def noop(self, *args, **kwargs):
+        pass
+
+    set_tlsext_host_name = set_connect_state = do_handshake = noop
 
     def __getattr__(self, attr):
         return getattr(self._httpretty_sock, attr)
@@ -291,7 +315,6 @@ class fakesock(object):
 
         def connect(self, address):
             self._closed = False
-
             try:
                 self._address = (self._host, self._port) = address
             except ValueError:
@@ -339,7 +362,6 @@ class fakesock(object):
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
-
             if not self.truesock:
                 raise UnmockedError()
 
@@ -464,7 +486,28 @@ def fake_wrap_socket(s, *args, **kw):
     return s
 
 
-def create_fake_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
+def fake_fileobject(s, *args, **kwargs):
+    """
+    When someone calls _fileobject for a socket, that socket is actually mocked
+    by httpretty and we can call it's makefile() method in order to get the
+    _entry (if any).
+    """
+    # This handles the case where there is no FakeOpenSSLConnection
+    if isinstance(s, fakesock.socket):
+        return s.makefile()
+
+    # This is the case of FakeOpenSSLConnection
+    elif hasattr(s, '_httpretty_sock'):
+        return s._httpretty_sock.makefile()
+
+    # Default to the old _fileobject
+    else:
+        return old_fileobject(s, *args, **kwargs)
+
+
+def create_fake_connection(address,
+                           timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+                           source_address=None):
     s = fakesock.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
         s.settimeout(timeout)
@@ -965,6 +1008,7 @@ class httpretty(HttpBaseClass):
         socket.gethostname = old_gethostname
         socket.gethostbyname = old_gethostbyname
         socket.getaddrinfo = old_getaddrinfo
+        socket._fileobject = old_fileobject
 
         socket.__dict__['socket'] = old_socket
         socket.__dict__['_socketobject'] = old_socket
@@ -974,10 +1018,15 @@ class httpretty(HttpBaseClass):
         socket.__dict__['gethostname'] = old_gethostname
         socket.__dict__['gethostbyname'] = old_gethostbyname
         socket.__dict__['getaddrinfo'] = old_getaddrinfo
+        socket.__dict__['_fileobject'] = old_fileobject
 
         if socks:
             socks.socksocket = old_socksocket
             socks.__dict__['socksocket'] = old_socksocket
+
+        if OpenSSL:
+            OpenSSL.SSL.Connection = old_openssl_ssl_connection
+            OpenSSL.SSL.__dict__['Connection'] = old_openssl_ssl_connection
 
         if ssl:
             ssl.wrap_socket = old_ssl_wrap_socket
@@ -1004,6 +1053,7 @@ class httpretty(HttpBaseClass):
         socket.gethostname = fake_gethostname
         socket.gethostbyname = fake_gethostbyname
         socket.getaddrinfo = fake_getaddrinfo
+        socket._fileobject = fake_fileobject
 
         socket.__dict__['socket'] = fakesock.socket
         socket.__dict__['_socketobject'] = fakesock.socket
@@ -1013,10 +1063,15 @@ class httpretty(HttpBaseClass):
         socket.__dict__['gethostname'] = fake_gethostname
         socket.__dict__['gethostbyname'] = fake_gethostbyname
         socket.__dict__['getaddrinfo'] = fake_getaddrinfo
+        socket.__dict__['_fileobject'] = fake_fileobject
 
         if socks:
             socks.socksocket = fakesock.socket
             socks.__dict__['socksocket'] = fakesock.socket
+
+        if OpenSSL:
+            OpenSSL.SSL.Connection = FakeOpenSSLConnection
+            OpenSSL.SSL.__dict__['Connection'] = FakeOpenSSLConnection
 
         if ssl:
             ssl.wrap_socket = fake_wrap_socket

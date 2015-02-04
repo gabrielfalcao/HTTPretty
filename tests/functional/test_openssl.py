@@ -28,15 +28,94 @@ from __future__ import unicode_literals
 
 import re
 import socket
-import OpenSSL
+
 
 from urlparse import urlparse
+from OpenSSL import SSL
+from httplib import HTTPConnection, HTTPS_PORT
+
 from sure import expect, within, microseconds
 from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
 
 
 CRLF = str('\r\n')
+
+
+class OpenSSLConnection(HTTPConnection):
+    """
+    This class allows communication via SSL using PyOpenSSL. It is a drop in
+    replacement for httplib.HTTPSConnection, but optionally allows a ssl context
+    to be passed.
+
+    For host, port, key_file, cert_file, strict, timeout, source_address
+    see httplib.HTTPConnection
+
+    @param ssl_ctx: optional ssl_ctx to pass in
+    @type ssl_ctx: OpenSSL.SSL.Context
+    @see: https://github.com/shanemhansen/pyopenssl_httplib/blob/master/pyopenssl_httplib.py
+    """
+
+    default_port = HTTPS_PORT
+
+    def __init__(self, host, port=None, key_file=None, cert_file=None,
+                 strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+                 source_address=None, ssl_ctx=None):
+
+        HTTPConnection.__init__(self, host, port, strict, timeout, source_address)
+
+        self.key_file = key_file
+        self.cert_file = cert_file
+
+        if ssl_ctx is None:
+            ssl_ctx = SSL.Context(SSL.SSLv23_METHOD)
+        if self.key_file is not None:
+            ssl_ctx.use_privatekey_file(self.key_file)
+        if self.cert_file is not None:
+            ssl_ctx.use_certificate_file(self.cert_file)
+            ssl_ctx.use_certificate_chain_file(self.cert_file)
+
+        self.ssl_ctx = ssl_ctx
+
+    def connect(self):
+        """
+        Create SSL socket and connect to peer. Note this uses
+        socket.create_connection which is ip6 friendly.
+        """
+        sock = socket.create_connection((self.host, self.port),
+                                        self.timeout, self.source_address)
+        self.sock = Connection(self.ssl_ctx, sock)
+        self.sock.set_connect_state()
+
+    def close(self):
+        """Close socket and shutdown SSL connection"""
+        self.sock.close()
+
+
+class Connection(object):
+    """
+    Proxy to OpenSSL.SSL.Connection containing support for the .makefile()
+    method.
+
+    Rationale: The pyopenssl documentation states that
+    OpenSSL.SSL.Connection.makefile raises a NotImplemented error because
+    there are no .dup semantics for SSL connections which *is* the documented
+    behaviour of of socket.makefile, but the documentation is incorrect.
+    See: http://bugs.python.org/issue14303
+
+    We can use the logic in socket._fileobject to implement .makefile(),
+    allowing pyopenssl to play nice with python's httplib.
+    """
+    __slots__ = ["_conn"]
+
+    def __init__(self, ctx, conn):
+        self._conn = SSL.Connection(ctx, conn)
+
+    def __getattr__(self, attr):
+        return getattr(self._conn, attr)
+
+    def makefile(self, *args):
+        return socket._fileobject(self, *args)
 
 
 def request(url, method, body=None, headers=None):
@@ -61,7 +140,14 @@ def request(url, method, body=None, headers=None):
     """
     parsed_url = urlparse(url)
 
-    location = parsed_url.path + ('?%s' % parsed_url.query if parsed_url.query else '')
+    location = '/' if parsed_url.path is '' else parsed_url.path
+
+    if parsed_url.query:
+        location += '?%s' % parsed_url.query
+
+    if parsed_url.params:
+        location += ';' + parsed_url.params
+
     hostname = str(parsed_url.hostname)
 
     port = 80
@@ -70,57 +156,24 @@ def request(url, method, body=None, headers=None):
     elif url.lower().startswith('https://'):
         port = 443
 
-    sock = socket.create_connection((hostname, port))
-    ctx = OpenSSL.SSL.Context(OpenSSL.SSL.TLSv1_METHOD)
-    ctx.set_timeout(1)
-    cnx = OpenSSL.SSL.Connection(ctx, sock)
+    headers = {} if headers is None else headers
 
-    # SNI support
-    cnx.set_tlsext_host_name(hostname)
-    cnx.set_connect_state()
+    conn = OpenSSLConnection(hostname, port)
+    conn.request(method, location, body=body, headers=headers)
 
-    cnx.do_handshake()
+    response = conn.getresponse()
+    body = response.read()
 
-    request_headers = {} if headers is None else headers
-    request_headers['Host'] = parsed_url.hostname
-    request_headers['Connection'] = 'Close'
-    request_headers['Accept-Encoding'] = 'identity'
+    response_headers = dict(response.getheaders())
+    response_headers['status'] = str(response.status)
 
-    #
-    #   Send HTTP request
-    #
-    cnx.send(str('%s %s HTTP/1.1%s' % (method, location, CRLF)))
-    for key, value in request_headers.iteritems():
-        cnx.send(str('%s: %s%s' % (key, value, CRLF)))
-
-    if body:
-        cnx.send(str('Content-Length: %s' % len(body)))
-        cnx.send(CRLF)
-        cnx.send(body)
-    else:
-        cnx.send(CRLF)
-
-    #
-    #   Receive and parse HTTP response
-    #
-    raw_response = cnx.read(2048)
-    _, status, _ = raw_response.split(CRLF)[0].strip().split(' ')
-    headers = {'status': status}
-
-    raw_headers = raw_response.split(CRLF + CRLF)[0]
-    for line in raw_headers.split(CRLF)[1:]:
-        hname, hvalue = line.strip().split(':', 1)
-        headers[hname.strip()] = hvalue.strip()
-
-    body = raw_response.split(CRLF + CRLF)[1]
-
-    return headers, body
+    return response_headers, body
 
 
 @httprettified
-@within(two=microseconds)
-def test_httpretty_should_mock_a_simple_get_with_httplib2_read(now):
-    "HTTPretty should mock a simple GET with httplib2.context.http"
+@within(ten=microseconds)
+def test_httpretty_should_mock_a_simple_get_with_pyopenssl_read(now):
+    "HTTPretty should mock a simple GET"
 
     HTTPretty.register_uri(HTTPretty.GET, "https://yipit.com/",
                            body="Find the best daily deals")
@@ -133,7 +186,7 @@ def test_httpretty_should_mock_a_simple_get_with_httplib2_read(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(ten=microseconds)
 def test_httpretty_provides_easy_access_to_querystrings(now):
     "HTTPretty should provide an easy access to the querystring"
 
@@ -147,11 +200,10 @@ def test_httpretty_provides_easy_access_to_querystrings(now):
     })
 
 
-
 @httprettified
-@within(two=microseconds)
-def test_httpretty_should_mock_headers_httplib2(now):
-    "HTTPretty should mock basic headers with httplib2"
+@within(ten=microseconds)
+def test_httpretty_should_mock_headers_pyopenssl(now):
+    "HTTPretty should mock basic headers with pyopenssl"
 
     HTTPretty.register_uri(HTTPretty.GET, "https://github.com/",
                            body="this is supposed to be the response",
@@ -170,9 +222,9 @@ def test_httpretty_should_mock_headers_httplib2(now):
 
 
 @httprettified
-@within(two=microseconds)
-def test_httpretty_should_allow_adding_and_overwritting_httplib2(now):
-    "HTTPretty should allow adding and overwritting headers with httplib2"
+@within(ten=microseconds)
+def test_httpretty_should_allow_adding_and_overwritting_pyopenssl(now):
+    "HTTPretty should allow adding and overwritting headers with pyopenssl"
 
     HTTPretty.register_uri(HTTPretty.GET, "https://github.com/foo",
                            body="this is supposed to be the response",
@@ -186,7 +238,6 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2(now):
 
     expect(dict(headers)).to.equal({
         'content-type': 'application/json',
-        'content-location': 'https://github.com/foo',
         'connection': 'close',
         'content-length': '27',
         'status': '200',
@@ -196,9 +247,9 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2(now):
 
 
 @httprettified
-@within(two=microseconds)
-def test_httpretty_should_allow_forcing_headers_httplib2(now):
-    "HTTPretty should allow forcing headers with httplib2"
+@within(ten=microseconds)
+def test_httpretty_should_allow_forcing_headers_pyopenssl(now):
+    "HTTPretty should allow forcing headers with pyopenssl"
 
     HTTPretty.register_uri(HTTPretty.GET, "https://github.com/foo",
                            body="this is supposed to be the response",
@@ -209,21 +260,16 @@ def test_httpretty_should_allow_forcing_headers_httplib2(now):
     headers, _ = request('https://github.com/foo', 'GET')
 
     expect(dict(headers)).to.equal({
-        'content-location': 'https://github.com/foo',  # httplib2 FORCES
-                                                   # content-location
-                                                   # even if the
-                                                   # server does not
-                                                   # provide it
         'content-type': 'application/xml',
-        'status': '200',  # httplib2 also ALWAYS put status on headers
+        'status': '200',
     })
 
 
 @httprettified
-@within(two=microseconds)
+@within(ten=microseconds)
 def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
     "HTTPretty should allow adding and overwritting headers by keyword args " \
-        "with httplib2"
+        "with pyopenssl"
 
     HTTPretty.register_uri(HTTPretty.GET, "https://github.com/foo",
                            body="this is supposed to be the response",
@@ -235,11 +281,6 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
 
     expect(dict(headers)).to.equal({
         'content-type': 'application/json',
-        'content-location': 'https://github.com/foo',  # httplib2 FORCES
-                                                   # content-location
-                                                   # even if the
-                                                   # server does not
-                                                   # provide it
         'connection': 'close',
         'content-length': '27',
         'status': '200',
@@ -249,9 +290,9 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
 
 
 @httprettified
-@within(two=microseconds)
-def test_rotating_responses_with_httplib2(now):
-    "HTTPretty should support rotating responses with httplib2"
+@within(ten=microseconds)
+def test_rotating_responses_with_pyopenssl(now):
+    "HTTPretty should support rotating responses with pyopenssl"
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -280,7 +321,7 @@ def test_rotating_responses_with_httplib2(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(ten=microseconds)
 def test_can_inspect_last_request(now):
     "HTTPretty.last_request is a mimetools.Message request from last match"
 
@@ -306,7 +347,7 @@ def test_can_inspect_last_request(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(ten=microseconds)
 def test_can_inspect_last_request_with_ssl(now):
     "HTTPretty.last_request is recorded even when mocking 'https' (SSL)"
 
@@ -332,7 +373,7 @@ def test_can_inspect_last_request_with_ssl(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(ten=microseconds)
 def test_httpretty_ignores_querystrings_from_registered_uri(now):
     "Registering URIs with query string cause them to be ignored"
 
@@ -347,10 +388,10 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(ten=microseconds)
 def test_callback_response(now):
     ("HTTPretty should all a callback function to be set as the body with"
-      " httplib2")
+      " pyopenssl")
 
     def request_callback(request, uri, headers):
         return [200,headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
@@ -376,7 +417,7 @@ def test_callback_response(now):
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes():
-    "HTTPretty should allow registering regexes with httplib2"
+    "HTTPretty should allow registering regexes with pyopenssl"
 
     HTTPretty.register_uri(
         HTTPretty.GET,
