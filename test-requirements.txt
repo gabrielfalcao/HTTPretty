@@ -8,5 +8,6 @@ sure==1.2.3
 
 # external frameworks tested against
 httplib2==0.8
+pyOpenSSL==0.14
 requests
 tornado==3.2
