@@ -229,7 +229,9 @@ class HTTPrettyRequestEmpty(object):
 
 
 class FakeSockFile(StringIO):
-    pass
+    def close(self):
+        self.socket.close()
+        StringIO.close(self)
 
 
 class FakeSSLSocket(object):
@@ -248,16 +250,16 @@ class fakesock(object):
 
         def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM,
                      protocol=0):
-            self.setsockopt(family, type, protocol)
             self.truesock = (old_socket(family, type, protocol)
                              if httpretty.allow_net_connect
                              else None)
             self._closed = True
             self.fd = FakeSockFile()
+            self.fd.socket = self
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
             self._sock = self
             self.is_http = False
-            self._bufsize = 16
+            self._bufsize = 1024
 
         def getpeercert(self, *a, **kw):
             now = datetime.now()
@@ -286,10 +288,9 @@ class fakesock(object):
         def ssl(self, sock, *args, **kw):
             return sock
 
-        def setsockopt(self, family, type, protocol):
-            self.family = family
-            self.protocol = protocol
-            self.type = type
+        def setsockopt(self, level, optname, value):
+            if self.truesock:
+                self.truesock.setsockopt(level, optname, value)
 
         def connect(self, address):
             self._closed = False
@@ -312,7 +313,7 @@ class fakesock(object):
                     raise UnmockedError()
 
         def close(self):
-            if not (self.is_http and self._closed):
+            if not self.is_http and not self._closed:
                 if self.truesock:
                     self.truesock.close()
             self._closed = True
@@ -350,7 +351,7 @@ class fakesock(object):
                               # that
                 self.truesock.connect(self._address)
 
-            self.truesock.settimeout(0)
+            self.truesock.setblocking(1)
             self.truesock.sendall(data, *args, **kw)
 
             should_continue = True
@@ -358,7 +359,7 @@ class fakesock(object):
                 try:
                     received = self.truesock.recv(self._bufsize)
                     self.fd.write(received)
-                    should_continue = len(received) > 0
+                    should_continue = len(received) == self._bufsize
 
                 except socket.error as e:
                     if e.errno == EAGAIN:
@@ -369,7 +370,8 @@ class fakesock(object):
 
         def sendall(self, data, *args, **kw):
             self._sent_data.append(data)
-
+            self.fd = FakeSockFile()
+            self.fd.socket = self
             try:
                 requestline, _ = data.split(b'\r\n', 1)
                 method, path, version = parse_requestline(decode_utf8(requestline))
