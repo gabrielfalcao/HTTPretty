@@ -160,7 +160,8 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         self.error_message = None
 
         # Parse the request based on the attributes above
-        self.parse_request()
+        if not self.parse_request():
+            return
 
         # making the HTTP method string available as the command
         self.method = self.command
@@ -172,6 +173,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
             self.path = self.path.encode('iso-8859-1')
         except UnicodeDecodeError:
             pass
+
         self.path = decode_utf8(self.path)
 
         qstring = self.path.split("?", 1)[-1]

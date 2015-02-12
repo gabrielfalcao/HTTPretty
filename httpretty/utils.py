@@ -34,7 +34,7 @@ def utf8(s):
     if isinstance(s, text_type):
         s = s.encode('utf-8')
     elif s is None:
-        return s
+        return byte_type()
 
     return byte_type(s)
 
@@ -43,6 +43,6 @@ def decode_utf8(s):
     if isinstance(s, byte_type):
         s = s.decode("utf-8")
     elif s is None:
-        return s
+        return text_type()
 
     return text_type(s)
