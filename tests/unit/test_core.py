@@ -315,13 +315,12 @@ def test_fakesock_socket_real_sendall(old_socket):
     # Then it should have called sendall in the real socket
     real_socket.sendall.assert_called_once_with(b"SOMEDATA", b'some extra args...', foo=b'bar')
 
-    # And the timeout was set to 0
-    real_socket.settimeout.assert_called_once_with(0)
+    # And the socket was set to blocking
+    real_socket.setblocking.assert_called_once_with(1)
 
     # And recv was called with the bufsize
     real_socket.recv.assert_has_calls([
-        call(16),
-        call(16),
+        call(socket._bufsize)
     ])
 
     # And the buffer should contain the data from the server
@@ -351,13 +350,12 @@ def test_fakesock_socket_real_sendall_continue_eagain(socket, old_socket):
     # Then it should have called sendall in the real socket
     real_socket.sendall.assert_called_once_with(b"SOMEDATA", b'some extra args...', foo=b'bar')
 
-    # And the timeout was set to 0
-    real_socket.settimeout.assert_called_once_with(0)
+    # And the socket was set to blocking
+    real_socket.setblocking.assert_called_once_with(1)
 
     # And recv was called with the bufsize
     real_socket.recv.assert_has_calls([
-        call(16),
-        call(16),
+        call(socket._bufsize)
     ])
 
     # And the buffer should contain the data from the server
@@ -386,11 +384,11 @@ def test_fakesock_socket_real_sendall_socket_error(socket, old_socket):
     # Then it should have called sendall in the real socket
     real_socket.sendall.assert_called_once_with(b"SOMEDATA", b'some extra args...', foo=b'bar')
 
-    # And the timeout was set to 0
-    real_socket.settimeout.assert_called_once_with(0)
+    # And the socket was set to blocking
+    real_socket.setblocking.assert_called_once_with(1)
 
     # And recv was called with the bufsize
-    real_socket.recv.assert_called_once_with(16)
+    real_socket.recv.assert_called_once_with(socket._bufsize)
 
     # And the buffer should contain the data from the server
     socket.fd.getvalue().should.equal(b"")
@@ -423,13 +421,12 @@ def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket
     # Then connect should have been called
     real_socket.connect.assert_called_once_with(('foobar.com', 4000))
 
-    # And the timeout was set to 0
-    real_socket.settimeout.assert_called_once_with(0)
+    # And the socket was set to blocking
+    real_socket.setblocking.assert_called_once_with(1)
 
     # And recv was called with the bufsize
     real_socket.recv.assert_has_calls([
-        call(16),
-        call(16),
+        call(socket._bufsize)
     ])
 
     # And the buffer should contain the data from the server
