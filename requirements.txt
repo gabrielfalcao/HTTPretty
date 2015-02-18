@@ -1,4 +1,4 @@
-httplib2==0.9
-requests==2.5.1
-tornado==4.0.2
-urllib3==1.7.1
+httplib2>=0.9
+requests>=2.5.1
+tornado>=4.0.2
+urllib3>=1.7.1
