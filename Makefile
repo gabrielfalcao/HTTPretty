@@ -33,7 +33,7 @@ clean:
 release: clean unit functional
 	@echo "Releasing httpretty..."
 	@./.release
-	@python setup.py sdist register upload
+	@python setup.py sdist bdist_wheel register upload
 
 docs: doctests
 	@pandoc -o README.rst README.md
