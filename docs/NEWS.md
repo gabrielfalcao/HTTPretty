@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.8.6 (current)
+## 0.8.7 (current)
 
 Improvements:
 
