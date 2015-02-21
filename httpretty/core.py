@@ -350,6 +350,8 @@ class fakesock(object):
                               # False because self.connect already did
                               # that
                 self.truesock.connect(self._address)
+            else:
+                return self.truesock.sendall(data, *args, **kw)
 
             self.truesock.setblocking(1)
             self.truesock.sendall(data, *args, **kw)
