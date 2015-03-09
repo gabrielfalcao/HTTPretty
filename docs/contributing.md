@@ -6,13 +6,14 @@ you will need [virtualenvwrapper](http://www.doughellmann.com/projects/virtualen
 
 
 ```console
-mkvirtualenv --distribute --no-site-packages HTTPretty
+mkvirtualenv HTTPretty
 ```
 
 ## installing the dependencies
 
 ```console
-pip install -r requirements.txt
+pip install -r dev-requirements.txt
+pip install -r test-requirements.txt
 ```
 
 ## next steps
