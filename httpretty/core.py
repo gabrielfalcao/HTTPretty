@@ -346,10 +346,10 @@ class fakesock(object):
             if not self.truesock:
                 raise UnmockedError()
 
-            if self.is_http:  # no need to connect if `self.is_http` is
-                              # False because self.connect already did
-                              # that
-                self.truesock.connect(self._address)
+            if not self.is_http:
+                return self.truesock.sendall(data, *args, **kw)
+
+            self.truesock.connect(self._address)
 
             self.truesock.setblocking(1)
             self.truesock.sendall(data, *args, **kw)
