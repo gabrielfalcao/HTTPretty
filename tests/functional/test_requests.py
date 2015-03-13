@@ -401,7 +401,6 @@ def test_octet_stream():
     expect(len(HTTPretty.latest_requests)).to.equal(1)
 
 
-
 @httprettified
 def test_multipart():
     url = 'http://httpbin.org/post'
@@ -428,7 +427,7 @@ def test_callback_response(now):
      " requests")
 
     def request_callback(request, uri, headers):
-        return [200, headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+        return [200, headers, "The {0} response from {1}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -448,6 +447,7 @@ def test_callback_response(now):
     )
 
     expect(response.text).to.equal("The POST response from https://api.yahoo.com/test_post")
+
 
 @httprettified
 @within(two=microseconds)
@@ -456,7 +456,7 @@ def test_callback_body_remains_callable_for_any_subsequent_requests(now):
      " requests")
 
     def request_callback(request, uri, headers):
-        return [200, headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+        return [200, headers, "The {0} response from {1}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -468,6 +468,7 @@ def test_callback_body_remains_callable_for_any_subsequent_requests(now):
     response = requests.get('https://api.yahoo.com/test')
     expect(response.text).to.equal("The GET response from https://api.yahoo.com/test")
 
+
 @httprettified
 @within(two=microseconds)
 def test_callback_setting_headers_and_status_response(now):
@@ -475,8 +476,8 @@ def test_callback_setting_headers_and_status_response(now):
      " requests")
 
     def request_callback(request, uri, headers):
-        headers.update({'a':'b'})
-        return [418,headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+        headers.update({'a': 'b'})
+        return [418, headers, "The {0} response from {1}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -500,6 +501,7 @@ def test_callback_setting_headers_and_status_response(now):
     expect(response.headers).to.have.key('a').being.equal("b")
     expect(response.status_code).to.equal(418)
 
+
 @httprettified
 def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_the_callback():
     "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
@@ -507,7 +509,7 @@ def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_t
     HTTPretty.register_uri(
         HTTPretty.GET,
         re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
-        body=lambda method,uri,headers: [200,headers,uri]
+        body=lambda method, uri, headers: [200, headers, uri]
     )
 
     response = requests.get('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
@@ -515,6 +517,7 @@ def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_t
     expect(response.text).to.equal('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes():
@@ -630,14 +633,14 @@ def test_httpretty_should_allow_multiple_responses_with_multiple_methods():
     HTTPretty.register_uri(HTTPretty.GET, url,
                            responses=[HTTPretty.Response(body='a'),
                                       HTTPretty.Response(body='b')
-                           ]
+                                     ]
     )
 
     #add post responses
     HTTPretty.register_uri(HTTPretty.POST, url,
                            responses=[HTTPretty.Response(body='c'),
                                       HTTPretty.Response(body='d')
-                           ]
+                                     ]
     )
 
     expect(requests.get(url).text).to.equal('a')
@@ -746,12 +749,12 @@ def test_playing_calls():
 @httprettified
 def test_py26_callback_response():
     ("HTTPretty should call a callback function *once* and set its return value"
-    " as the body of the response requests")
+     " as the body of the response requests")
 
     from mock import Mock
 
     def _request_callback(request, uri, headers):
-        return [200, headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+        return [200, headers, "The {0} response from {1}".format(decode_utf8(request.method), uri)]
 
     request_callback = Mock()
     request_callback.side_effect = _request_callback
@@ -842,87 +845,3 @@ def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_
     expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-@httprettified
-def test_httpretty_should_work_with_non_standard_ports():
-    "HTTPretty should work with a non-standard port number"
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        re.compile("https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-    HTTPretty.register_uri(
-        HTTPretty.POST,
-        "https://asdf.com:666/meow",
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-    response = requests.post('https://asdf.com:666/meow')
-
-    expect(response.text).to.equal('https://asdf.com:666/meow')
-    expect(HTTPretty.last_request.method).to.equal('POST')
-    expect(HTTPretty.last_request.path).to.equal('/meow')
-
-
-@httprettified
-def test_httpretty_reset_by_switching_protocols_for_same_port():
-    "HTTPretty should reset protocol/port associations"
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        "http://api.yipit.com:1234/v1/deal",
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('http://api.yipit.com:1234/v1/deal')
-
-    expect(response.text).to.equal('http://api.yipit.com:1234/v1/deal')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal')
-
-    HTTPretty.reset()
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        "https://api.yipit.com:1234/v1/deal",
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('https://api.yipit.com:1234/v1/deal')
-
-    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal')
-
-
-@httprettified
-def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_match_to_the_callback():
-    "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        re.compile("https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-
-import json
-
-
-def hello():
-    return json.dumps({
-        'href': 'http://foobar.com'
-    })
