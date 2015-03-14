@@ -749,7 +749,7 @@ class URIMatcher(object):
     regex = None
     info = None
 
-    def __init__(self, uri, entries, match_querystring=False):
+    def __init__(self, uri, entries, match_querystring=False, priority=0):
         self._match_querystring = match_querystring
         if type(uri).__name__ == 'SRE_Pattern':
             self.regex = uri
@@ -762,6 +762,7 @@ class URIMatcher(object):
             self.info = URIInfo.from_uri(uri, entries)
 
         self.entries = entries
+        self.priority = priority
 
         #hash of current_entry pointers, per method.
         self.current_entries = {}
@@ -828,7 +829,12 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def match_uriinfo(cls, info):
-        for matcher, value in cls._entries.items():
+        items = sorted(
+            cls._entries.items(),
+            key=lambda (matcher, _): matcher.priority,
+            reverse=True,
+        )
+        for matcher, value in items:
             if matcher.matches(info):
                 return (matcher, info)
 
@@ -914,6 +920,7 @@ class httpretty(HttpBaseClass):
                      forcing_headers=None,
                      status=200,
                      responses=None, match_querystring=False,
+                     priority=0,
                      **headers):
 
         uri_is_string = isinstance(uri, basestring)
@@ -937,7 +944,7 @@ class httpretty(HttpBaseClass):
             ]
 
         matcher = URIMatcher(uri, entries_for_this_uri,
-                             match_querystring)
+                             match_querystring, priority)
         if matcher in cls._entries:
             matcher.entries.extend(cls._entries[matcher])
             del cls._entries[matcher]
