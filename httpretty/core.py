@@ -1063,32 +1063,40 @@ def decorate_class(klass, callable_fn):
     return klass
 
 
-def httprettified(test):
+def httprettified(func):
     """
     A decorator that activates HTTPretty.
+    Also known as `httpretty.activate`.
     """
 
-    def decorate_callable(test):
-        @functools.wraps(test)
+    def decorate_callable(func):
+        @functools.wraps(func)
         def wrapper(*args, **kw):
             httpretty.reset()
             httpretty.enable()
             try:
-                return test(*args, **kw)
+                return func(*args, **kw)
             finally:
                 httpretty.disable()
         return wrapper
 
-    if isinstance(test, ClassTypes):
-        return decorate_class(test, decorate_callable)
-    return decorate_callable(test)
+    if isinstance(func, ClassTypes):
+        return decorate_class(func, decorate_callable)
+    return decorate_callable(func)
 
 
-def register(**dec_kwargs):
+def register(*dec_args, **dec_kwargs):
     """
-    A decorator that activates HTTPretty and registers an uri path,
-    by given keyword arguments.
+    A decorator that activates HTTPretty and registers one or more uri paths,
+    by given lists of args or keyword arguments.
+    Also known as `httpretty.activate_uri`.
     """
+    uri_args = [dec_kwargs]
+    for arg in dec_args:
+        if isinstance(arg, dict):
+            uri_args.append(arg)
+        elif isinstance(arg, list):
+            uri_args += arg
 
     def decorator(func):
         def decorate_callable(func):
@@ -1096,7 +1104,10 @@ def register(**dec_kwargs):
             def wrapper(*args, **kw):
                 httpretty.reset()
                 httpretty.enable()
-                httpretty.register_uri(**dec_kwargs)
+                for arg in uri_args:
+                    if arg:
+                        assert isinstance(arg, dict)
+                        httpretty.register_uri(**arg)
                 try:
                     return func(*args, **kw)
                 finally:

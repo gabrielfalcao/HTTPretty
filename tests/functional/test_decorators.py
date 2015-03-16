@@ -63,7 +63,7 @@ def test_register_uri_decorator():
 
 
 @register(method=HTTPretty.GET, uri='http://localhost/', body='bubble pop')
-class HTTPregisterClass(TestCase):
+class HTTPRegisterClass(TestCase):
 
     def setUp(self):
         self.assertFalse(HTTPretty.is_enabled())
@@ -84,3 +84,75 @@ class HTTPregisterClass(TestCase):
         fd.close()
 
         expect(contents).to.equal(b'bubble pop')
+
+
+@register({'method': HTTPretty.GET, 'uri': 'http://localhost/hey', 'body': 'hey'},
+          {'method': HTTPretty.GET, 'uri': 'http://localhost/there', 'body': 'there'})
+def test_register_uri_decorator_with_args_dicts_of_uris():
+    for uri, body in zip(['http://localhost/hey', 'http://localhost/there'], ['hey', 'there']):
+        fd = urllib2.urlopen(uri)
+        contents = fd.read()
+        fd.close()
+        expect(contents).to.equal(body)
+
+
+@register({'method': HTTPretty.GET, 'uri': 'http://localhost/hey', 'body': 'hey'},
+          {'method': HTTPretty.GET, 'uri': 'http://localhost/there', 'body': 'there'})
+class HTTPRegisterDictArgsClass(TestCase):
+
+    def setUp(self):
+        self.assertFalse(HTTPretty.is_enabled())
+
+    def tearDown(self):
+        self.assertFalse(HTTPretty.is_enabled())
+
+    def test_decorated(self):
+        for uri, body in zip(['http://localhost/hey', 'http://localhost/there'], ['hey', 'there']):
+            fd = urllib2.urlopen(uri)
+            contents = fd.read()
+            fd.close()
+            expect(contents).to.equal(body)
+
+    def test_decorated2(self):
+        for uri, body in zip(['http://localhost/hey', 'http://localhost/there'], ['hey', 'there']):
+            fd = urllib2.urlopen(uri)
+            contents = fd.read()
+            fd.close()
+            expect(contents).to.equal(body)
+
+
+uris = [{'method': HTTPretty.GET, 'uri': 'http://localhost/hey', 'body': 'hey'},
+        {'method': HTTPretty.GET, 'uri': 'http://localhost/there', 'body': 'there'}]
+
+
+@register(uris)
+def test_register_uri_decorator_with_args_lists_of_dict_args():
+    for uri_dict in uris:
+        fd = urllib2.urlopen(uri_dict['uri'])
+        contents = fd.read()
+        fd.close()
+        expect(contents).to.equal(uri_dict['body'])
+
+
+@register(uris)
+class HTTPRegisterListOfDictsArgsClass(TestCase):
+
+    def setUp(self):
+        self.assertFalse(HTTPretty.is_enabled())
+
+    def tearDown(self):
+        self.assertFalse(HTTPretty.is_enabled())
+
+    def test_decorated(self):
+        for uri, body in zip(['http://localhost/hey', 'http://localhost/there'], ['hey', 'there']):
+            fd = urllib2.urlopen(uri)
+            contents = fd.read()
+            fd.close()
+            expect(contents).to.equal(body)
+
+    def test_decorated2(self):
+        for uri, body in zip(['http://localhost/hey', 'http://localhost/there'], ['hey', 'there']):
+            fd = urllib2.urlopen(uri)
+            contents = fd.read()
+            fd.close()
+            expect(contents).to.equal(body)
