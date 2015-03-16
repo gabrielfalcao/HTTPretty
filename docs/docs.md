@@ -22,9 +22,16 @@ def test_one():
 ```
 
 
-## Using the decorator
+## Using the decorators
 
-**YES** we've got a decorator
+**YES**, we've got decorators!
+
+### `activate` decorator
+
+The `@httpretty.activate` is a short-hand decorator that wraps the
+decorated function with `httpretty.enable()` and then calls
+`httpretty.disable()` right after. You may also use it as `httpretty.httprettified`.
+
 
 ```python
 import requests
@@ -34,14 +41,65 @@ import httpretty
 def test_one():
     httpretty.register_uri(httpretty.GET, "http://yipit.com/",
                            body="Find the best daily deals")
-
-    response = requests.get('http://yipit.com')
+    response = requests.get("http://yipit.com")
     assert response.text == "Find the best daily deals"
 ```
 
-the `@httpretty.activate` is a short-hand decorator that wraps the
-decorated function with httpretty.enable() and then calls
-httpretty.disable() right after.
+
+### `activate_uri` decorator
+
+But if you want to `activate` and register URIs at the same time with a decorator, you can do so with `httpretty.activate_uri`. You may also use it as `httpretty.register`.
+
+
+**You can register a single URI**
+
+```python
+import requests
+import httpretty
+
+@httpretty.activate_uri(method=httpretty.GET, uri="http://yipit.com/", body="Find the best daily deals")
+def test_two():
+    response = requests.get("http://yipit.com")
+    assert response.text == "Find the best daily deals"
+```
+
+
+**Many URIs by passing dicts**
+
+```python
+import requests
+import httpretty
+
+@httpretty.activate_uri({"method": "httpretty.GET", "uri": "http://yipit.com/", "body": "Find the best daily deals"},
+                        {"method": "httpretty.GET", "uri": "http://yipit.com/about/", "body": "About us"})
+def test_three():
+    response = requests.get("http://yipit.com")
+    assert response.text == "Find the best daily deals"
+    response = requests.get("http://yipit.com/about/")
+    assert response.text == "About us"
+```
+
+
+**Many URIs by passing list(s) of dicts**
+
+```python
+import requests
+import httpretty
+
+yipit_uris = [{"method": "httpretty.GET", "uri": "http://yipit.com/", "body": "Find the best daily deals"},
+             {"method": "httpretty.GET", "uri": "http://yipit.com/about/", "body": "About us}]
+pretty_uris = [{"method": "httpretty.GET", "uri": "https://github.com/gabrielfalcao/HTTPretty", "body": "Pretty"}]
+
+@httpretty.activate_uri(yipit_uris, pretty_uris)
+def test_four():
+    response = requests.get("http://yipit.com")
+    assert response.text == "Find the best daily deals"
+    response = requests.get("http://yipit.com/about/")
+    assert response.text == "About us"
+    response = requests..get("https://github.com/gabrielfalcao/HTTPretty")
+    assert response.text == "Pretty"
+```
+
 
 ## Providing status code
 
@@ -50,12 +108,8 @@ import requests
 from sure import expect
 import httpretty
 
-@httpretty.activate
+@httpretty.activate_uri(method=httpretty.GET, uri="http://github.com/", body="here is the mocked body", status=201)
 def test_github_access():
-    httpretty.register_uri(httpretty.GET, "http://github.com/",
-                           body="here is the mocked body",
-                           status=201)
-
     response = requests.get('http://github.com')
     expect(response.status_code).to.equal(201)
 ```
@@ -68,13 +122,9 @@ For example, let's say you want to mock that server returns `content-type`.
 To do so, use the argument `content_type`, **all the keyword args are taken by HTTPretty and transformed in the RFC2616 equivalent name**.
 
 ```python
-@httpretty.activate
+@httpretty.activate_uri(method=httpretty.GET, uri="http://foo-api.com/gabrielfalcao",
+                        body='{"success": false}', status=500, content_type='text/json')
 def test_some_api():
-    httpretty.register_uri(httpretty.GET, "http://foo-api.com/gabrielfalcao",
-                           body='{"success": false}',
-                           status=500,
-                           content_type='text/json')
-
     response = requests.get('http://foo-api.com/gabrielfalcao')
 
     expect(response.json()).to.equal({'success': False})
@@ -90,16 +140,10 @@ headers will be
 existing headers.
 
 ```python
-@httpretty.activate
+@httpretty.activate_uri(method=httpretty.GET, uri="http://foo-api.com/gabrielfalcao",
+                        body='{"success": false}', status=500,
+                        content_type='text/json', adding_headers={'X-foo': 'bar'})
 def test_some_api():
-    httpretty.register_uri(httpretty.GET, "http://foo-api.com/gabrielfalcao",
-                           body='{"success": false}',
-                           status=500,
-                           content_type='text/json',
-                           adding_headers={
-                               'X-foo': 'bar'
-                           })
-
     response = requests.get('http://foo-api.com/gabrielfalcao')
 
     expect(response.json()).to.equal({'success': False})
@@ -113,16 +157,10 @@ specified fake response body.
 So you might want to *"force"* those headers:
 
 ```python
-@httpretty.activate
+@httpretty.activate_uri(method=httpretty.GET, uri="http://foo-api.com/gabrielfalcao",
+                        body='{"success": false}', status=500, content_type='text/json',
+                        forcing_headers={'content-length': '100'})
 def test_some_api():
-    httpretty.register_uri(httpretty.GET, "http://foo-api.com/gabrielfalcao",
-                           body='{"success": false}',
-                           status=500,
-                           content_type='text/json',
-                           forcing_headers={
-                               'content-length': '100'
-                           })
-
     response = requests.get('http://foo-api.com/gabrielfalcao')
 
     expect(response.json()).to.equal({'success': False})
@@ -148,14 +186,10 @@ import requests
 from sure import expect
 
 
-@httpretty.activate
+@httpretty.activate_uri(method=httpretty.GET, uri="http://github.com/gabrielfalcao/httpretty",
+                       responses=[httpretty.Response(body="first response", status=201),
+                                  httpretty.Response(body='second and last response', status=202)])
 def test_rotating_responses():
-    httpretty.register_uri(httpretty.GET, "http://github.com/gabrielfalcao/httpretty",
-                           responses=[
-                               httpretty.Response(body="first response", status=201),
-                               httpretty.Response(body='second and last response', status=202),
-                            ])
-
     response1 = requests.get('http://github.com/gabrielfalcao/httpretty')
     expect(response1.status_code).to.equal(201)
     expect(response1.text).to.equal('first response')
@@ -169,6 +203,8 @@ def test_rotating_responses():
     expect(response3.status_code).to.equal(202)
     expect(response3.text).to.equal('second and last response')
 ```
+
+
 ## streaming responses
 
 Mock a streaming response by registering a generator response body.
@@ -242,16 +278,8 @@ You can register a
 and it will be matched against the requested urls.
 
 ```python
-@httpretty.activate
+@httpretty.activate_uri(method=httpretty.GET, uri=re.compile("api.yipit.com/v2/deal;brand=(\w+)"), body="Found brand")
 def test_httpretty_should_allow_registering_regexes():
-    u"HTTPretty should allow registering regexes"
-
-    httpretty.register_uri(
-        httpretty.GET,
-        re.compile("api.yipit.com/v2/deal;brand=(\w+)"),
-        body="Found brand",
-    )
-
     response = requests.get('https://api.yipit.com/v2/deal;brand=GAP')
     expect(response.text).to.equal('Found brand')
     expect(httpretty.last_request().method).to.equal('GET')
@@ -270,16 +298,13 @@ from sure import expect
 import httpretty
 
 
-@httpretty.activate
+@httpretty.activate_uri(method=httpretty.POST, uri="http://api.yipit.com/foo/", body='{"repositories": ["HTTPretty", "lettuce"]}')
 def test_yipit_api_integration():
-    httpretty.register_uri(httpretty.POST, "http://api.yipit.com/foo/",
-                           body='{"repositories": ["HTTPretty", "lettuce"]}')
-
     response = requests.post('http://api.yipit.com/foo',
-                            '{"username": "gabrielfalcao"}',
-                            headers={
+                             '{"username": "gabrielfalcao"}',
+                             headers={
                                 'content-type': 'text/json',
-                            })
+                             })
 
     expect(response.text).to.equal('{"repositories": ["HTTPretty", "lettuce"]}')
     expect(httpretty.last_request().method).to.equal("POST")
@@ -289,11 +314,9 @@ def test_yipit_api_integration():
 ## checking if is enabled
 
 ```python
-
 httpretty.enable()
 httpretty.is_enabled().should.be.true
 
 httpretty.disable()
 httpretty.is_enabled().should.be.false
-
 ```
