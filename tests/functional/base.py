@@ -28,11 +28,9 @@
 from __future__ import unicode_literals
 import os
 import threading
-import traceback
 import tornado.ioloop
 import tornado.web
 from functools import wraps
-from sure import scenario
 import json
 from os.path import abspath, dirname, join
 from httpretty.core import POTENTIAL_HTTP_PORTS
@@ -76,7 +74,6 @@ class JSONEchoServer(threading.Thread):
         application.listen(self.port)
         self.lock.release()
         tornado.ioloop.IOLoop.instance().start()
-
 
 
 def use_tornado_server(callback):

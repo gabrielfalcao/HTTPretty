@@ -18,8 +18,10 @@ class SocketErrorStub(Exception):
 
 
 def test_request_stubs_internals():
-    ("HTTPrettyRequest is a BaseHTTPRequestHandler that replaces "
-     "real socket file descriptors with in-memory ones")
+    """
+      HTTPrettyRequest is a BaseHTTPRequestHandler that replaces "
+      "real socket file descriptors with in-memory ones
+    """
 
     # Given a valid HTTP request header string
     headers = "\r\n".join([
@@ -55,9 +57,8 @@ def test_request_stubs_internals():
     request.should.have.property('method').being.equal('POST')
 
 
-
 def test_request_parse_querystring():
-    ("HTTPrettyRequest#parse_querystring should parse unicode data")
+    """HTTPrettyRequest#parse_querystring should parse unicode data"""
 
     # Given a request string containing a unicode encoded querystring
 
@@ -74,8 +75,10 @@ def test_request_parse_querystring():
 
 
 def test_request_parse_body_when_it_is_application_json():
-    ("HTTPrettyRequest#parse_request_body recognizes the "
-     "content-type `application/json` and parses it")
+    """
+       HTTPrettyRequest.parse_request_body recognizes the
+       content-type `application/json` and parses it
+    """
 
     # Given a request string containing a unicode encoded querystring
     headers = "\r\n".join([
@@ -93,8 +96,10 @@ def test_request_parse_body_when_it_is_application_json():
 
 
 def test_request_parse_body_when_it_is_text_json():
-    ("HTTPrettyRequest#parse_request_body recognizes the "
-     "content-type `text/json` and parses it")
+    """
+        HTTPrettyRequest.parse_request_body recognizes the
+        content-type `text/json` and parses it
+    """
 
     # Given a request string containing a unicode encoded querystring
     headers = "\r\n".join([
@@ -112,8 +117,10 @@ def test_request_parse_body_when_it_is_text_json():
 
 
 def test_request_parse_body_when_it_is_urlencoded():
-    ("HTTPrettyRequest#parse_request_body recognizes the "
-     "content-type `application/x-www-form-urlencoded` and parses it")
+    """
+        HTTPrettyRequest#parse_request_body recognizes the
+        content-type `application/x-www-form-urlencoded` and parses it
+    """
 
     # Given a request string containing a unicode encoded querystring
     headers = "\r\n".join([
@@ -135,8 +142,10 @@ def test_request_parse_body_when_it_is_urlencoded():
 
 
 def test_request_parse_body_when_unrecognized():
-    ("HTTPrettyRequest#parse_request_body returns the value as "
-     "is if the Content-Type is not recognized")
+    """
+        HTTPrettyRequest#parse_request_body returns the value as
+        is if the Content-Type is not recognized
+    """
 
     # Given a request string containing a unicode encoded querystring
     headers = "\r\n".join([
@@ -154,8 +163,10 @@ def test_request_parse_body_when_unrecognized():
 
 
 def test_request_string_representation():
-    ("HTTPrettyRequest should have a debug-friendly "
-     "string representation")
+    """
+        HTTPrettyRequest should have a debug-friendly
+        string representation
+    """
 
     # Given a request string containing a unicode encoded querystring
     headers = "\r\n".join([
@@ -173,8 +184,10 @@ def test_request_string_representation():
 
 
 def test_fake_ssl_socket_proxies_its_ow_socket():
-    ("FakeSSLSocket is a simpel wrapper around its own socket, "
-     "which was designed to be a HTTPretty fake socket")
+    """
+        FakeSSLSocket is a simple wrapper around its own socket,
+        which was designed to be a HTTPretty fake socket
+    """
 
     # Given a sentinel mock object
     socket = Mock()
@@ -191,7 +204,9 @@ def test_fake_ssl_socket_proxies_its_ow_socket():
 
 @patch('httpretty.core.datetime')
 def test_fakesock_socket_getpeercert(dt):
-    ("fakesock.socket#getpeercert should return a hardcoded fake certificate")
+    """
+        fakesock.socket.getpeercert should return a hardcoded fake certificate
+    """
     # Background:
     dt.now.return_value = datetime(2013, 10, 4, 4, 20, 0)
 
@@ -220,7 +235,9 @@ def test_fakesock_socket_getpeercert(dt):
 
 
 def test_fakesock_socket_ssl():
-    ("fakesock.socket#ssl should take a socket instance and return itself")
+    """
+        fakesock.socket.ssl should take a socket instance and return itself
+    """
     # Given a fake socket instance
     socket = fakesock.socket()
 
@@ -234,12 +251,13 @@ def test_fakesock_socket_ssl():
     result.should.equal(sentinel)
 
 
-
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
 def test_fakesock_socket_connect_fallback(POTENTIAL_HTTP_PORTS, old_socket):
-    ("fakesock.socket#connect should open a real connection if the "
-     "given port is not a potential http port")
+    """
+        fakesock.socket.connect should open a real connection if the
+        given port is not a potential http port
+    """
     # Background: the potential http ports are 80 and 443
     POTENTIAL_HTTP_PORTS.__contains__.side_effect = lambda other: int(other) in (80, 443)
 
@@ -258,8 +276,10 @@ def test_fakesock_socket_connect_fallback(POTENTIAL_HTTP_PORTS, old_socket):
 
 @patch('httpretty.core.old_socket')
 def test_fakesock_socket_close(old_socket):
-    ("fakesock.socket#close should close the actual socket in case "
-     "it's not http and _closed is False")
+    """
+        fakesock.socket.close should close the actual socket in case
+        it's not http and _closed is False
+    """
     # Given a fake socket instance that is synthetically open
     socket = fakesock.socket()
     socket._closed = False
@@ -276,8 +296,10 @@ def test_fakesock_socket_close(old_socket):
 
 @patch('httpretty.core.old_socket')
 def test_fakesock_socket_makefile(old_socket):
-    ("fakesock.socket#makefile should set the mode, "
-     "bufsize and return its mocked file descriptor")
+    """
+        fakesock.socket.makefile should set the mode,
+        bufsize and return its mocked file descriptor
+    """
 
     # Given a fake socket that has a mocked Entry associated with it
     socket = fakesock.socket()
@@ -299,8 +321,10 @@ def test_fakesock_socket_makefile(old_socket):
 
 @patch('httpretty.core.old_socket')
 def test_fakesock_socket_real_sendall(old_socket):
-    ("fakesock.socket#real_sendall calls truesock#connect and bails "
-     "out when not http")
+    """
+        fakesock.socket.real_sendall calls truesock.connect and bails
+        out when not http
+    """
     # Background: the real socket will stop returning bytes after the
     # first call
     real_socket = old_socket.return_value
@@ -329,9 +353,11 @@ def test_fakesock_socket_real_sendall(old_socket):
 
 
 @patch('httpretty.core.old_socket')
-def test_fakesock_socket_real_sendall_when_http(old_socket):
-    ("fakesock.socket#real_sendall sends data and buffers "
-     "the response in the file descriptor")
+def test_fakesock_socket_real_sendall_when_old_socket(old_socket):
+    """
+        fakesock.socket.real_sendall sends data and buffers
+        the response in the file descriptor
+    """
     # Background: the real socket will stop returning bytes after the
     # first call
     real_socket = old_socket.return_value
@@ -365,7 +391,9 @@ def test_fakesock_socket_real_sendall_when_http(old_socket):
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.socket')
 def test_fakesock_socket_real_sendall_continue_eagain_when_http(socket, old_socket):
-    ("fakesock.socket#real_sendall should continue if the socket error was EAGAIN")
+    """
+        fakesock.socket.real_sendall should continue if the socket error was EAGAIN
+    """
     socket.error = SocketErrorStub
     # Background: the real socket will stop returning bytes after the
     # first call
@@ -400,7 +428,9 @@ def test_fakesock_socket_real_sendall_continue_eagain_when_http(socket, old_sock
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.socket')
 def test_fakesock_socket_real_sendall_socket_error_when_http(socket, old_socket):
-    ("fakesock.socket#real_sendall should continue if the socket error was EAGAIN")
+    """
+        fakesock.socket.real_sendall should continue if the socket error was EAGAIN
+    """
     socket.error = SocketErrorStub
     # Background: the real socket will stop returning bytes after the
     # first call
@@ -433,7 +463,9 @@ def test_fakesock_socket_real_sendall_socket_error_when_http(socket, old_socket)
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
 def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket):
-    ("fakesock.socket#real_sendall should connect before sending data")
+    """
+        fakesock.socket.real_sendall should connect before sending data
+    """
     # Background: the real socket will stop returning bytes after the
     # first call
     real_socket = old_socket.return_value
@@ -471,33 +503,9 @@ def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket
 @patch('httpretty.core.httpretty')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
 def test_fakesock_socket_sendall_with_valid_requestline(POTENTIAL_HTTP_PORTS, httpretty, old_socket):
-    ("fakesock.socket#sendall should create an entry if it's given a valid request line")
-    matcher = Mock()
-    info = Mock()
-    httpretty.match_uriinfo.return_value = (matcher, info)
-    httpretty.register_uri(httpretty.GET, 'http://foo.com/foobar')
-
-    # Background:
-    # using a subclass of socket that mocks out real_sendall
-    class MySocket(fakesock.socket):
-        def real_sendall(self, data, *args, **kw):
-            raise AssertionError('should never call this...')
-
-    # Given an instance of that socket
-    socket = MySocket()
-
-    # And that is is considered http
-    socket.connect(('foo.com', 80))
-
-    # When I try to send data
-    socket.sendall(b"GET /foobar HTTP/1.1\r\nContent-Type: application/json\r\n\r\n")
-
-
-@patch('httpretty.core.old_socket')
-@patch('httpretty.core.httpretty')
-@patch('httpretty.core.POTENTIAL_HTTP_PORTS')
-def test_fakesock_socket_sendall_with_valid_requestline(POTENTIAL_HTTP_PORTS, httpretty, old_socket):
-    ("fakesock.socket#sendall should create an entry if it's given a valid request line")
+    """
+        fakesock.socket.sendall should create an entry if it's given a valid request line
+    """
     matcher = Mock()
     info = Mock()
     httpretty.match_uriinfo.return_value = (matcher, info)
@@ -522,7 +530,9 @@ def test_fakesock_socket_sendall_with_valid_requestline(POTENTIAL_HTTP_PORTS, ht
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
 def test_fakesock_socket_sendall_with_body_data_no_entry(POTENTIAL_HTTP_PORTS, old_socket):
-    ("fakesock.socket#sendall should call real_sendall when not parsing headers and there is no entry")
+    """
+        fakesock.socket.sendall should call real_sendall when not parsing headers and there is no entry
+    """
     # Background:
     # Using a subclass of socket that mocks out real_sendall
     class MySocket(fakesock.socket):
@@ -547,7 +557,9 @@ def test_fakesock_socket_sendall_with_body_data_no_entry(POTENTIAL_HTTP_PORTS, o
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
 def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS, old_socket):
-    ("fakesock.socket#sendall should call real_sendall when not ")
+    """
+        fakesock.socket.sendall should call real_sendall when not
+    """
     # Background:
     # Using a subclass of socket that mocks out real_sendall
     class MySocket(fakesock.socket):
@@ -562,7 +574,6 @@ def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS,
     socket = MySocket()
     socket._entry = entry
 
-
     # And that is is considered http
     socket.connect(('foo.com', 80))
 
@@ -576,7 +587,9 @@ def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS,
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
 def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTTP_PORTS, old_socket):
-    ("fakesock.socket#sendall should call real_sendall when not ")
+    """
+        fakesock.socket.sendall should call real_sendall when not
+    """
     # Background:
     # Using a subclass of socket that mocks out real_sendall
     class MySocket(fakesock.socket):

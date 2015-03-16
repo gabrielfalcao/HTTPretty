@@ -1,4 +1,4 @@
-# #!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 # <HTTPretty - HTTP client mock for Python>
 # Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
@@ -107,6 +107,7 @@ POTENTIAL_HTTPS_PORTS = set(DEFAULT_HTTPS_PORTS)
 
 
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
+
     """Represents a HTTP request. It takes a valid multi-line, `\r\n`
     separated string with HTTP headers and parse them out using the
     internal `parse_request` method.
@@ -138,6 +139,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
     `content-type` headers values: 'application/json' or
     'application/x-www-form-urlencoded'
     """
+
     def __init__(self, headers, body=''):
         # first of all, lets make sure that if headers or body are
         # unicode strings, it must be converted into a utf-8 encoded
@@ -229,12 +231,14 @@ class HTTPrettyRequestEmpty(object):
 
 
 class FakeSockFile(StringIO):
+
     def close(self):
         self.socket.close()
         StringIO.close(self)
 
 
 class FakeSSLSocket(object):
+
     def __init__(self, sock, *args, **kw):
         self._httpretty_sock = sock
 
@@ -243,6 +247,7 @@ class FakeSSLSocket(object):
 
 
 class fakesock(object):
+
     class socket(object):
         _entry = None
         debuglevel = 0
@@ -380,7 +385,8 @@ class fakesock(object):
                 is_parsing_headers = False
 
                 if not self._entry:
-                    # If the previous request wasn't mocked, don't mock the subsequent sending of data
+                    # If the previous request wasn't mocked, don't mock the subsequent sending
+                    # of data
                     return self.real_sendall(data, *args, **kw)
 
             self.fd.seek(0)
@@ -492,6 +498,7 @@ def fake_getaddrinfo(
 
 
 class Entry(BaseClass):
+
     def __init__(self, method, uri, body,
                  adding_headers=None,
                  forcing_headers=None,
@@ -543,15 +550,15 @@ class Entry(BaseClass):
                 igot = int(got)
             except ValueError:
                 warnings.warn(
-                    'HTTPretty got to register the Content-Length header ' \
+                    'HTTPretty got to register the Content-Length header '
                     'with "%r" which is not a number' % got,
                 )
 
             if igot > self.body_length:
                 raise HTTPrettyError(
-                    'HTTPretty got inconsistent parameters. The header ' \
-                    'Content-Length you registered expects size "%d" but ' \
-                    'the body you registered for that has actually length ' \
+                    'HTTPretty got inconsistent parameters. The header '
+                    'Content-Length you registered expects size "%d" but '
+                    'the body you registered for that has actually length '
                     '"%d".' % (
                         igot, self.body_length,
                     )
@@ -588,7 +595,8 @@ class Entry(BaseClass):
         headers = self.normalize_headers(headers)
         status = headers.get('status', self.status)
         if self.body_is_callable:
-            status, headers, self.body = self.callable_body(self.request, self.info.full_url(), headers)
+            status, headers, self.body = self.callable_body(
+                self.request, self.info.full_url(), headers)
             headers.update({
                 'content-length': len(self.body)
             })
@@ -640,6 +648,7 @@ def url_fix(s, charset='utf-8'):
 
 
 class URIInfo(BaseClass):
+
     def __init__(self,
                  username='',
                  password='',
@@ -763,7 +772,7 @@ class URIMatcher(object):
 
         self.entries = entries
 
-        #hash of current_entry pointers, per method.
+        # hash of current_entry pointers, per method.
         self.current_entries = {}
 
     def matches(self, info):
@@ -787,7 +796,7 @@ class URIMatcher(object):
         if method not in self.current_entries:
             self.current_entries[method] = 0
 
-        #restrict selection to entries that match the requested method
+        # restrict selection to entries that match the requested method
         entries_for_method = [e for e in self.entries if e.method == method]
 
         if self.current_entries[method] >= len(entries_for_method):
@@ -818,6 +827,7 @@ class URIMatcher(object):
 
 
 class httpretty(HttpBaseClass):
+
     """The URI registration class"""
     _entries = {}
     latest_requests = []
@@ -840,13 +850,14 @@ class httpretty(HttpBaseClass):
         try:
             import urllib3
         except ImportError:
-            raise RuntimeError('HTTPretty requires urllib3 installed for recording actual requests.')
-
+            raise RuntimeError(
+                'HTTPretty requires urllib3 installed for recording actual requests.')
 
         http = urllib3.PoolManager()
 
         cls.enable()
         calls = []
+
         def record_request(request, uri, headers):
             cls.disable()
 
@@ -885,7 +896,8 @@ class httpretty(HttpBaseClass):
         for item in data:
             uri = item['request']['uri']
             method = item['request']['method']
-            cls.register_uri(method, uri, body=item['response']['body'], forcing_headers=item['response']['headers'])
+            cls.register_uri(
+                method, uri, body=item['response']['body'], forcing_headers=item['response']['headers'])
 
         yield
         cls.disable()
@@ -1034,31 +1046,75 @@ class httpretty(HttpBaseClass):
                 ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
 
 
-def httprettified(test):
-    "A decorator tests that use HTTPretty"
-    def decorate_class(klass):
-        for attr in dir(klass):
-            if not attr.startswith('test_'):
-                continue
+def decorate_class(klass, callable_fn):
+    """
+    A helper method to apply callable_fn to class attributes.
+    It's not intended for direct use.
+    """
+    for attr in dir(klass):
+        if not attr.startswith('test_'):
+            continue
 
-            attr_value = getattr(klass, attr)
-            if not hasattr(attr_value, "__call__"):
-                continue
+        attr_value = getattr(klass, attr)
+        if not hasattr(attr_value, "__call__"):
+            continue
 
-            setattr(klass, attr, decorate_callable(attr_value))
-        return klass
+        setattr(klass, attr, callable_fn(attr_value))
+    return klass
 
-    def decorate_callable(test):
-        @functools.wraps(test)
+
+def httprettified(func):
+    """
+    A decorator that activates HTTPretty.
+    Also known as `httpretty.activate`.
+    """
+
+    def decorate_callable(func):
+        @functools.wraps(func)
         def wrapper(*args, **kw):
             httpretty.reset()
             httpretty.enable()
             try:
-                return test(*args, **kw)
+                return func(*args, **kw)
             finally:
                 httpretty.disable()
         return wrapper
 
-    if isinstance(test, ClassTypes):
-        return decorate_class(test)
-    return decorate_callable(test)
+    if isinstance(func, ClassTypes):
+        return decorate_class(func, decorate_callable)
+    return decorate_callable(func)
+
+
+def register(*dec_args, **dec_kwargs):
+    """
+    A decorator that activates HTTPretty and registers one or more uri paths,
+    by given lists of args or keyword arguments.
+    Also known as `httpretty.activate_uri`.
+    """
+    uri_args = [dec_kwargs]
+    for arg in dec_args:
+        if isinstance(arg, dict):
+            uri_args.append(arg)
+        elif isinstance(arg, list):
+            uri_args += arg
+
+    def decorator(func):
+        def decorate_callable(func):
+            @functools.wraps(func)
+            def wrapper(*args, **kw):
+                httpretty.reset()
+                httpretty.enable()
+                for arg in uri_args:
+                    if arg:
+                        assert isinstance(arg, dict)
+                        httpretty.register_uri(**arg)
+                try:
+                    return func(*args, **kw)
+                finally:
+                    httpretty.disable()
+            return wrapper
+
+        if isinstance(func, ClassTypes):
+            return decorate_class(func, decorate_callable)
+        return decorate_callable(func)
+    return decorator

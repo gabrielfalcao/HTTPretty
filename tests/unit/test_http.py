@@ -5,7 +5,7 @@ from httpretty.http import parse_requestline
 
 
 def test_parse_request_line_connect():
-    ("parse_requestline should parse the CONNECT method appropriately")
+    """parse_requestline should parse the CONNECT method appropriately"""
 
     # Given a valid request line string that has the CONNECT method
     line = "CONNECT / HTTP/1.1"

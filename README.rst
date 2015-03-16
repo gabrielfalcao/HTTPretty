@@ -462,7 +462,7 @@ install the dependencies
 
 .. code:: console
 
-    pip install -r requirements.txt
+    pip install -r requirements/dev.txt
 
 next steps:
 ^^^^^^^^^^^

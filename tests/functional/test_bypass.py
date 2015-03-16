@@ -67,7 +67,7 @@ def stop_tcp_server(context):
 @httpretty.activate
 @that_with_context(start_http_server, stop_http_server)
 def test_httpretty_bypasses_when_disabled(context):
-    "httpretty should bypass all requests by disabling it"
+    """httpretty should bypass all requests by disabling it"""
 
     httpretty.register_uri(
         httpretty.GET, "http://localhost:9999/go-for-bubbles/",
@@ -97,10 +97,11 @@ def test_httpretty_bypasses_when_disabled(context):
     expect(got3).to.equal(b'glub glub')
     core.POTENTIAL_HTTP_PORTS.remove(9999)
 
+
 @httpretty.activate
 @that_with_context(start_http_server, stop_http_server)
 def test_httpretty_bypasses_a_unregistered_request(context):
-    "httpretty should bypass a unregistered request by disabling it"
+    """httpretty should bypass a unregistered request by disabling it"""
 
     httpretty.register_uri(
         httpretty.GET, "http://localhost:9999/go-for-bubbles/",
@@ -123,7 +124,7 @@ def test_httpretty_bypasses_a_unregistered_request(context):
 @httpretty.activate
 @that_with_context(start_tcp_server, stop_tcp_server)
 def test_using_httpretty_with_other_tcp_protocols(context):
-    "httpretty should work even when testing code that also use other TCP-based protocols"
+    """httpretty should work even when testing code that also use other TCP-based protocols"""
 
     httpretty.register_uri(
         httpretty.GET, "http://falcao.it/foo/",
@@ -154,8 +155,8 @@ def disallow_net_connect(test):
 @that_with_context(start_http_server, stop_http_server)
 def test_disallow_net_connect_1(context):
     """
-    When allow_net_connect = False, a request that otherwise
-    would have worked results in UnmockedError.
+        When allow_net_connect = False, a request that otherwise
+        would have worked results in UnmockedError.
     """
     httpretty.register_uri(httpretty.GET, "http://falcao.it/foo/",
                            body="BAR")
@@ -175,8 +176,8 @@ def test_disallow_net_connect_1(context):
 @httpretty.activate
 def test_disallow_net_connect_2():
     """
-    When allow_net_connect = False, a request that would have
-    failed results in UnmockedError.
+        When allow_net_connect = False, a request that would have
+        failed results in UnmockedError.
     """
 
     def foo():
@@ -193,7 +194,7 @@ def test_disallow_net_connect_2():
 @disallow_net_connect
 @httpretty.activate
 def test_disallow_net_connect_3():
-    "When allow_net_connect = False, mocked requests still work correctly."
+    """When allow_net_connect = False, mocked requests still work correctly."""
 
     httpretty.register_uri(httpretty.GET, "http://falcao.it/foo/",
                            body="BAR")

@@ -27,12 +27,12 @@ from __future__ import unicode_literals
 
 __version__ = version = '0.8.8'
 
-from .core import httpretty, httprettified
+from .core import httpretty, httprettified, register, URIInfo
 from .errors import HTTPrettyError, UnmockedError
-from .core import URIInfo
 
 HTTPretty = httpretty
 activate = httprettified
+activate_uri = register
 
 enable = httpretty.enable
 register_uri = httpretty.register_uri
