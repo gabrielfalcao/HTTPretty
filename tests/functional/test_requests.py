@@ -1,4 +1,4 @@
-# #!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
@@ -59,7 +59,7 @@ server_url = lambda path: "http://localhost:{0}/{1}".format(PORT, path.lstrip('/
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
-    "HTTPretty should mock a simple GET with requests.get"
+    """HTTPretty should mock a simple GET with requests.get"""
 
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
                            body="Find the best daily deals")
@@ -73,7 +73,7 @@ def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_provides_easy_access_to_querystrings(now):
-    "HTTPretty should provide an easy access to the querystring"
+    """HTTPretty should provide an easy access to the querystring"""
 
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/",
                            body="Find the best daily deals")
@@ -88,7 +88,7 @@ def test_httpretty_provides_easy_access_to_querystrings(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_mock_headers_requests(now):
-    "HTTPretty should mock basic headers with requests"
+    """HTTPretty should mock basic headers with requests"""
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
                            body="this is supposed to be the response",
@@ -110,7 +110,7 @@ def test_httpretty_should_mock_headers_requests(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_allow_adding_and_overwritting_requests(now):
-    "HTTPretty should allow adding and overwritting headers with requests"
+    """HTTPretty should allow adding and overwritting headers with requests"""
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="this is supposed to be the response",
@@ -135,7 +135,7 @@ def test_httpretty_should_allow_adding_and_overwritting_requests(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_allow_forcing_headers_requests(now):
-    "HTTPretty should allow forcing headers with requests"
+    """HTTPretty should allow forcing headers with requests"""
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="<root><baz /</root>",
@@ -155,8 +155,10 @@ def test_httpretty_should_allow_forcing_headers_requests(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
-    "HTTPretty should allow adding and overwritting headers by keyword args " \
-        "with requests"
+    """
+        HTTPretty should allow adding and overwritting
+        headers by keyword args with requests
+    """
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="this is supposed to be the response",
@@ -179,7 +181,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
 @httprettified
 @within(two=microseconds)
 def test_rotating_responses_with_requests(now):
-    "HTTPretty should support rotating responses with requests"
+    """HTTPretty should support rotating responses with requests"""
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -210,7 +212,7 @@ def test_rotating_responses_with_requests(now):
 @httprettified
 @within(two=microseconds)
 def test_can_inspect_last_request(now):
-    "HTTPretty.last_request is a mimetools.Message request from last match"
+    """HTTPretty.last_request is a mimetools.Message request from last match"""
 
     HTTPretty.register_uri(HTTPretty.POST, "http://api.github.com/",
                            body='{"repositories": ["HTTPretty", "lettuce"]}')
@@ -236,7 +238,7 @@ def test_can_inspect_last_request(now):
 @httprettified
 @within(two=microseconds)
 def test_can_inspect_last_request_with_ssl(now):
-    "HTTPretty.last_request is recorded even when mocking 'https' (SSL)"
+    """HTTPretty.last_request is recorded even when mocking 'https' (SSL)"""
 
     HTTPretty.register_uri(HTTPretty.POST, "https://secure.github.com/",
                            body='{"repositories": ["HTTPretty", "lettuce"]}')
@@ -262,7 +264,7 @@ def test_can_inspect_last_request_with_ssl(now):
 @httprettified
 @within(two=microseconds)
 def test_httpretty_ignores_querystrings_from_registered_uri(now):
-    "HTTPretty should ignore querystrings from the registered uri (requests library)"
+    """HTTPretty should ignore querystrings from the registered uri (requests library)"""
 
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/?id=123",
                            body=b"Find the best daily deals")
@@ -277,8 +279,8 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
 @within(five=microseconds)
 def test_streaming_responses(now):
     """
-    Mock a streaming HTTP response, like those returned by the Twitter streaming
-    API.
+        Mock a streaming HTTP response, like those returned by the Twitter streaming
+        API.
     """
     from contextlib import contextmanager
 
@@ -298,7 +300,7 @@ def test_streaming_responses(now):
         yield
         signal.setitimer(signal.ITIMER_REAL, 0)
 
-    #XXX this obviously isn't a fully functional twitter streaming client!
+    # XXX this obviously isn't a fully functional twitter streaming client!
     twitter_response_lines = [
         b'{"text":"If \\"for the boobs\\" requests to follow me one more time I\'m calling the police. http://t.co/a0mDEAD8"}\r\n',
         b'\r\n',
@@ -316,16 +318,16 @@ def test_streaming_responses(now):
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
                              auth=('username', 'password'), stream=True)
 
-    #test iterating by line
+    # test iterating by line
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever!'):
         for i in xrange(len(twitter_response_lines)):
             expect(next(line_iter).strip()).to.equal(
                 twitter_response_lines[i].strip())
 
-    #test iterating by line after a second request
+    # test iterating by line after a second request
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
-                            auth=('username', 'password'), stream=True)
+                             auth=('username', 'password'), stream=True)
 
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever the second time '
@@ -334,9 +336,9 @@ def test_streaming_responses(now):
             expect(next(line_iter).strip()).to.equal(
                 twitter_response_lines[i].strip())
 
-    #test iterating by char
+    # test iterating by char
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
-                            auth=('username', 'password'), stream=True)
+                             auth=('username', 'password'), stream=True)
 
     twitter_expected_response_body = b''.join(twitter_response_lines)
     with in_time(0.02, 'Iterating by char is taking forever!'):
@@ -344,7 +346,7 @@ def test_streaming_responses(now):
 
     expect(twitter_body).to.equal(twitter_expected_response_body)
 
-    #test iterating by chunks larger than the stream
+    # test iterating by chunks larger than the stream
 
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
                              auth=('username', 'password'), stream=True)
@@ -360,6 +362,7 @@ def test_streaming_responses(now):
 def test_multiline():
     url = 'http://httpbin.org/post'
     data = b'content=Im\r\na multiline\r\n\r\nsentence\r\n'
+    data_length = len(data)
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
         'Accept': 'text/plain',
@@ -374,8 +377,9 @@ def test_multiline():
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/post')
     expect(HTTPretty.last_request.body).to.equal(data)
-    expect(HTTPretty.last_request.headers['content-length']).to.equal('37')
-    expect(HTTPretty.last_request.headers['content-type']).to.equal('application/x-www-form-urlencoded; charset=utf-8')
+    expect(HTTPretty.last_request.headers['content-length']).to.equal(str(data_length))
+    expect(HTTPretty.last_request.headers[
+           'content-type']).to.equal('application/x-www-form-urlencoded; charset=utf-8')
     expect(len(HTTPretty.latest_requests)).to.equal(1)
 
 
@@ -405,7 +409,9 @@ def test_octet_stream():
 def test_multipart():
     url = 'http://httpbin.org/post'
     data = b'--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="content"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 68\r\n\r\nAction: comment\nText: Comment with attach\nAttachment: x1.txt, x2.txt\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_2"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_1"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz--\r\n'
-    headers = {'Content-Length': '495', 'Content-Type': 'multipart/form-data; boundary=xXXxXXyYYzzz', 'Accept': 'text/plain'}
+    data_length = len(data)
+    headers = {'Content-Length': '495', 'Content-Type':
+               'multipart/form-data; boundary=xXXxXXyYYzzz', 'Accept': 'text/plain'}
     HTTPretty.register_uri(
         HTTPretty.POST,
         url,
@@ -415,16 +421,19 @@ def test_multipart():
     expect(HTTPretty.last_request.method).to.equal('POST')
     expect(HTTPretty.last_request.path).to.equal('/post')
     expect(HTTPretty.last_request.body).to.equal(data)
-    expect(HTTPretty.last_request.headers['content-length']).to.equal('495')
-    expect(HTTPretty.last_request.headers['content-type']).to.equal('multipart/form-data; boundary=xXXxXXyYYzzz')
+    expect(HTTPretty.last_request.headers['content-length']).to.equal(str(data_length))
+    expect(HTTPretty.last_request.headers['content-type']
+           ).to.equal('multipart/form-data; boundary=xXXxXXyYYzzz')
     expect(len(HTTPretty.latest_requests)).to.equal(1)
 
 
 @httprettified
 @within(two=microseconds)
 def test_callback_response(now):
-    ("HTTPretty should call a callback function and set its return value as the body of the response"
-     " requests")
+    """
+        HTTPretty should call a callback function and
+        set its return value as the body of the response requests
+    """
 
     def request_callback(request, uri, headers):
         return [200, headers, "The {0} response from {1}".format(decode_utf8(request.method), uri)]
@@ -452,8 +461,7 @@ def test_callback_response(now):
 @httprettified
 @within(two=microseconds)
 def test_callback_body_remains_callable_for_any_subsequent_requests(now):
-    ("HTTPretty should call a callback function more than one"
-     " requests")
+    """HTTPretty should call a callback function more than one requests"""
 
     def request_callback(request, uri, headers):
         return [200, headers, "The {0} response from {1}".format(decode_utf8(request.method), uri)]
@@ -472,8 +480,10 @@ def test_callback_body_remains_callable_for_any_subsequent_requests(now):
 @httprettified
 @within(two=microseconds)
 def test_callback_setting_headers_and_status_response(now):
-    ("HTTPretty should call a callback function and uses it retur tuple as status code, headers and body"
-     " requests")
+    """
+        HTTPretty should call a callback function and uses
+        it returns tuple as status code, headers and body requests
+    """
 
     def request_callback(request, uri, headers):
         headers.update({'a': 'b'})
@@ -504,7 +514,10 @@ def test_callback_setting_headers_and_status_response(now):
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_the_callback():
-    "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
+    """
+        HTTPretty should allow registering regexes
+        with requests and giva a proper match to the callback
+    """
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -512,16 +525,19 @@ def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_t
         body=lambda method, uri, headers: [200, headers, uri]
     )
 
-    response = requests.get('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    response = requests.get(
+        'https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
-    expect(response.text).to.equal('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(response.text).to.equal(
+        'https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(HTTPretty.last_request.path).to.equal(
+        '/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes():
-    "HTTPretty should allow registering regexes with requests"
+    """HTTPretty should allow registering regexes with requests"""
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -533,12 +549,13 @@ def test_httpretty_should_allow_registering_regexes():
                             )
     expect(response.text).to.equal('Found brand')
     expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(HTTPretty.last_request.path).to.equal(
+        '/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
 
 @httprettified
 def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
-    "HTTPretty should match regexes even if they have a different querystring"
+    """HTTPretty should match regexes even if they have a different querystring"""
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -556,7 +573,9 @@ def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
 
 @httprettified
 def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
-    "HTTPretty should provide a way to not match regexes that have a different querystring"
+    """
+        HTTPretty should provide a way to not match regexes that have a different querystring
+    """
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -578,7 +597,7 @@ def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
 
 @httprettified
 def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
-    "HTTPretty should allow registering multiple methods for the same uri"
+    """HTTPretty should allow registering multiple methods for the same uri"""
 
     url = 'http://test.com/test'
     methods = ['GET', 'POST', 'PUT', 'OPTIONS']
@@ -596,7 +615,7 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
-    "HTTPretty should allow registering regexes with streaming responses"
+    """HTTPretty should allow registering regexes with streaming responses"""
     import os
     os.environ['DEBUG'] = 'true'
 
@@ -620,28 +639,29 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
     )
     expect(response.content).to.equal(b"Received")
     expect(HTTPretty.last_request.method).to.equal('POST')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(HTTPretty.last_request.path).to.equal(
+        '/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
 
 @httprettified
 def test_httpretty_should_allow_multiple_responses_with_multiple_methods():
-    "HTTPretty should allow multiple responses when binding multiple methods to the same uri"
+    """HTTPretty should allow multiple responses when binding multiple methods to the same uri"""
 
     url = 'http://test.com/list'
 
-    #add get responses
+    # add get responses
     HTTPretty.register_uri(HTTPretty.GET, url,
                            responses=[HTTPretty.Response(body='a'),
                                       HTTPretty.Response(body='b')
-                                     ]
-    )
+                                      ]
+                           )
 
-    #add post responses
+    # add post responses
     HTTPretty.register_uri(HTTPretty.POST, url,
                            responses=[HTTPretty.Response(body='c'),
                                       HTTPretty.Response(body='d')
-                                     ]
-    )
+                                      ]
+                           )
 
     expect(requests.get(url).text).to.equal('a')
     expect(requests.post(url).text).to.equal('c')
@@ -657,7 +677,7 @@ def test_httpretty_should_allow_multiple_responses_with_multiple_methods():
 
 @httprettified
 def test_httpretty_should_normalize_url_patching():
-    "HTTPretty should normalize all url patching"
+    """HTTPretty should normalize all url patching"""
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -670,7 +690,7 @@ def test_httpretty_should_normalize_url_patching():
 
 @httprettified
 def test_lack_of_trailing_slash():
-    ("HTTPretty should automatically append a slash to given urls")
+    """HTTPretty should automatically append a slash to given urls"""
     url = 'http://www.youtube.com'
     HTTPretty.register_uri(HTTPretty.GET, url, body='')
     response = requests.get(url)
@@ -679,7 +699,7 @@ def test_lack_of_trailing_slash():
 
 @httprettified
 def test_unicode_querystrings():
-    ("Querystrings should accept unicode characters")
+    """Querystrings should accept unicode characters"""
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/login",
                            body="Find the best daily deals")
     requests.get('http://yipit.com/login?user=Gabriel+Falcão')
@@ -688,7 +708,7 @@ def test_unicode_querystrings():
 
 @use_tornado_server
 def test_recording_calls():
-    ("HTTPretty should be able to record calls")
+    """HTTPretty should be able to record calls"""
     # Given a destination path:
     destination = FIXTURE_FILE("recording-.json")
 
@@ -727,11 +747,12 @@ def test_recording_calls():
     response['response'].should.have.key("status").being.equal(200)
     response['response'].should.have.key("body").being.an(text_type)
     response['response'].should.have.key("headers").being.a(dict)
-    response['response']["headers"].should.have.key("server").being.equal("TornadoServer/" + tornado_version)
+    response['response']["headers"].should.have.key(
+        "server").being.equal("TornadoServer/" + tornado_version)
 
 
 def test_playing_calls():
-    ("HTTPretty should be able to record calls")
+    """HTTPretty should be able to record calls"""
     # Given a destination path:
     destination = FIXTURE_FILE("playback-1.json")
 
@@ -748,8 +769,10 @@ def test_playing_calls():
 
 @httprettified
 def test_py26_callback_response():
-    ("HTTPretty should call a callback function *once* and set its return value"
-     " as the body of the response requests")
+    """
+        HTTPretty should call a callback function *once* and set
+        its return value as the body of the response requests
+    """
 
     from mock import Mock
 
@@ -773,7 +796,7 @@ def test_py26_callback_response():
 
 @httprettified
 def test_httpretty_should_work_with_non_standard_ports():
-    "HTTPretty should work with a non-standard port number"
+    """HTTPretty should work with a non-standard port number"""
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -786,11 +809,14 @@ def test_httpretty_should_work_with_non_standard_ports():
         body=lambda method, uri, headers: [200, headers, uri]
     )
 
-    response = requests.get('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    response = requests.get(
+        'https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
-    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(response.text).to.equal(
+        'https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(HTTPretty.last_request.path).to.equal(
+        '/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
     response = requests.post('https://asdf.com:666/meow')
 
@@ -801,7 +827,7 @@ def test_httpretty_should_work_with_non_standard_ports():
 
 @httprettified
 def test_httpretty_reset_by_switching_protocols_for_same_port():
-    "HTTPretty should reset protocol/port associations"
+    """HTTPretty should reset protocol/port associations"""
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -832,7 +858,7 @@ def test_httpretty_reset_by_switching_protocols_for_same_port():
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_match_to_the_callback():
-    "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
+    """HTTPretty should allow registering regexes with requests and giva a proper match to the callback"""
 
     HTTPretty.register_uri(
         HTTPretty.GET,
@@ -840,8 +866,11 @@ def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_
         body=lambda method, uri, headers: [200, headers, uri]
     )
 
-    response = requests.get('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    response = requests.get(
+        'https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
-    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(response.text).to.equal(
+        'https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+    expect(HTTPretty.last_request.path).to.equal(
+        '/v1/deal;brand=gap?first_name=chuck&last_name=norris')
