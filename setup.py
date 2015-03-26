@@ -25,6 +25,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 import ast
+import io
 import os
 import re
 from setuptools import setup, find_packages
@@ -43,7 +44,8 @@ class VersionFinder(ast.NodeVisitor):
 def read_version():
     """Read version from httpretty/version.py without loading any files"""
     finder = VersionFinder()
-    finder.visit(ast.parse(local_file('httpretty', '__init__.py')))
+    finder.visit(
+        ast.parse(local_file('httpretty', '__init__.py').encode('utf-8')))
     return finder.version
 
 
@@ -55,7 +57,7 @@ def parse_requirements(path):
     function properly.
     """
     try:
-        requirements = map(str.strip, local_file(path).splitlines())
+        requirements = [req.strip() for req in local_file(path).splitlines()]
     except IOError:
         raise RuntimeError("Couldn't find the `requirements.txt' file :(")
 
@@ -75,7 +77,8 @@ def parse_requirements(path):
 
 
 local_file = lambda *f: \
-    open(os.path.join(os.path.dirname(__file__), *f)).read()
+    io.open(
+        os.path.join(os.path.dirname(__file__), *f), encoding='utf-8').read()
 
 
 install_requires, dependency_links = \
