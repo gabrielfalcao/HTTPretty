@@ -27,7 +27,7 @@ from __future__ import unicode_literals
 
 __version__ = version = '0.8.8'
 
-from .core import httpretty, httprettified
+from .core import httpretty, httprettified, EmptyRequestHeaders
 from .errors import HTTPrettyError, UnmockedError
 from .core import URIInfo
 
@@ -54,3 +54,7 @@ CONNECT = httpretty.CONNECT
 def last_request():
     """returns the last request"""
     return httpretty.last_request
+
+def has_request():
+    """returns a boolean indicating whether any request has been made"""
+    return not isinstance(httpretty.last_request.headers, EmptyRequestHeaders)
