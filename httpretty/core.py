@@ -313,7 +313,7 @@ class fakesock(object):
                     raise UnmockedError()
 
         def close(self):
-            if not self.is_http and not self._closed:
+            if not (self.is_http and self._closed):
                 if self.truesock:
                     self.truesock.close()
             self._closed = True
@@ -1000,9 +1000,14 @@ class httpretty(HttpBaseClass):
     @classmethod
     def enable(cls):
         cls._is_enabled = True
+        # Some versions of python internally shadowed the
+        # SocketType variable incorrectly https://bugs.python.org/issue20386
+        bad_socket_shadow = (socket.socket != socket.SocketType)
+
         socket.socket = fakesock.socket
         socket._socketobject = fakesock.socket
-        socket.SocketType = fakesock.socket
+        if not bad_socket_shadow:
+            socket.SocketType = fakesock.socket
 
         socket.create_connection = create_fake_connection
         socket.gethostname = fake_gethostname
@@ -1011,7 +1016,8 @@ class httpretty(HttpBaseClass):
 
         socket.__dict__['socket'] = fakesock.socket
         socket.__dict__['_socketobject'] = fakesock.socket
-        socket.__dict__['SocketType'] = fakesock.socket
+        if not bad_socket_shadow:
+            socket.__dict__['SocketType'] = fakesock.socket
 
         socket.__dict__['create_connection'] = create_fake_connection
         socket.__dict__['gethostname'] = fake_gethostname
