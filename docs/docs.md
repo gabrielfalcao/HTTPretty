@@ -325,3 +325,18 @@ httpretty.disable()
 httpretty.is_enabled().should.be.false
 
 ```
+
+## raising an error if an unregistered endpoint is requested
+
+```python
+import urllib2
+import httpretty
+
+httpretty.enable()
+httpretty.HTTPretty.allow_net_connect = False
+
+httpretty.register_uri(httpretty.GET, 'http://www.google.com', body='OK')
+
+urllib2.urlopen('http://www.google.com')
+urllib2.urlopen('http://www.reddit.com') # raises httpretty.errors.UnmockedError
+```
