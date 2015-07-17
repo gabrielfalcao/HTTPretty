@@ -25,6 +25,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
+from urlparse import parse_qsl
 import re
 import codecs
 import inspect
@@ -411,7 +412,7 @@ class fakesock(object):
                            query=s.query,
                            last_request=request)
 
-            matcher, entries = httpretty.match_uriinfo(info)
+            matcher, entries = httpretty.match_uriinfo(info, request)
 
             if not entries:
                 self._entry = None
@@ -749,7 +750,7 @@ class URIMatcher(object):
     regex = None
     info = None
 
-    def __init__(self, uri, entries, match_querystring=False):
+    def __init__(self, uri, expected_data, entries, match_querystring=False):
         self._match_querystring = match_querystring
         if type(uri).__name__ == 'SRE_Pattern':
             self.regex = uri
@@ -761,6 +762,7 @@ class URIMatcher(object):
         else:
             self.info = URIInfo.from_uri(uri, entries)
 
+        self.expected_data = expected_data
         self.entries = entries
 
         #hash of current_entry pointers, per method.
@@ -772,6 +774,15 @@ class URIMatcher(object):
         else:
             return self.regex.search(info.full_url(
                 use_querystring=self._match_querystring))
+
+    def check_expected_data(self, request):
+        if self.expected_data is not None:
+            body_dict = dict(parse_qsl(request.body))
+            if body_dict != self.expected_data:
+                raise ValueError("Body Post didn't match, expected %s, got %s" % (
+                    self.expected_data,
+                    body_dict
+                ))
 
     def __str__(self):
         wrap = 'URLMatcher({0})'
@@ -827,9 +838,10 @@ class httpretty(HttpBaseClass):
     allow_net_connect = True
 
     @classmethod
-    def match_uriinfo(cls, info):
+    def match_uriinfo(cls, info, request):
         for matcher, value in cls._entries.items():
             if matcher.matches(info):
+                matcher.check_expected_data(request)
                 return (matcher, info)
 
         return (None, [])
@@ -913,7 +925,9 @@ class httpretty(HttpBaseClass):
                      adding_headers=None,
                      forcing_headers=None,
                      status=200,
-                     responses=None, match_querystring=False,
+                     expected_data=None,
+                     responses=None,
+                     match_querystring=False,
                      **headers):
 
         uri_is_string = isinstance(uri, basestring)
@@ -936,7 +950,7 @@ class httpretty(HttpBaseClass):
                 cls.Response(method=method, uri=uri, **headers),
             ]
 
-        matcher = URIMatcher(uri, entries_for_this_uri,
+        matcher = URIMatcher(uri, expected_data, entries_for_this_uri,
                              match_querystring)
         if matcher in cls._entries:
             matcher.entries.extend(cls._entries[matcher])

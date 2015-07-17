@@ -675,6 +675,32 @@ def test_lack_of_trailing_slash():
 
 
 @httprettified
+def test_httpretty_should_check_post_payload():
+    "HTTPretty should allow checking POST data payload"
+
+    HTTPretty.register_uri(
+        HTTPretty.POST,
+        "https://api.imaginary.com/v1/sweet/",
+        expected_data={'name': "Lollipop"},
+        body='{"id": 12, "status": "Created"}',
+    )
+
+    response = requests.post(
+        "https://api.imaginary.com/v1/sweet/",
+        {"name": "Lollipop"}
+    )
+
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.body).to.equal(b'name=Lollipop')
+    expect(response.json()).to.equal({"id": 12, "status": "Created"})
+
+    requests.post.when.called_with(
+        "https://api.imaginary.com/v1/sweet/",
+        {'wrong': 'data'}
+    ).should.throw(ValueError)
+
+
 def test_unicode_querystrings():
     ("Querystrings should accept unicode characters")
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/login",
