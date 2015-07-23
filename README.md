@@ -1,4 +1,4 @@
-# HTTPretty 0.8.3
+# HTTPretty 0.8.10
 
 ![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
 [![tip for next commit](http://tip4commit.com/projects/133.svg)](http://tip4commit.com/projects/133)
@@ -382,6 +382,34 @@ def test_yipit_api_integration():
     expect(httpretty.last_request().headers['content-type']).to.equal('text/json')
 ```
 
+## checking whether a request was made or not
+
+```python
+import httpretty
+import requests
+
+def order_pizza(user, home_delivery=True):
+    check_number = make_pizza()
+    if home_delivery:
+        requests.post('http://api.pizzas.com/deliveries/', {'address': user.address, 'check_number': check_number})
+    else:
+        # for pick up.
+        pass
+    return check_number
+    
+@httpretty.activate
+def test_pizza_delivery():
+    httpretty.register_uri(httpretty.POST, 'http://api.pizzas.com/deliveries/', body='OK')
+
+    order_pizza(some_user)
+    expect(httpretty.has_request()).to.be.true
+
+    httpretty.reset()
+    order_pizza(some_user, home_delivery=False)
+    expect(httpretty.has_request()).to.be.false
+
+```
+
 ## checking if is enabled
 
 ```python
@@ -393,6 +421,22 @@ httpretty.disable()
 httpretty.is_enabled().should.be.false
 
 ```
+
+## raising an error if an unregistered endpoint is requested
+
+```python
+import urllib2
+import httpretty
+
+httpretty.enable()
+httpretty.HTTPretty.allow_net_connect = False
+
+httpretty.register_uri(httpretty.GET, 'http://www.google.com', body='OK')
+
+urllib2.urlopen('http://www.google.com')
+urllib2.urlopen('http://www.reddit.com') # raises httpretty.errors.UnmockedError
+```
+
 # Motivation
 
 When building systems that access external resources such as RESTful

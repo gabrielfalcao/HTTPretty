@@ -299,8 +299,8 @@ def test_fakesock_socket_makefile(old_socket):
 
 @patch('httpretty.core.old_socket')
 def test_fakesock_socket_real_sendall(old_socket):
-    ("fakesock.socket#real_sendall sends data and buffers "
-     "the response in the file descriptor")
+    ("fakesock.socket#real_sendall calls truesock#connect and bails "
+     "out when not http")
     # Background: the real socket will stop returning bytes after the
     # first call
     real_socket = old_socket.return_value
@@ -315,25 +315,56 @@ def test_fakesock_socket_real_sendall(old_socket):
     # Then it should have called sendall in the real socket
     real_socket.sendall.assert_called_once_with(b"SOMEDATA", b'some extra args...', foo=b'bar')
 
-    # And the timeout was set to 0
-    real_socket.settimeout.assert_called_once_with(0)
+    # And setblocking was never called
+    real_socket.setblocking.called.should.be.false
 
-    # And recv was called with the bufsize
-    real_socket.recv.assert_has_calls([
-        call(16),
-        call(16),
-    ])
+    # And recv was never called
+    real_socket.recv.called.should.be.false
 
-    # And the buffer should contain the data from the server
-    socket.fd.getvalue().should.equal(b"response from server")
+    # And the buffer is empty
+    socket.fd.getvalue().should.equal(b'')
 
     # And connect was never called
     real_socket.connect.called.should.be.false
 
 
 @patch('httpretty.core.old_socket')
+def test_fakesock_socket_real_sendall_when_http(old_socket):
+    ("fakesock.socket#real_sendall sends data and buffers "
+     "the response in the file descriptor")
+    # Background: the real socket will stop returning bytes after the
+    # first call
+    real_socket = old_socket.return_value
+    real_socket.recv.side_effect = [b'response from server', b""]
+
+    # Given a fake socket
+    socket = fakesock.socket()
+    socket.is_http = True
+
+    # When I call real_sendall with data, some args and kwargs
+    socket.real_sendall(b"SOMEDATA", b'some extra args...', foo=b'bar')
+
+    # Then it should have called sendall in the real socket
+    real_socket.sendall.assert_called_once_with(b"SOMEDATA", b'some extra args...', foo=b'bar')
+
+    # And the socket was set to blocking
+    real_socket.setblocking.assert_called_once_with(1)
+
+    # And recv was called with the bufsize
+    real_socket.recv.assert_has_calls([
+        call(socket._bufsize)
+    ])
+
+    # And the buffer should contain the data from the server
+    socket.fd.getvalue().should.equal(b"response from server")
+
+    # And connect was called
+    real_socket.connect.called.should.be.true
+
+
+@patch('httpretty.core.old_socket')
 @patch('httpretty.core.socket')
-def test_fakesock_socket_real_sendall_continue_eagain(socket, old_socket):
+def test_fakesock_socket_real_sendall_continue_eagain_when_http(socket, old_socket):
     ("fakesock.socket#real_sendall should continue if the socket error was EAGAIN")
     socket.error = SocketErrorStub
     # Background: the real socket will stop returning bytes after the
@@ -343,7 +374,7 @@ def test_fakesock_socket_real_sendall_continue_eagain(socket, old_socket):
 
     # Given a fake socket
     socket = fakesock.socket()
-
+    socket.is_http = True
 
     # When I call real_sendall with data, some args and kwargs
     socket.real_sendall(b"SOMEDATA", b'some extra args...', foo=b'bar')
@@ -351,25 +382,24 @@ def test_fakesock_socket_real_sendall_continue_eagain(socket, old_socket):
     # Then it should have called sendall in the real socket
     real_socket.sendall.assert_called_once_with(b"SOMEDATA", b'some extra args...', foo=b'bar')
 
-    # And the timeout was set to 0
-    real_socket.settimeout.assert_called_once_with(0)
+    # And the socket was set to blocking
+    real_socket.setblocking.assert_called_once_with(1)
 
     # And recv was called with the bufsize
     real_socket.recv.assert_has_calls([
-        call(16),
-        call(16),
+        call(socket._bufsize)
     ])
 
     # And the buffer should contain the data from the server
     socket.fd.getvalue().should.equal(b"after error")
 
-    # And connect was never called
-    real_socket.connect.called.should.be.false
+    # And connect was called
+    real_socket.connect.called.should.be.true
 
 
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.socket')
-def test_fakesock_socket_real_sendall_socket_error(socket, old_socket):
+def test_fakesock_socket_real_sendall_socket_error_when_http(socket, old_socket):
     ("fakesock.socket#real_sendall should continue if the socket error was EAGAIN")
     socket.error = SocketErrorStub
     # Background: the real socket will stop returning bytes after the
@@ -379,6 +409,7 @@ def test_fakesock_socket_real_sendall_socket_error(socket, old_socket):
 
     # Given a fake socket
     socket = fakesock.socket()
+    socket.is_http = True
 
     # When I call real_sendall with data, some args and kwargs
     socket.real_sendall(b"SOMEDATA", b'some extra args...', foo=b'bar')
@@ -386,17 +417,17 @@ def test_fakesock_socket_real_sendall_socket_error(socket, old_socket):
     # Then it should have called sendall in the real socket
     real_socket.sendall.assert_called_once_with(b"SOMEDATA", b'some extra args...', foo=b'bar')
 
-    # And the timeout was set to 0
-    real_socket.settimeout.assert_called_once_with(0)
+    # And the socket was set to blocking
+    real_socket.setblocking.assert_called_once_with(1)
 
     # And recv was called with the bufsize
-    real_socket.recv.assert_called_once_with(16)
+    real_socket.recv.assert_called_once_with(socket._bufsize)
 
     # And the buffer should contain the data from the server
     socket.fd.getvalue().should.equal(b"")
 
-    # And connect was never called
-    real_socket.connect.called.should.be.false
+    # And connect was called
+    real_socket.connect.called.should.be.true
 
 
 @patch('httpretty.core.old_socket')
@@ -410,6 +441,7 @@ def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket
 
     # And the potential http port is 4000
     POTENTIAL_HTTP_PORTS.__contains__.side_effect = lambda other: int(other) == 4000
+    POTENTIAL_HTTP_PORTS.__or__.side_effect = lambda other: POTENTIAL_HTTP_PORTS
 
     # Given a fake socket
     socket = fakesock.socket()
@@ -423,13 +455,12 @@ def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket
     # Then connect should have been called
     real_socket.connect.assert_called_once_with(('foobar.com', 4000))
 
-    # And the timeout was set to 0
-    real_socket.settimeout.assert_called_once_with(0)
+    # And the socket was set to blocking
+    real_socket.setblocking.assert_called_once_with(1)
 
     # And recv was called with the bufsize
     real_socket.recv.assert_has_calls([
-        call(16),
-        call(16),
+        call(socket._bufsize)
     ])
 
     # And the buffer should contain the data from the server

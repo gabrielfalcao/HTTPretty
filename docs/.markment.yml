@@ -1,6 +1,6 @@
 project:
   name: "HTTPretty"
-  version: 0.8.3
+  version: 0.8.10
   description: HTTP request mock tool for python
   tagline: Intercept real HTTP calls in python, test your software better.
   twitter: gabrielfalcao
@@ -9,7 +9,7 @@ project:
   github_maintainer: gabrielfalcao
   github_maintainer_name: Gabriel Falc&atilde;o
   github_maintainer_url: http://github.com/gabrielfalcao
-  github_maintainer_gravatar: https://secure.gravatar.com/avatar/3fa0df5c54f5ac0f8652d992d7d24039?s=64
+  github_maintainer_gravatar: https://secure.gravatar.com/avatar/3fa0df5c54f5ac0.8.102d992d7d24039?s=64
 
   github_url: http://github.com/gabrielfalcao/HTTPretty
   github_fork_url: https://github.com/gabrielfalcao/HTTPretty/archive/master.tar.gz

@@ -165,7 +165,8 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         self.error_message = None
 
         # Parse the request based on the attributes above
-        self.parse_request()
+        if not self.parse_request():
+            return
 
         # making the HTTP method string available as the command
         self.method = self.command
@@ -177,6 +178,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
             self.path = self.path.encode('iso-8859-1')
         except UnicodeDecodeError:
             pass
+
         self.path = decode_utf8(self.path)
 
         qstring = self.path.split("?", 1)[-1]
@@ -232,7 +234,9 @@ class HTTPrettyRequestEmpty(object):
 
 
 class FakeSockFile(StringIO):
-    pass
+    def close(self):
+        self.socket.close()
+        StringIO.close(self)
 
 
 class FakeSSLSocket(object):
@@ -270,16 +274,16 @@ class fakesock(object):
 
         def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM,
                      protocol=0):
-            self.setsockopt(family, type, protocol)
             self.truesock = (old_socket(family, type, protocol)
                              if httpretty.allow_net_connect
                              else None)
             self._closed = True
             self.fd = FakeSockFile()
+            self.fd.socket = self
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
             self._sock = self
             self.is_http = False
-            self._bufsize = 16
+            self._bufsize = 1024
 
         def getpeercert(self, *a, **kw):
             now = datetime.now()
@@ -308,10 +312,9 @@ class fakesock(object):
         def ssl(self, sock, *args, **kw):
             return sock
 
-        def setsockopt(self, family, type, protocol):
-            self.family = family
-            self.protocol = protocol
-            self.type = type
+        def setsockopt(self, level, optname, value):
+            if self.truesock:
+                self.truesock.setsockopt(level, optname, value)
 
         def connect(self, address):
             self._closed = False
@@ -365,12 +368,12 @@ class fakesock(object):
             if not self.truesock:
                 raise UnmockedError()
 
-            if self.is_http:  # no need to connect if `self.is_http` is
-                              # False because self.connect already did
-                              # that
-                self.truesock.connect(self._address)
+            if not self.is_http:
+                return self.truesock.sendall(data, *args, **kw)
 
-            self.truesock.settimeout(0)
+            self.truesock.connect(self._address)
+
+            self.truesock.setblocking(1)
             self.truesock.sendall(data, *args, **kw)
 
             should_continue = True
@@ -378,7 +381,7 @@ class fakesock(object):
                 try:
                     received = self.truesock.recv(self._bufsize)
                     self.fd.write(received)
-                    should_continue = len(received) > 0
+                    should_continue = len(received) == self._bufsize
 
                 except socket.error as e:
                     if e.errno == EAGAIN:
@@ -389,7 +392,8 @@ class fakesock(object):
 
         def sendall(self, data, *args, **kw):
             self._sent_data.append(data)
-
+            self.fd = FakeSockFile()
+            self.fd.socket = self
             try:
                 requestline, _ = data.split(b'\r\n', 1)
                 method, path, version = parse_requestline(decode_utf8(requestline))
@@ -1046,9 +1050,14 @@ class httpretty(HttpBaseClass):
     @classmethod
     def enable(cls):
         cls._is_enabled = True
+        # Some versions of python internally shadowed the
+        # SocketType variable incorrectly https://bugs.python.org/issue20386
+        bad_socket_shadow = (socket.socket != socket.SocketType)
+
         socket.socket = fakesock.socket
         socket._socketobject = fakesock.socket
-        socket.SocketType = fakesock.socket
+        if not bad_socket_shadow:
+            socket.SocketType = fakesock.socket
 
         socket.create_connection = create_fake_connection
         socket.gethostname = fake_gethostname
@@ -1058,7 +1067,8 @@ class httpretty(HttpBaseClass):
 
         socket.__dict__['socket'] = fakesock.socket
         socket.__dict__['_socketobject'] = fakesock.socket
-        socket.__dict__['SocketType'] = fakesock.socket
+        if not bad_socket_shadow:
+            socket.__dict__['SocketType'] = fakesock.socket
 
         socket.__dict__['create_connection'] = create_fake_connection
         socket.__dict__['gethostname'] = fake_gethostname
