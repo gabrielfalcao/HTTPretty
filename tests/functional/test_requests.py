@@ -325,7 +325,7 @@ def test_streaming_responses(now):
 
     #test iterating by line after a second request
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
-                            auth=('username', 'password'), stream=True)
+                             auth=('username', 'password'), stream=True)
 
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever the second time '
@@ -336,7 +336,7 @@ def test_streaming_responses(now):
 
     #test iterating by char
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
-                            auth=('username', 'password'), stream=True)
+                             auth=('username', 'password'), stream=True)
 
     twitter_expected_response_body = b''.join(twitter_response_lines)
     with in_time(0.02, 'Iterating by char is taking forever!'):
