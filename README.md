@@ -396,7 +396,7 @@ def order_pizza(user, home_delivery=True):
         # for pick up.
         pass
     return check_number
-    
+
 @httpretty.activate
 def test_pizza_delivery():
     httpretty.register_uri(httpretty.POST, 'http://api.pizzas.com/deliveries/', body='OK')
@@ -434,7 +434,7 @@ httpretty.HTTPretty.allow_net_connect = False
 httpretty.register_uri(httpretty.GET, 'http://www.google.com', body='OK')
 
 urllib2.urlopen('http://www.google.com')
-urllib2.urlopen('http://www.reddit.com') # raises httpretty.errors.UnmockedError
+urllib2.urlopen.when.called_with('http://www.reddit.com').should.have.raised(httpretty.errors.UnmockedError)
 ```
 
 # Motivation
