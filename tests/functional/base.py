@@ -72,9 +72,11 @@ class JSONEchoServer(threading.Thread):
         ])
 
     def run(self):
-        application = self.setup_application()
-        application.listen(self.port)
-        self.lock.release()
+        try:
+            application = self.setup_application()
+            application.listen(self.port)
+        finally:
+            self.lock.release()
         tornado.ioloop.IOLoop.instance().start()
 
 
