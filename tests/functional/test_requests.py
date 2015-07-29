@@ -501,6 +501,23 @@ def test_callback_setting_headers_and_status_response(now):
     expect(response.status_code).to.equal(418)
 
 @httprettified
+def test_httpretty_should_respect_matcher_priority():
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile(r".*"),
+        body='high priority',
+        priority=5,
+    )
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile(r".+"),
+        body='low priority',
+        priority=0,
+    )
+    response = requests.get('http://api.yipit.com/v1/')
+    expect(response.text).to.equal('high priority')
+
+@httprettified
 def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_the_callback():
     "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
 
