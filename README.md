@@ -534,7 +534,7 @@ make unit functional
 
 # Main contributors
 
-There folks made remarkable contributions to HTTPretty:
+These folks made remarkable contributions to HTTPretty:
 
 * Steve Pulec ~> @spulec
 * Hugh Saunders ~> @hughsaunders
