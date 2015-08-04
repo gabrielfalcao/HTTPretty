@@ -1,9 +1,5 @@
 -r use.txt
-coverage
 tox
 markment
 steadymark
-nose
 rednose
-mock
-sure
