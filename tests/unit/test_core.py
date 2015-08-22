@@ -3,13 +3,16 @@
 from __future__ import unicode_literals
 import json
 import errno
+import socket
 from datetime import datetime
 
 from mock import Mock, patch, call
 from sure import expect
 
 from httpretty.compat import StringIO
-from httpretty.core import HTTPrettyRequest, FakeSSLSocket, fakesock, httpretty
+from httpretty.core import (
+    HTTPrettyRequest, FakeSSLSocket, fakesock, httpretty,
+    httprettified_with_overrides)
 
 
 class SocketErrorStub(Exception):
@@ -601,3 +604,50 @@ def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTT
 
     # Then the entry should have that body
     httpretty.last_request.body.should.equal(b'BLABLABLABLA')
+
+
+_HOSTNAME = 'eric idle'
+_GETHOSTNAME = lambda: _HOSTNAME
+_HOSTBYNAME= '127.0.0.1'
+_GETHOSTBYNAME = lambda _: _GETHOSTBYNAME
+
+# effectively bypassing the mock
+_GETADDRINFO = socket.getaddrinfo
+
+
+overrides = {
+    'socket': {
+        'gethostname': _GETHOSTNAME,
+        'gethostbyname': _GETHOSTBYNAME,
+        'getaddrinfo': _GETADDRINFO,
+    },
+}
+
+
+def _test_patching():
+    expect(socket.gethostname()).to.equal(_HOSTNAME)
+    expect(socket.gethostname).to.equal(_GETHOSTNAME)
+    expect(socket.gethostbyname(
+        'localhost')).to.equal(_GETHOSTBYNAME('localhost'))
+    expect(socket.gethostbyname).to.equal(_GETHOSTBYNAME)
+    expect(socket.getaddrinfo).to.equal(_GETADDRINFO)
+    expect(socket.getaddrinfo(
+        'localhost', 80)).to.equal(_GETADDRINFO('localhost', 80))
+
+
+def test_explicit_overrides():
+    httpretty.enable(overrides)
+    _test_patching()
+    httpretty.disable()
+
+
+# test function decorator
+@httprettified_with_overrides(overrides)
+def test_function_decorator_overrides():
+    _test_patching()
+
+
+@httprettified_with_overrides(overrides)
+class TestClass(object):
+    def test_class_decorator_overrides(self):
+        _test_patching()

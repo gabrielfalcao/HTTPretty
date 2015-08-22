@@ -27,12 +27,18 @@ from __future__ import unicode_literals
 
 __version__ = version = '0.8.10'
 
-from .core import httpretty, httprettified, EmptyRequestHeaders
+from .core import (
+    httpretty, httprettified, httprettified_with_overrides,
+    EmptyRequestHeaders)
 from .errors import HTTPrettyError, UnmockedError
 from .core import URIInfo
 
 HTTPretty = httpretty
 activate = httprettified
+# this is to ensure backwards compatibility (decorator with and without args)
+# it'd be nice to deprecate @httpretty.activate in favor of
+# @httpretty.activate() in a future release
+activate_with_overrides = httprettified_with_overrides
 
 enable = httpretty.enable
 register_uri = httpretty.register_uri
