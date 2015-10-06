@@ -84,6 +84,9 @@ local_file = lambda *f: \
 install_requires, dependency_links = \
     parse_requirements('requirements/use.txt')
 
+tests_require, test_dependency_links = \
+    parse_requirements('requirements/test.txt')
+
 
 setup(name='httpretty',
       version=read_version(),
@@ -94,7 +97,7 @@ setup(name='httpretty',
       url='http://github.com/gabrielfalcao/httpretty',
       zip_safe=False,
       packages=find_packages(exclude=['*tests*']),
-      tests_require=parse_requirements('test-requirements.txt'),
+      tests_require=tests_require,
       install_requires=install_requires,
       dependency_links=dependency_links,
       license='MIT',
