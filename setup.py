@@ -57,7 +57,7 @@ def parse_requirements(path):
     function properly.
     """
     try:
-        requirements = [req.strip() for req in local_file(path).splitlines()]
+        requirements = [s.strip() for s in filter(lambda s: not s.strip().startswith("#"), local_file(path).splitlines())]
     except IOError:
         raise RuntimeError("Couldn't find the `requirements/use.txt' file :(")
 
