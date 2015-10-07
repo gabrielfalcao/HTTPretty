@@ -765,7 +765,9 @@ class URIMatcher(object):
 
     def __init__(self, uri, entries, match_querystring=False, priority=0):
         self._match_querystring = match_querystring
-        if type(uri).__name__ == 'SRE_Pattern':
+        # CPython, Jython
+        if type(uri).__name__ in ('SRE_Pattern', 
+                                  'org.python.modules.sre.PatternObject'):
             self.regex = uri
             result = urlsplit(uri.pattern)
             if result.scheme == 'https':
