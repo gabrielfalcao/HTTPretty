@@ -4,10 +4,6 @@ requests==2.5.1
 tornado==4.0.2
 urllib3==1.7.1
 
-# test runner
-coverage==3.7.1
-nose==1.3.0
-
 # testing utilities
 mock==1.0.1
 sure==1.2.3
