@@ -8,5 +8,7 @@ tox
 markment
 steadymark
 rednose
-mock
-sure
+
+# testing utilities
+mock==1.0.1
+sure==1.2.3
