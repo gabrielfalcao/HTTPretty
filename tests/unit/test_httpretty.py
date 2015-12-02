@@ -111,6 +111,13 @@ def test_does_not_have_last_request_by_default():
     expect(HTTPretty.last_request.body).to.be.empty
 
 
+def test_does_not_have_latest_requests_by_default():
+    'HTTPretty.latest_requests should be empty'
+    HTTPretty.reset()
+
+    expect(HTTPretty.latest_requests).to.be.empty
+
+
 def test_status_codes():
     "HTTPretty supports N status codes"
 
