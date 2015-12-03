@@ -1,1 +1,0 @@
-Why wont it run with Python 3? Start new venv. Check Github for issue.
