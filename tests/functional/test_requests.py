@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -52,8 +52,7 @@ except NameError:
         return it.next()
 next = advance_iterator
 
-PORT = int(os.getenv('TEST_PORT') or 8888)
-server_url = lambda path: "http://localhost:{0}/{1}".format(PORT, path.lstrip('/'))
+server_url = lambda path, port: "http://localhost:{0}/{1}".format(port, path.lstrip('/'))
 
 
 @httprettified
@@ -701,15 +700,15 @@ def test_unicode_querystrings():
 
 
 @use_tornado_server
-def test_recording_calls():
+def test_recording_calls(port):
     ("HTTPretty should be able to record calls")
     # Given a destination path:
-    destination = FIXTURE_FILE("recording-.json")
+    destination = FIXTURE_FILE("recording-1.json")
 
     # When I record some calls
     with HTTPretty.record(destination):
-        requests.get(server_url("/foobar?name=Gabriel&age=25"))
-        requests.post(server_url("/foobar"), data=json.dumps({'test': '123'}))
+        requests.get(server_url("/foobar?name=Gabriel&age=25", port))
+        requests.post(server_url("/foobar", port), data=json.dumps({'test': '123'}))
 
     # Then the destination path should exist
     os.path.exists(destination).should.be.true
@@ -741,19 +740,13 @@ def test_recording_calls():
     response['response'].should.have.key("status").being.equal(200)
     response['response'].should.have.key("body").being.an(text_type)
     response['response'].should.have.key("headers").being.a(dict)
-    response['response']["headers"].should.have.key("server").being.equal("TornadoServer/" + tornado_version)
+    response['response']["headers"].should.have.key("Server").being.equal("TornadoServer/" + tornado_version)
 
-
-def test_playing_calls():
-    ("HTTPretty should be able to record calls")
-    # Given a destination path:
-    destination = FIXTURE_FILE("playback-1.json")
-
-    # When I playback some previously recorded calls
+    # And When I playback the previously recorded calls
     with HTTPretty.playback(destination):
         # And make the expected requests
-        response1 = requests.get(server_url("/foobar?name=Gabriel&age=25"))
-        response2 = requests.post(server_url("/foobar"), data=json.dumps({'test': '123'}))
+        response1 = requests.get(server_url("/foobar?name=Gabriel&age=25", port))
+        response2 = requests.post(server_url("/foobar", port), data=json.dumps({'test': '123'}))
 
     # Then the responses should be the expected
     response1.json().should.equal({"foobar": {"age": "25", "name": "Gabriel"}})

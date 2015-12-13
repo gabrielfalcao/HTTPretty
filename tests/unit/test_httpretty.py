@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -238,7 +238,9 @@ def test_uri_info_eq_ignores_case():
     )
     expect(uri_info_uppercase).to.equal(uri_info_lowercase)
 
+
 def test_global_boolean_enabled():
+    HTTPretty.disable()
     expect(HTTPretty.is_enabled()).to.be.falsy
     HTTPretty.enable()
     expect(HTTPretty.is_enabled()).to.be.truthy

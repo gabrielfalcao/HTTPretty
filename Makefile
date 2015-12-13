@@ -1,4 +1,14 @@
-all: check_dependencies unit functional doctests
+# Config
+OSNAME			:= $(shell uname)
+
+ifeq ($(OSNAME), Linux)
+OPEN_COMMAND		:= gnome-open
+else
+OPEN_COMMAND		:= open
+endif
+
+
+all: check_dependencies unit functional acceptance
 
 filename=httpretty-`python -c 'import httpretty;print httpretty.version'`.tar.gz
 
@@ -11,17 +21,21 @@ check_dependencies:
 		python -c "import $$dependency" 2>/dev/null || (echo "You must install $$dependency in order to run httpretty's tests" && exit 3) ; \
 		done
 
-test: unit functional doctests
+test: unit functional acceptance
 
-unit: prepare
+lint:
+	@echo "Checking code style ..."
+	@flake8 httpretty
+
+unit: prepare lint
 	@echo "Running unit tests ..."
-	@nosetests -s tests/unit
+	@nosetests --rednose -x --with-randomly --with-coverage --cover-package=httpretty -s tests/unit
 
 functional: prepare
 	@echo "Running functional tests ..."
-	@nosetests -s tests/functional
+	@nosetests --rednose -x --with-randomly --with-coverage --cover-package=httpretty -s tests/functional
 
-doctests: prepare
+acceptance: prepare
 	@echo "Running documentation tests tests ..."
 	@steadymark README.md
 
@@ -35,9 +49,9 @@ release: clean unit functional
 	@./.release
 	@python setup.py sdist bdist_wheel register upload
 
-docs: doctests
-	@pandoc -o README.rst README.md
-	@markment -o . -t ./theme --sitemap-for="http://falcao.it/HTTPretty" docs
+docs: acceptance
+	@cd docs && make html
+	$(OPEN_COMMAND) docs/build/html/index.html
 
 deploy-docs:
 	@git co master && \
@@ -51,3 +65,6 @@ deploy-docs:
 
 prepare:
 	@reset
+
+
+.PHONY: docs

@@ -1,7 +1,7 @@
 # #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -55,6 +55,33 @@ def last_request():
     """returns the last request"""
     return httpretty.last_request
 
+
 def has_request():
     """returns a boolean indicating whether any request has been made"""
     return not isinstance(httpretty.last_request.headers, EmptyRequestHeaders)
+
+
+__all__ = [
+    'last_request',
+    'has_request',
+    'GET',
+    'PUT',
+    'POST',
+    'DELETE',
+    'HEAD',
+    'PATCH',
+    'OPTIONS',
+    'CONNECT',
+    'register_uri',
+    'enable',
+    'disable',
+    'is_enabled',
+    'reset',
+    'Response',
+    'URIInfo',
+    'UnmockedError',
+    'HTTPrettyError',
+    'httpretty',
+    'httprettified',
+    'EmptyRequestHeaders',
+]

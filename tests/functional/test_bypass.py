@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <httpretty - HTTP client mock for Python>
-# Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -25,13 +25,15 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
-
+import time
+import requests
 try:
     import urllib.request as urllib2
 except ImportError:
     import urllib2
 
 from .testserver import TornadoServer, TCPServer, TCPClient
+from .base import get_free_tcp_port
 from sure import expect, that_with_context
 
 import functools
@@ -41,8 +43,23 @@ from httpretty import core, HTTPretty
 
 
 def start_http_server(context):
-    context.server = TornadoServer(9999)
+    httpretty.disable()
+    context.http_port = get_free_tcp_port()
+    context.server = TornadoServer(context.http_port)
     context.server.start()
+    ready = False
+    timeout = 2
+    started_at = time.time()
+    while not ready:
+        httpretty.disable()
+        time.sleep(.1)
+        try:
+            requests.get('http://localhost:{0}/'.format(context.http_port))
+            ready = True
+        except:
+            if time.time() - started_at >= timeout:
+                break
+
     httpretty.enable()
 
 
@@ -52,9 +69,10 @@ def stop_http_server(context):
 
 
 def start_tcp_server(context):
-    context.server = TCPServer(8888)
+    context.tcp_port = get_free_tcp_port()
+    context.server = TCPServer(context.tcp_port)
     context.server.start()
-    context.client = TCPClient(8888)
+    context.client = TCPClient(context.tcp_port)
     httpretty.enable()
 
 
@@ -70,19 +88,19 @@ def test_httpretty_bypasses_when_disabled(context):
     "httpretty should bypass all requests by disabling it"
 
     httpretty.register_uri(
-        httpretty.GET, "http://localhost:9999/go-for-bubbles/",
+        httpretty.GET, "http://localhost:{0}/go-for-bubbles/".format(context.http_port),
         body="glub glub")
 
     httpretty.disable()
 
-    fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
+    fd = urllib2.urlopen('http://localhost:{0}/go-for-bubbles/'.format(context.http_port))
     got1 = fd.read()
     fd.close()
 
     expect(got1).to.equal(
         b'. o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o .')
 
-    fd = urllib2.urlopen('http://localhost:9999/come-again/')
+    fd = urllib2.urlopen('http://localhost:{0}/come-again/'.format(context.http_port))
     got2 = fd.read()
     fd.close()
 
@@ -90,12 +108,13 @@ def test_httpretty_bypasses_when_disabled(context):
 
     httpretty.enable()
 
-    fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
+    fd = urllib2.urlopen('http://localhost:{0}/go-for-bubbles/'.format(context.http_port))
     got3 = fd.read()
     fd.close()
 
     expect(got3).to.equal(b'glub glub')
-    core.POTENTIAL_HTTP_PORTS.remove(9999)
+    core.POTENTIAL_HTTP_PORTS.remove(context.http_port)
+
 
 @httpretty.activate
 @that_with_context(start_http_server, stop_http_server)
@@ -103,21 +122,21 @@ def test_httpretty_bypasses_a_unregistered_request(context):
     "httpretty should bypass a unregistered request by disabling it"
 
     httpretty.register_uri(
-        httpretty.GET, "http://localhost:9999/go-for-bubbles/",
+        httpretty.GET, "http://localhost:{0}/go-for-bubbles/".format(context.http_port),
         body="glub glub")
 
-    fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
+    fd = urllib2.urlopen('http://localhost:{0}/go-for-bubbles/'.format(context.http_port))
     got1 = fd.read()
     fd.close()
 
     expect(got1).to.equal(b'glub glub')
 
-    fd = urllib2.urlopen('http://localhost:9999/come-again/')
+    fd = urllib2.urlopen('http://localhost:{0}/come-again/'.format(context.http_port))
     got2 = fd.read()
     fd.close()
 
     expect(got2).to.equal(b'<- HELLO WORLD ->')
-    core.POTENTIAL_HTTP_PORTS.remove(9999)
+    core.POTENTIAL_HTTP_PORTS.remove(context.http_port)
 
 
 @httpretty.activate
@@ -163,7 +182,7 @@ def test_disallow_net_connect_1(context):
     def foo():
         fd = None
         try:
-            fd = urllib2.urlopen('http://localhost:9999/go-for-bubbles/')
+            fd = urllib2.urlopen('http://localhost:{0}/go-for-bubbles/'.format(context.http_port))
         finally:
             if fd:
                 fd.close()

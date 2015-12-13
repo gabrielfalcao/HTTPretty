@@ -1,0 +1,1 @@
+# HTTPretty doesn't have any requirements per se so far. yay!

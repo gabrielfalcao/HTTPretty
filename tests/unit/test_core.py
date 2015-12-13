@@ -441,7 +441,7 @@ def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket
 
     # And the potential http port is 4000
     POTENTIAL_HTTP_PORTS.__contains__.side_effect = lambda other: int(other) == 4000
-    POTENTIAL_HTTP_PORTS.__or__.side_effect = lambda other: POTENTIAL_HTTP_PORTS
+    POTENTIAL_HTTP_PORTS.union.side_effect = lambda other: POTENTIAL_HTTP_PORTS
 
     # Given a fake socket
     socket = fakesock.socket()
@@ -472,8 +472,8 @@ def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
 def test_fakesock_socket_sendall_with_valid_requestline(POTENTIAL_HTTP_PORTS, httpretty, old_socket):
     ("fakesock.socket#sendall should create an entry if it's given a valid request line")
-    matcher = Mock()
-    info = Mock()
+    matcher = Mock(name='matcher')
+    info = Mock(name='info')
     httpretty.match_uriinfo.return_value = (matcher, info)
     httpretty.register_uri(httpretty.GET, 'http://foo.com/foobar')
 
@@ -496,10 +496,10 @@ def test_fakesock_socket_sendall_with_valid_requestline(POTENTIAL_HTTP_PORTS, ht
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.httpretty')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
-def test_fakesock_socket_sendall_with_valid_requestline(POTENTIAL_HTTP_PORTS, httpretty, old_socket):
+def test_fakesock_socket_sendall_with_valid_requestline_2(POTENTIAL_HTTP_PORTS, httpretty, old_socket):
     ("fakesock.socket#sendall should create an entry if it's given a valid request line")
-    matcher = Mock()
-    info = Mock()
+    matcher = Mock(name='matcher')
+    info = Mock(name='info')
     httpretty.match_uriinfo.return_value = (matcher, info)
     httpretty.register_uri(httpretty.GET, 'http://foo.com/foobar')
 
@@ -525,6 +525,7 @@ def test_fakesock_socket_sendall_with_body_data_no_entry(POTENTIAL_HTTP_PORTS, o
     ("fakesock.socket#sendall should call real_sendall when not parsing headers and there is no entry")
     # Background:
     # Using a subclass of socket that mocks out real_sendall
+
     class MySocket(fakesock.socket):
         def real_sendall(self, data):
             data.should.equal(b'BLABLABLABLA')
@@ -547,21 +548,17 @@ def test_fakesock_socket_sendall_with_body_data_no_entry(POTENTIAL_HTTP_PORTS, o
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
 def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS, old_socket):
-    ("fakesock.socket#sendall should call real_sendall when not ")
+    ("fakesock.socket#sendall should call real_sendall when there is no entry")
     # Background:
     # Using a subclass of socket that mocks out real_sendall
+    data_sent = []
+
     class MySocket(fakesock.socket):
         def real_sendall(self, data):
-            raise AssertionError('should have never been called')
-    # Using a mocked entry
-    entry = Mock()
-    entry.request.headers = {}
-    entry.request.body = b''
+            data_sent.append(data)
 
     # Given an instance of that socket
     socket = MySocket()
-    socket._entry = entry
-
 
     # And that is is considered http
     socket.connect(('foo.com', 80))
@@ -569,21 +566,31 @@ def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS,
     # When I try to send data
     socket.sendall(b"BLABLABLABLA")
 
-    # Then the entry should have that body
-    entry.request.body.should.equal(b'BLABLABLABLA')
+    # Then it shoud have called real_sendall
+    data_sent.should.equal(['BLABLABLABLA'])
 
 
+@patch('httpretty.core.httpretty.match_uriinfo')
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
-def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTTP_PORTS, old_socket):
+def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTTP_PORTS, old_socket, match_uriinfo):
     ("fakesock.socket#sendall should call real_sendall when not ")
     # Background:
     # Using a subclass of socket that mocks out real_sendall
+
     class MySocket(fakesock.socket):
         def real_sendall(self, data):
             raise AssertionError('should have never been called')
+
+    matcher = Mock(name='matcher')
+    info = Mock(name='info')
+    httpretty.match_uriinfo.return_value = (matcher, info)
+
     # Using a mocked entry
     entry = Mock()
+    entry.method = 'GET'
+    entry.info.path = '/foo'
+
     entry.request.headers = {
         'transfer-encoding': 'chunked',
     }

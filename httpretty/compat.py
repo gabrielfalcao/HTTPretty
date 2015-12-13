@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -37,9 +37,6 @@ if PY3:  # pragma: no cover
     StringIO = io.BytesIO
     basestring = (str, bytes)
 
-    class BaseClass(object):
-        def __repr__(self):
-            return self.__str__()
 else:  # pragma: no cover
     text_type = unicode
     byte_type = str
@@ -49,6 +46,7 @@ else:  # pragma: no cover
 
 
 class BaseClass(object):
+
     def __repr__(self):
         ret = self.__str__()
         if PY3:  # pragma: no cover
@@ -58,11 +56,17 @@ class BaseClass(object):
 
 
 try:  # pragma: no cover
-    from urllib.parse import urlsplit, urlunsplit, parse_qs, quote, quote_plus, unquote
+    from urllib.parse import urlsplit
+    from urllib.parse import urlunsplit
+    from urllib.parse import parse_qs
+    from urllib.parse import quote
+    from urllib.parse import quote_plus
+    from urllib.parse import unquote
     unquote_utf8 = unquote
 except ImportError:  # pragma: no cover
     from urlparse import urlsplit, urlunsplit, parse_qs, unquote
     from urllib import quote, quote_plus
+
     def unquote_utf8(qs):
         if isinstance(qs, text_type):
             qs = qs.encode('utf-8')
