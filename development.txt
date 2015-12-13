@@ -8,7 +8,7 @@ nose==1.3.7
 nose-randomly==1.2.0
 rednose==0.4.3
 requests==2.8.1
-steadymark==0.7.1
+steadymark==0.7.2
 sure==1.2.24
 urllib3==1.12
 tornado==4.3
