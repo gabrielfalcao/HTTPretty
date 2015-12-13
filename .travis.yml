@@ -1,14 +1,12 @@
 language: python
 sudo: false
 python:
-  - "2.6"
   - "2.7"
-  - "3.4"
+  - "3.5"
 
 matrix:
   allow_failures:
-    - python: "2.6"
-    - python: "3.4"
+    - python: "3.5"
 
 env:
   - TEST_TYPE=unit
