@@ -492,7 +492,7 @@ mkvirtualenv --distribute --no-site-packages HTTPretty
 ## install the dependencies
 
 ```console
-pip install -r requirements/dev.txt
+pip install -r requirements.txt
 ```
 
 ## next steps:

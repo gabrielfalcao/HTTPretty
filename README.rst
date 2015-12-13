@@ -530,7 +530,7 @@ install the dependencies
 
 .. code:: console
 
-    pip install -r requirements/dev.txt
+    pip install -r requirements.txt
 
 next steps:
 -----------

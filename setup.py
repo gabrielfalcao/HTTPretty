@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
@@ -50,7 +50,7 @@ def read_version():
 
 
 def parse_requirements(path):
-    """Rudimentary parser for the `requirements/use.txt` file
+    """Rudimentary parser for the `requirements.txt` file
 
     We just want to separate regular packages from links to pass them to the
     `install_requires` and `dependency_links` params of the `setup()`
@@ -59,7 +59,7 @@ def parse_requirements(path):
     try:
         requirements = [req.strip() for req in local_file(path).splitlines()]
     except IOError:
-        raise RuntimeError("Couldn't find the `requirements/use.txt' file :(")
+        raise RuntimeError("Couldn't find the `requirements.txt' file :(")
 
     links = []
     pkgs = []
@@ -82,34 +82,35 @@ local_file = lambda *f: \
 
 
 install_requires, dependency_links = \
-    parse_requirements('requirements/use.txt')
+    parse_requirements('requirements.txt')
 
 
-setup(name='httpretty',
-      version=read_version(),
-      description='HTTP client mock for Python',
-      long_description=local_file('README.rst'),
-      author='Gabriel Falcao',
-      author_email='gabriel@nacaolivre.org',
-      url='http://github.com/gabrielfalcao/httpretty',
-      zip_safe=False,
-      packages=find_packages(exclude=['*tests*']),
-      tests_require=parse_requirements('test-requirements.txt'),
-      install_requires=install_requires,
-      dependency_links=dependency_links,
-      license='MIT',
-      test_suite='nose.collector',
-      classifiers=[
-          'Development Status :: 4 - Beta',
-          'Intended Audience :: Developers',
-          'License :: OSI Approved :: MIT License',
-          'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 2.6',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python',
-          'Topic :: Internet :: WWW/HTTP',
-          'Topic :: Software Development :: Testing'
-      ],
+setup(
+    name='httpretty',
+    version=read_version(),
+    description='HTTP client mock for Python',
+    long_description=local_file('README.rst'),
+    author='Gabriel Falcao',
+    author_email='gabriel@nacaolivre.org',
+    url='http://github.com/gabrielfalcao/httpretty',
+    zip_safe=False,
+    packages=find_packages(exclude=['*tests*']),
+    tests_require=parse_requirements('test-requirements.txt'),
+    install_requires=install_requires,
+    dependency_links=dependency_links,
+    license='MIT',
+    test_suite='nose.collector',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Software Development :: Testing'
+    ],
 )
