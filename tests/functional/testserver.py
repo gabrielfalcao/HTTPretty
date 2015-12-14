@@ -42,6 +42,8 @@ from tornado.web import Application
 from tornado.web import RequestHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
+from httpretty import HTTPretty
+
 from multiprocessing import Process
 
 PY3 = sys.version_info[0] == 3
@@ -92,15 +94,14 @@ class TornadoServer(object):
         ])
 
     def start(self):
+        HTTPretty.disable()
+
         def go(app, port, data={}):
             from httpretty import HTTPretty
             HTTPretty.disable()
             http = HTTPServer(app)
             http.listen(int(port))
-            try:
-                IOLoop.instance().start()
-            except RuntimeError:
-                pass
+            IOLoop.instance().start()
 
         app = self.get_handlers()
 
@@ -124,6 +125,8 @@ class TCPServer(object):
         self.port = int(port)
 
     def start(self):
+        HTTPretty.disable()
+
         def go(port):
             from httpretty import HTTPretty
             HTTPretty.disable()
