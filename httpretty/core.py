@@ -882,7 +882,7 @@ class httpretty(HttpBaseClass):
     def match_uriinfo(cls, info):
         items = sorted(
             cls._entries.items(),
-            key=lambda (matcher, _): matcher.priority,
+            key=lambda matcher_entries: matcher_entries[0].priority,
             reverse=True,
         )
         for matcher, value in items:
