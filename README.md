@@ -1,7 +1,6 @@
 # HTTPretty 0.8.12
 
 ![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
-[![tip for next commit](http://tip4commit.com/projects/133.svg)](http://tip4commit.com/projects/133)
 [![Build Status](https://travis-ci.org/gabrielfalcao/HTTPretty.png?branch=master)](https://travis-ci.org/gabrielfalcao/HTTPretty)
 [ChangeLog](https://github.com/gabrielfalcao/HTTPretty/blob/master/docs/NEWS.md)
 
