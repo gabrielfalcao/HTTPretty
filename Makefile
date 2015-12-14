@@ -25,7 +25,7 @@ test: unit functional acceptance
 
 lint:
 	@echo "Checking code style ..."
-	@flake8 --show-source --ignore=F821 httpretty
+	@flake8 --show-source --ignore=F821,E901 httpretty
 
 unit: prepare lint
 	@echo "Running unit tests ..."
