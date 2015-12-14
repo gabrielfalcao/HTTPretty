@@ -4,6 +4,13 @@
 [![Build Status](https://travis-ci.org/gabrielfalcao/HTTPretty.png?branch=master)](https://travis-ci.org/gabrielfalcao/HTTPretty)
 [ChangeLog](https://github.com/gabrielfalcao/HTTPretty/blob/master/docs/NEWS.md)
 
+### disclaimer:
+
+Due to big API incompatibility between python 3.3, 3.4 and 3.5, the
+author of HTTPretty is **not** supporting python3 officially.  You
+will notice that the travis build for python 3 might be broken, and
+while pull requests fixing py3 support are most welcome, it is still
+not official at least *for now*.
 
 # Installing
 
