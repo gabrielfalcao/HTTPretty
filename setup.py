@@ -95,7 +95,7 @@ setup(
     url='http://github.com/gabrielfalcao/httpretty',
     zip_safe=False,
     packages=find_packages(exclude=['*tests*']),
-    tests_require=parse_requirements('test-requirements.txt'),
+    tests_require=parse_requirements('development.txt'),
     install_requires=install_requires,
     dependency_links=dependency_links,
     license='MIT',
