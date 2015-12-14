@@ -97,7 +97,10 @@ class TornadoServer(object):
             HTTPretty.disable()
             http = HTTPServer(app)
             http.listen(int(port))
-            IOLoop.instance().start()
+            try:
+                IOLoop.instance().start()
+            except RuntimeError:
+                pass
 
         app = self.get_handlers()
 
