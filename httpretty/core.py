@@ -652,7 +652,7 @@ class Entry(BaseClass):
                                        'text/plain; charset=utf-8')
 
             content_length = headers.pop('content-length',
-                                         byte_type(self.body_length))
+                                         self.body_length)
 
             string_list.append('content-type: %s' % content_type)
             if not self.streaming:
