@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import json
@@ -566,8 +566,8 @@ def test_fakesock_socket_sendall_with_body_data_with_entry(POTENTIAL_HTTP_PORTS,
     # When I try to send data
     socket.sendall(b"BLABLABLABLA")
 
-    # Then it shoud have called real_sendall
-    data_sent.should.equal(['BLABLABLABLA'])
+    # Then it should have called real_sendall
+    data_sent.should.equal([b'BLABLABLABLA'])
 
 
 @patch('httpretty.core.httpretty.match_uriinfo')
