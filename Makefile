@@ -8,7 +8,7 @@ OPEN_COMMAND		:= open
 endif
 
 
-all: check_dependencies unit functional acceptance
+all: check_dependencies unit functional
 
 filename=httpretty-`python -c 'import httpretty;print httpretty.version'`.tar.gz
 
@@ -21,7 +21,7 @@ check_dependencies:
 		python -c "import $$dependency" 2>/dev/null || (echo "You must install $$dependency in order to run httpretty's tests" && exit 3) ; \
 		done
 
-test: unit functional acceptance
+test: unit functional
 
 lint:
 	@echo "Checking code style ..."
@@ -35,10 +35,6 @@ functional: prepare
 	@echo "Running functional tests ..."
 	@nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/functional
 
-acceptance: prepare
-	@echo "Running documentation tests tests ..."
-	@steadymark README.md
-
 clean:
 	@printf "Cleaning up files that are already in .gitignore... "
 	@for pattern in `cat .gitignore`; do rm -rf $$pattern; done
@@ -49,7 +45,7 @@ release: clean unit functional
 	@./.release
 	@python setup.py sdist bdist_wheel register upload
 
-docs: acceptance
+docs:
 	@cd docs && make html
 	$(OPEN_COMMAND) docs/build/html/index.html
 
