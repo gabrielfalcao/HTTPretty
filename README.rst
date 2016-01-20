@@ -1,8 +1,18 @@
-HTTPretty 0.8.3
-===============
+HTTPretty 0.8.14
+================
 
-|https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg|
-|tip for next commit| |Build Status| `ChangeLog <NEWS.md>`__
+|https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo\_1.svg|
+|Build Status|
+`ChangeLog <https://github.com/gabrielfalcao/HTTPretty/blob/master/docs/NEWS.md>`__
+
+disclaimer:
+~~~~~~~~~~~
+
+Due to big API incompatibility between python 3.3, 3.4 and 3.5, the
+author of HTTPretty is **not** supporting python3 officially. You will
+notice that the travis build for python 3 might be broken, and while
+pull requests fixing py3 support are most welcome, it is still not
+official at least *for now*.
 
 Installing
 ==========
@@ -447,6 +457,7 @@ raising an error if an unregistered endpoint is requested
 ---------------------------------------------------------
 
 .. code:: python
+
     import urllib2
     import httpretty
 
@@ -456,7 +467,7 @@ raising an error if an unregistered endpoint is requested
     httpretty.register_uri(httpretty.GET, 'http://www.google.com', body='OK')
 
     urllib2.urlopen('http://www.google.com')
-    urllib2.urlopen('http://www.reddit.com') # raises httpretty.errors.UnmockedError
+    urllib2.urlopen.when.called_with('http://www.reddit.com').should.have.raised(httpretty.errors.UnmockedError)
 
 Motivation
 ==========
@@ -584,8 +595,6 @@ There folks made remarkable contributions to HTTPretty:
 -  Matt Luongo ~> @mhluongo
 -  James Rowe ~> @JNRowe
 
-.. |https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg| image:: https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg
-.. |tip for next commit| image:: http://tip4commit.com/projects/133.svg
-   :target: http://tip4commit.com/projects/133
-.. |Build Status| image:: https://travis-ci.org/gabrielfalcao/HTTPretty.png?branch=master
+.. |https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo\_1.svg| image:: https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg
+.. |Build Status| image:: https://travis-ci.org/gabrielfalcao/HTTPretty.svg?branch=master
    :target: https://travis-ci.org/gabrielfalcao/HTTPretty

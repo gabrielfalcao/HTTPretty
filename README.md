@@ -1,7 +1,7 @@
 # HTTPretty 0.8.14
 
 ![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
-[![Build Status](https://travis-ci.org/gabrielfalcao/HTTPretty.png?branch=master)](https://travis-ci.org/gabrielfalcao/HTTPretty)
+[![Build Status](https://travis-ci.org/gabrielfalcao/HTTPretty.svg?branch=master)](https://travis-ci.org/gabrielfalcao/HTTPretty)
 [ChangeLog](https://github.com/gabrielfalcao/HTTPretty/blob/master/docs/NEWS.md)
 
 ### disclaimer:
