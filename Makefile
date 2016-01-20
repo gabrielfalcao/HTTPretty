@@ -27,7 +27,7 @@ lint:
 	@echo "Checking code style ..."
 	@flake8 --show-source --ignore=F821,E901 httpretty
 
-unit: prepare lint
+unit: prepare
 	@echo "Running unit tests ..."
 	@nosetests --rednose -x --with-randomly --with-coverage --cover-package=httpretty -s tests/unit
 
