@@ -36,6 +36,7 @@ import traceback
 import json
 import contextlib
 import threading
+import tempfile
 
 
 from .compat import (
@@ -236,10 +237,17 @@ class HTTPrettyRequestEmpty(object):
     headers = EmptyRequestHeaders()
 
 
-class FakeSockFile(StringIO):
+class FakeSockFile(object):
+    def __init__(self):
+        self.file = tempfile.TemporaryFile()
+        self._fileno = self.file.fileno()
     def close(self):
         self.socket.close()
-        StringIO.close(self)
+        self.file.close()
+    def fileno(self):
+        return self._fileno
+    def __getattr__(self, name):
+        return getattr(self.file, name)
 
 
 class FakeSSLSocket(object):
@@ -322,6 +330,11 @@ class fakesock(object):
                 else:
                     raise UnmockedError()
 
+        def fileno(self):
+            if self.truesock:
+                return self.truesock.fileno()
+            return self.fd.fileno()
+
         def close(self):
             if not (self.is_http and self._closed):
                 if self.truesock:
@@ -329,7 +342,7 @@ class fakesock(object):
             self._closed = True
 
         def makefile(self, mode='r', bufsize=-1):
-            """Returns this fake socket's own StringIO buffer.
+            """Returns this fake socket's own tempfile buffer.
 
             If there is an entry associated with the socket, the file
             descriptor gets filled in with the entry data before being
@@ -358,7 +371,7 @@ class fakesock(object):
             when HTTPretty identifies that someone is trying to send
             non-http data.
 
-            The received bytes are written in this socket's StringIO
+            The received bytes are written in this socket's tempfile
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """

@@ -272,7 +272,7 @@ def test_Entry_class_counts_multibyte_characters_in_bytes():
     entry = Entry(HTTPretty.GET, 'http://example.com', 'こんにちは')
     buf = FakeSockFile()
     entry.fill_filekind(buf)
-    response = buf.getvalue()
+    response = buf.read()
     expect(b'content-length: 15\n').to.be.within(response)
 
 

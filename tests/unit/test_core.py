@@ -322,7 +322,7 @@ def test_fakesock_socket_real_sendall(old_socket):
     real_socket.recv.called.should.be.false
 
     # And the buffer is empty
-    socket.fd.getvalue().should.equal(b'')
+    socket.fd.read().should.equal(b'')
 
     # And connect was never called
     real_socket.connect.called.should.be.false
@@ -356,7 +356,7 @@ def test_fakesock_socket_real_sendall_when_http(old_socket):
     ])
 
     # And the buffer should contain the data from the server
-    socket.fd.getvalue().should.equal(b"response from server")
+    socket.fd.read().should.equal(b"response from server")
 
     # And connect was called
     real_socket.connect.called.should.be.true
@@ -391,7 +391,7 @@ def test_fakesock_socket_real_sendall_continue_eagain_when_http(socket, old_sock
     ])
 
     # And the buffer should contain the data from the server
-    socket.fd.getvalue().should.equal(b"after error")
+    socket.fd.read().should.equal(b"after error")
 
     # And connect was called
     real_socket.connect.called.should.be.true
@@ -424,7 +424,7 @@ def test_fakesock_socket_real_sendall_socket_error_when_http(socket, old_socket)
     real_socket.recv.assert_called_once_with(socket._bufsize)
 
     # And the buffer should contain the data from the server
-    socket.fd.getvalue().should.equal(b"")
+    socket.fd.read().should.equal(b"")
 
     # And connect was called
     real_socket.connect.called.should.be.true
@@ -464,7 +464,7 @@ def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket
     ])
 
     # And the buffer should contain the data from the server
-    socket.fd.getvalue().should.equal(b"response from foobar :)")
+    socket.fd.read().should.equal(b"response from foobar :)")
 
 
 @patch('httpretty.core.old_socket')
