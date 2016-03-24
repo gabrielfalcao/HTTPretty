@@ -369,6 +369,9 @@ class fakesock(object):
             if not self.is_http:
                 return self.truesock.sendall(data, *args, **kw)
 
+            if self._address[1] ==  443 and ssl:
+                self.truesock = old_sslsocket(self.truesock)
+
             self.truesock.connect(self._address)
 
             self.truesock.setblocking(1)
