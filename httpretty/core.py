@@ -914,7 +914,10 @@ class httpretty(HttpBaseClass):
         def record_request(request, uri, headers):
             cls.disable()
 
-            response = http.request(request.method, uri)
+            kw = {}
+            kw.setdefault('body', request.body)
+            kw.setdefault('headers', dict(request.headers))
+            response = http.request(request.method, uri, **kw)
             calls.append({
                 'request': {
                     'uri': uri,

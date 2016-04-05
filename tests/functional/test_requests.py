@@ -708,7 +708,9 @@ def test_recording_calls(port):
     # When I record some calls
     with HTTPretty.record(destination):
         requests.get(server_url("/foobar?name=Gabriel&age=25", port))
-        requests.post(server_url("/foobar", port), data=json.dumps({'test': '123'}))
+        requests.post(server_url("/foobar", port),
+                      data=json.dumps({'test': '123'}),
+                      headers={"Test": "foobar"})
 
     # Then the destination path should exist
     os.path.exists(destination).should.be.true
@@ -750,7 +752,10 @@ def test_recording_calls(port):
 
     # Then the responses should be the expected
     response1.json().should.equal({"foobar": {"age": "25", "name": "Gabriel"}})
-    response2.json().should.equal({"foobar": {}})
+    response2.json()["foobar"].should.equal({})
+    response2.json()["req_body"].should.equal(json.dumps({"test": "123"}))
+    response2.json()["req_headers"].should.have.key("Test")
+    response2.json()["req_headers"]["Test"].should.equal("foobar")
 
 
 @httprettified
