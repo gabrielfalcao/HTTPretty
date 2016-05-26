@@ -1088,61 +1088,60 @@ class httpretty(HttpBaseClass):
         return cls._is_enabled
 
     @classmethod
-    def enable(cls):
+    def enable(cls, overrides=None):
         cls._is_enabled = True
         # Some versions of python internally shadowed the
         # SocketType variable incorrectly https://bugs.python.org/issue20386
         bad_socket_shadow = (socket.socket != socket.SocketType)
 
-        socket.socket = fakesock.socket
-        socket._socketobject = fakesock.socket
+        _patch(socket, 'socket', fakesock.socket, overrides)
+        _patch(socket, '_socketobject', fakesock.socket, overrides)
+
         if not bad_socket_shadow:
-            socket.SocketType = fakesock.socket
+            _patch(socket, 'SocketType', fakesock.socket, overrides)
 
-        socket.create_connection = create_fake_connection
-        socket.gethostname = fake_gethostname
-        socket.gethostbyname = fake_gethostbyname
-        socket.getaddrinfo = fake_getaddrinfo
-
-        socket.__dict__['socket'] = fakesock.socket
-        socket.__dict__['_socketobject'] = fakesock.socket
-        if not bad_socket_shadow:
-            socket.__dict__['SocketType'] = fakesock.socket
-
-        socket.__dict__['create_connection'] = create_fake_connection
-        socket.__dict__['gethostname'] = fake_gethostname
-        socket.__dict__['gethostbyname'] = fake_gethostbyname
-        socket.__dict__['getaddrinfo'] = fake_getaddrinfo
+        _patch(socket, 'create_connection', create_fake_connection, overrides)
+        _patch(socket, 'gethostname', fake_gethostname, overrides)
+        _patch(socket, 'gethostbyname', fake_gethostbyname, overrides)
+        _patch(socket, 'getaddrinfo', fake_getaddrinfo, overrides)
 
         if socks:
-            socks.socksocket = fakesock.socket
-            socks.__dict__['socksocket'] = fakesock.socket
+            _patch(socks, 'socksocket', fakesock.socket, overrides)
 
         if ssl:
-            ssl.wrap_socket = fake_wrap_socket
-            ssl.SSLSocket = FakeSSLSocket
-
-            ssl.__dict__['wrap_socket'] = fake_wrap_socket
-            ssl.__dict__['SSLSocket'] = FakeSSLSocket
+            _patch(ssl, 'wrap_socket', fake_wrap_socket, overrides)
+            _patch(ssl, 'SSLSocket', FakeSSLSocket, overrides)
 
             if not PY3:
-                ssl.sslwrap_simple = fake_wrap_socket
-                ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
+                _patch(ssl, 'sslwrap_simple', fake_wrap_socket, overrides)
+
+
+def _patch(module, name, patch, overrides=None):
+    assert hasattr(module, name)
+    try:
+        patch = overrides[module.__name__][name]
+    except (KeyError, TypeError):
+        pass
+
+    setattr(module, name, patch)
+    module.__dict__[name] = patch
 
 
 class httprettized(object):
 
+    def __init__(self, overrides=None):
+        self._overrides = overrides
+
     def __enter__(self):
         httpretty.reset()
-        httpretty.enable()
+        httpretty.enable(self._overrides)
 
     def __exit__(self, exc_type, exc_value, traceback):
         httpretty.disable()
         httpretty.reset()
 
 
-def httprettified(test):
-    "A decorator tests that use HTTPretty"
+def wrap_with_overrides(test, overrides=None):
     def decorate_class(klass):
         for attr in dir(klass):
             if not attr.startswith('test_'):
@@ -1159,6 +1158,38 @@ def httprettified(test):
         @functools.wraps(test)
         def wrapper(*args, **kw):
             with httprettized():
+                return test(*args, **kw)
+        return wrapper
+
+    if isinstance(test, ClassTypes):
+        return decorate_class(test)
+    return decorate_callable(test)
+
+
+def httprettified_with_overrides(overrides):
+    def wrapper(test):
+        return httprettified(test, overrides=overrides)
+    return wrapper
+
+
+def httprettified(test, overrides=None):
+    "A decorator tests that use HTTPretty"
+    def decorate_class(klass):
+        for attr in dir(klass):
+            if not attr.startswith('test_'):
+                continue
+
+            attr_value = getattr(klass, attr)
+            if not hasattr(attr_value, "__call__"):
+                continue
+
+            setattr(klass, attr, decorate_callable(attr_value))
+        return klass
+
+    def decorate_callable(test):
+        @functools.wraps(test)
+        def wrapper(*args, **kw):
+            with httprettized(overrides=overrides):
                 return test(*args, **kw)
         return wrapper
 
