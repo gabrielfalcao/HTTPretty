@@ -637,7 +637,7 @@ class Entry(BaseClass):
                 headers
             )
             headers.update({
-                'content-length': byte_type(len(self.body))
+                'content-length': text_type(len(self.body))
             })
 
         string_list = [
