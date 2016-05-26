@@ -36,6 +36,7 @@ import traceback
 import json
 import contextlib
 import threading
+import sys
 
 
 from .compat import (
@@ -636,8 +637,13 @@ class Entry(BaseClass):
                 self.info.full_url(),
                 headers
             )
+
+            if sys.version_info < (3, 0):
+                length = byte_type(len(self.body))
+            else:
+                length = len(self.body)
             headers.update({
-                'content-length': byte_type(len(self.body))
+                'content-length': length
             })
 
         string_list = [
