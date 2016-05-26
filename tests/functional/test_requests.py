@@ -580,13 +580,9 @@ def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
 
     response = requests.get('https://example.org/what/')
     expect(response.text).to.equal('Nudge, nudge, wink, wink. Know what I mean?')
-    try:
-        requests.get('https://example.org/what/?flying=coconuts')
-        raised = False
-    except requests.ConnectionError:
-        raised = True
 
-    assert raised is True
+    response = requests.get('https://example.org/what/?flying=coconuts')
+    expect(response.text).to.not_be.equal('Nudge, nudge, wink, wink. Know what I mean?')
 
 
 @httprettified

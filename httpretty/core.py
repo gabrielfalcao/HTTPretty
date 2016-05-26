@@ -98,6 +98,7 @@ try:  # pragma: no cover
     if not PY3:
         old_sslwrap_simple = ssl.sslwrap_simple
     old_sslsocket = ssl.SSLSocket
+    old_sslcontext = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 except ImportError:  # pragma: no cover
     ssl = None
 
@@ -369,18 +370,20 @@ class fakesock(object):
             if not self.is_http:
                 return self.truesock.sendall(data, *args, **kw)
 
-            if self._address[1] ==  443 and ssl:
-                self.truesock = old_sslsocket(self.truesock)
+            if self._address[1] ==  443 and old_sslsocket:
+                sock = old_sslsocket(self.truesock)
+            else:
+                sock = self.truesock
 
-            self.truesock.connect(self._address)
+            sock.connect(self._address)
 
-            self.truesock.setblocking(1)
-            self.truesock.sendall(data, *args, **kw)
+            sock.setblocking(1)
+            sock.sendall(data, *args, **kw)
 
             should_continue = True
             while should_continue:
                 try:
-                    received = self.truesock.recv(self._bufsize)
+                    received = sock.recv(self._bufsize)
                     self.fd.write(received)
                     should_continue = bool(received.strip())
 
