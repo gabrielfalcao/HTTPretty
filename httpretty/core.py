@@ -253,11 +253,20 @@ class FakeSockFile(object):
     def __init__(self):
         self.file = tempfile.TemporaryFile()
         self._fileno = self.file.fileno()
+
+    def getvalue(self):
+        if hasattr(self.file, 'getvalue'):
+            return self.file.getvalue()
+        else:
+            return self.file.read()
+
     def close(self):
         self.socket.close()
         self.file.close()
+
     def fileno(self):
         return self._fileno
+
     def __getattr__(self, name):
         return getattr(self.file, name)
 
