@@ -28,7 +28,6 @@ from __future__ import unicode_literals
 
 import requests
 
-from mock import patch, Mock
 from httpretty import HTTPretty, httprettified
 from sure import expect
 
