@@ -748,7 +748,11 @@ def test_recording_calls(port):
     with HTTPretty.playback(destination):
         # And make the expected requests
         response1 = requests.get(server_url("/foobar?name=Gabriel&age=25", port))
-        response2 = requests.post(server_url("/foobar", port), data=json.dumps({'test': '123'}))
+        response2 = requests.post(
+            server_url("/foobar", port),
+            data=json.dumps({'test': '123'}),
+            headers={"Test": "foobar"},
+        )
 
     # Then the responses should be the expected
     response1.json().should.equal({"foobar": {"age": "25", "name": "Gabriel"}})
