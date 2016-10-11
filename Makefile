@@ -35,6 +35,12 @@ functional: prepare
 	@echo "Running functional tests ..."
 	@nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/functional
 
+pyopenssl: prepare
+	@echo "Running PyOpenSSL mocking tests ..."
+	@pip install --quiet pyOpenSSL==16.1.0
+	@pip install --quiet ndg-httpsclient==0.4.2
+	@nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/pyopenssl
+
 clean:
 	@printf "Cleaning up files that are already in .gitignore... "
 	@for pattern in `cat .gitignore`; do rm -rf $$pattern; done

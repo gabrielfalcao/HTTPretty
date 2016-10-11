@@ -103,6 +103,14 @@ except ImportError:  # pragma: no cover
     ssl = None
 
 
+# used to handle error caused by ndg-httpsclient
+try:  # pragma: no cover
+    from requests.packages.urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
+    pyopenssl_override = True
+except ImportError:  # pragma: no cover
+    pyopenssl_override = False
+
+
 DEFAULT_HTTP_PORTS = frozenset([80])
 POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
 DEFAULT_HTTPS_PORTS = frozenset([443])
@@ -1104,6 +1112,10 @@ class httpretty(HttpBaseClass):
                 ssl.sslwrap_simple = old_sslwrap_simple
                 ssl.__dict__['sslwrap_simple'] = old_sslwrap_simple
 
+        if pyopenssl_override:
+            # Replace PyOpenSSL Monkeypatching
+            inject_into_urllib3()
+
     @classmethod
     def is_enabled(cls):
         return cls._is_enabled
@@ -1150,6 +1162,9 @@ class httpretty(HttpBaseClass):
                 ssl.sslwrap_simple = fake_wrap_socket
                 ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
 
+        if pyopenssl_override:
+            # Remove PyOpenSSL monkeypatch - use the default implementation
+            extract_from_urllib3()
 
 class httprettized(object):
 
