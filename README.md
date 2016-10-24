@@ -211,6 +211,49 @@ should be loaded. Forcing a `content-length` that is bigger than the
 action response body might cause the HTTP client to hang because it is
 waiting for data. Read more in the "caveats" session on the bottom.
 
+
+
+## Link headers
+
+Tests link headers by using the `adding_headers` parameter.
+
+```python
+import requests
+from sure import expect
+import httpretty
+
+@httpretty.activate
+def test_link_response():    
+    first_url = "http://foo-api.com/data"
+    second_url = "http://foo-api.com/data?page=2"
+    link_str = "<%s>; rel='next'" % second_url
+
+    httpretty.register_uri(httpretty.GET, first_url,
+                           body='{"success": true}',
+                           status=200,
+                           content_type='text/json',
+                           adding_headers={'Link': link_str}
+                           )
+
+    httpretty.register_uri(httpretty.GET, second_url,
+                           body='{"success": false}',
+                           status=500,
+                           content_type='text/json'
+                           )
+
+    # Performs a request to `first_url` followed by some testing
+    response = requests.get(first_url)    
+    expect(response.json()).to.equal({'success': True})
+    expect(response.status_code).to.equal(200)
+    next_url = response.links['next']['url']
+    expect(next_url).to.equal(second_url)
+    
+    # Follow the next URL and perform some testing.
+    response2 = requests.get(next_url)
+    expect(response2.json()).to.equal({'success': False})
+    expect(response2.status_code).to.equal(500)
+    ```
+
 ## rotating responses
 
 Same URL, same request method, the first request return the first
@@ -285,7 +328,8 @@ def test_twitter_api_integration(now):
     line_iter = response.iter_lines()
     for i in xrange(len(twitter_response_lines)):
         expect(line_iter.next().strip()).to.equal(twitter_response_lines[i].strip())
-```
+```   
+
 
 ## dynamic responses through callbacks
 
