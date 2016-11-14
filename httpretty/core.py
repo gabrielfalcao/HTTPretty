@@ -30,13 +30,14 @@ import codecs
 import inspect
 import socket
 import functools
+from functools import partial
 import itertools
 import warnings
 import traceback
 import json
 import contextlib
 import threading
-from functools import partial
+import tempfile
 
 from .compat import (
     PY3,
@@ -152,7 +153,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         # unicode strings, it must be converted into a utf-8 encoded
         # byte string
         self.raw_headers = utf8(headers.strip())
-        self.body = utf8(body)
+        self._body = utf8(body)
 
         # Now let's concatenate the headers with the body, and create
         # `rfile` based on it
@@ -191,7 +192,19 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
         # And the body will be attempted to be parsed as
         # `application/json` or `application/x-www-form-urlencoded`
-        self.parsed_body = self.parse_request_body(self.body)
+        self.parsed_body = self.parse_request_body(self._body)
+
+    @property
+    def body(self):
+        return self._body
+
+    @body.setter
+    def body(self, value):
+        self._body = utf8(value)
+
+        # And the body will be attempted to be parsed as
+        # `application/json` or `application/x-www-form-urlencoded`
+        self.parsed_body = self.parse_request_body(self._body)
 
     def __nonzero__(self):
         return bool(self.body) or bool(self.raw_headers)
@@ -243,10 +256,26 @@ class HTTPrettyRequestEmpty(object):
     headers = EmptyRequestHeaders()
 
 
-class FakeSockFile(StringIO):
+class FakeSockFile(object):
+    def __init__(self):
+        self.file = tempfile.TemporaryFile()
+        self._fileno = self.file.fileno()
+
+    def getvalue(self):
+        if hasattr(self.file, 'getvalue'):
+            return self.file.getvalue()
+        else:
+            return self.file.read()
+
     def close(self):
         self.socket.close()
-        StringIO.close(self)
+        self.file.close()
+
+    def fileno(self):
+        return self._fileno
+
+    def __getattr__(self, name):
+        return getattr(self.file, name)
 
 
 class FakeSSLSocket(object):
@@ -336,6 +365,11 @@ class fakesock(object):
                     self.truesock.connect(self._address)
                     self._connected_truesock = True
 
+        def fileno(self):
+            if self.truesock:
+                return self.truesock.fileno()
+            return self.fd.fileno()
+
         def close(self):
             if self._connected_truesock:
                 self.truesock.close()
@@ -343,7 +377,7 @@ class fakesock(object):
             self._closed = True
 
         def makefile(self, mode='r', bufsize=-1):
-            """Returns this fake socket's own StringIO buffer.
+            """Returns this fake socket's own tempfile buffer.
 
             If there is an entry associated with the socket, the file
             descriptor gets filled in with the entry data before being
@@ -372,7 +406,7 @@ class fakesock(object):
             when HTTPretty identifies that someone is trying to send
             non-http data.
 
-            The received bytes are written in this socket's StringIO
+            The received bytes are written in this socket's tempfile
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
@@ -665,7 +699,7 @@ class Entry(BaseClass):
                 headers
             )
             headers.update({
-                'content-length': byte_type(len(self.body))
+                'content-length': text_type(len(self.body))
             })
 
         string_list = [
@@ -976,7 +1010,10 @@ class httpretty(HttpBaseClass):
         def record_request(request, uri, headers):
             cls.disable()
 
-            response = http.request(request.method, uri)
+            kw = {}
+            kw.setdefault('body', request.body)
+            kw.setdefault('headers', dict(request.headers))
+            response = http.request(request.method, uri, **kw)
             calls.append({
                 'request': {
                     'uri': uri,
@@ -1200,8 +1237,37 @@ class httprettized(object):
 
 
 def httprettified(test):
-    "A decorator tests that use HTTPretty"
-    def decorate_class(klass):
+
+    def decorate_unittest_TestCase_setUp(klass):
+
+        # Prefer addCleanup (added in python 2.7), but fall back
+        # to using tearDown if it isn't available
+        use_addCleanup = hasattr(klass, 'addCleanup')
+
+        original_setUp = (klass.setUp
+                          if hasattr(klass, 'setUp')
+                          else None)
+        def new_setUp(self):
+            httpretty.enable()
+            if use_addCleanup:
+                self.addCleanup(httpretty.disable)
+            if original_setUp:
+                original_setUp(self)
+        klass.setUp = new_setUp
+
+        if not use_addCleanup:
+            original_tearDown = (klass.setUp
+                                 if hasattr(klass, 'tearDown')
+                                 else None)
+            def new_tearDown(self):
+                httpretty.disable()
+                if original_tearDown:
+                    original_tearDown(self)
+            klass.tearDown = new_tearDown
+
+        return klass
+
+    def decorate_test_methods(klass):
         for attr in dir(klass):
             if not attr.startswith('test_'):
                 continue
@@ -1212,6 +1278,19 @@ def httprettified(test):
 
             setattr(klass, attr, decorate_callable(attr_value))
         return klass
+
+    def is_unittest_TestCase(klass):
+        try:
+            import unittest
+            return issubclass(klass, unittest.TestCase)
+        except ImportError:
+            return False
+
+    "A decorator for tests that use HTTPretty"
+    def decorate_class(klass):
+        if is_unittest_TestCase(klass):
+            return decorate_unittest_TestCase_setUp(klass)
+        return decorate_test_methods(klass)
 
     def decorate_callable(test):
         @functools.wraps(test)

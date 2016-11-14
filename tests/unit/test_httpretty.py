@@ -272,6 +272,16 @@ def test_Entry_class_counts_multibyte_characters_in_bytes():
     entry = Entry(HTTPretty.GET, 'http://example.com', 'こんにちは')
     buf = FakeSockFile()
     entry.fill_filekind(buf)
+    response = buf.read()
+    expect(b'content-length: 15\n').to.be.within(response)
+
+
+def test_Entry_class_counts_dynamic():
+    result = (200, {}, 'こんにちは'.encode('utf-8'))
+    entry = Entry(HTTPretty.GET, 'http://example.com', lambda *args: result)
+    entry.info = URIInfo.from_uri('http://example.com', entry)
+    buf = FakeSockFile()
+    entry.fill_filekind(buf)
     response = buf.getvalue()
     expect(b'content-length: 15\n').to.be.within(response)
 

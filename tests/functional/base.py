@@ -61,7 +61,11 @@ class JSONEchoHandler(tornado.web.RequestHandler):
 
     def post(self, matched):
         payload = dict(self.request.arguments)
-        self.write(json.dumps({matched or 'index': payload}, indent=4))
+        self.write(json.dumps({
+            matched or 'index': payload,
+            'req_body': self.request.body,
+            'req_headers': dict(self.request.headers.items()),
+        }, indent=4))
 
 
 class JSONEchoServer(threading.Thread):

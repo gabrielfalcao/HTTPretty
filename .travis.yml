@@ -11,6 +11,7 @@ matrix:
 env:
   - TEST_TYPE=unit
   - TEST_TYPE=functional
+  - TEST_TYPE=pyopenssl
 
 install:
   - pip install -r development.txt
