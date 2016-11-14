@@ -36,7 +36,7 @@ import traceback
 import json
 import contextlib
 import threading
-
+from functools import partial
 
 from .compat import (
     PY3,
@@ -102,6 +102,12 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     ssl = None
 
+
+try:
+    import requests.packages.urllib3.connection as requests_urllib3_connection
+    old_requests_ssl_wrap_socket = requests_urllib3_connection.ssl_wrap_socket
+except ImportError:
+    requests_urllib3_connection = None
 
 DEFAULT_HTTP_PORTS = frozenset([80])
 POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
@@ -262,6 +268,7 @@ class fakesock(object):
             self.truesock = (old_socket(family, type, protocol)
                              if httpretty.allow_net_connect
                              else None)
+            self._connected_truesock = False
             self._closed = True
             self.fd = FakeSockFile()
             self.fd.socket = _sock or self
@@ -318,15 +325,21 @@ class fakesock(object):
                 self.is_http = self._port in ports_to_check
 
             if not self.is_http:
-                if self.truesock:
+                if self.truesock and not self._connected_truesock:
                     self.truesock.connect(self._address)
+                    self._connected_truesock = True
                 else:
                     raise UnmockedError()
+            elif self.truesock is not None and not self._connected_truesock:
+                matcher = httpretty.match_address(self._host, self._port)
+                if matcher is None:
+                    self.truesock.connect(self._address)
+                    self._connected_truesock = True
 
         def close(self):
-            if not (self.is_http and self._closed):
-                if self.truesock:
-                    self.truesock.close()
+            if self._connected_truesock:
+                self.truesock.close()
+                self._connected_truesock = False
             self._closed = True
 
         def makefile(self, mode='r', bufsize=-1):
@@ -363,19 +376,19 @@ class fakesock(object):
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
-
             if not self.truesock:
                 raise UnmockedError()
 
             if not self.is_http:
                 return self.truesock.sendall(data, *args, **kw)
 
-            if self._address[1] ==  443 and old_sslsocket:
+            if self._address[1] == 443 and old_sslsocket:
                 sock = old_sslsocket(self.truesock)
             else:
                 sock = self.truesock
 
-            sock.connect(self._address)
+            if not self._connected_truesock:
+                sock.connect(self._address)
 
             sock.setblocking(1)
             sock.sendall(data, *args, **kw)
@@ -508,8 +521,17 @@ class fakesock(object):
             return getattr(self.truesock, name)
 
 
-def fake_wrap_socket(s, *args, **kw):
-    return s
+def fake_wrap_socket(orig_wrap_socket_fn, _socket, *args, **kw):
+    server_hostname = kw.get('server_hostname')
+    if server_hostname is not None:
+        matcher = httpretty.match_hostname(server_hostname)
+        if matcher is None:
+            return orig_wrap_socket_fn(
+                _socket,
+                *args,
+                **kw
+            )
+    return _socket
 
 
 def create_fake_connection(
@@ -901,6 +923,40 @@ class httpretty(HttpBaseClass):
         return (None, [])
 
     @classmethod
+    def match_hostname(cls, hostname):
+        items = sorted(
+            cls._entries.items(),
+            key=lambda matcher_entries: matcher_entries[0].priority,
+            reverse=True,
+        )
+        for matcher, value in items:
+            if matcher.info is None:
+                if hostname == urlsplit(matcher.regex.pattern).hostname:
+                    return matcher
+            elif matcher.info.hostname == hostname:
+                return matcher
+        return None
+
+    @classmethod
+    def match_address(cls, hostname, port):
+        items = sorted(
+            cls._entries.items(),
+            key=lambda matcher_entries: matcher_entries[0].priority,
+            reverse=True,
+        )
+        for matcher, value in items:
+            if matcher.info is None:
+                split = urlsplit(matcher.regex.pattern)
+                if split.hostname == hostname and split.port == port:
+                    return matcher
+
+            elif matcher.info.hostname == hostname \
+                    and matcher.info.port == port:
+                return matcher
+
+        return None
+
+    @classmethod
     @contextlib.contextmanager
     def record(cls, filename, indentation=4, encoding='utf-8'):
         try:
@@ -1073,6 +1129,12 @@ class httpretty(HttpBaseClass):
                 ssl.sslwrap_simple = old_sslwrap_simple
                 ssl.__dict__['sslwrap_simple'] = old_sslwrap_simple
 
+        if requests_urllib3_connection is not None:
+            requests_urllib3_connection.ssl_wrap_socket = \
+                old_requests_ssl_wrap_socket
+            requests_urllib3_connection.__dict__['ssl_wrap_socket'] = \
+                old_requests_ssl_wrap_socket
+
     @classmethod
     def is_enabled(cls):
         return cls._is_enabled
@@ -1109,15 +1171,21 @@ class httpretty(HttpBaseClass):
             socks.__dict__['socksocket'] = fakesock.socket
 
         if ssl:
-            ssl.wrap_socket = fake_wrap_socket
+            new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
+            ssl.wrap_socket = new_wrap
             ssl.SSLSocket = FakeSSLSocket
 
-            ssl.__dict__['wrap_socket'] = fake_wrap_socket
+            ssl.__dict__['wrap_socket'] = new_wrap
             ssl.__dict__['SSLSocket'] = FakeSSLSocket
 
             if not PY3:
-                ssl.sslwrap_simple = fake_wrap_socket
-                ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
+                ssl.sslwrap_simple = new_wrap
+                ssl.__dict__['sslwrap_simple'] = new_wrap
+
+        if requests_urllib3_connection is not None:
+            new_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
+            requests_urllib3_connection.ssl_wrap_socket = new_wrap
+            requests_urllib3_connection.__dict__['ssl_wrap_socket'] = new_wrap
 
 
 class httprettized(object):

@@ -24,49 +24,51 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+import requests
+from sure import expect
 
+from httpretty import (
+    HTTPretty,
+    httprettified,
+)
+
+
+@httprettified
 def test_http_passthrough():
-    from sure import expect
-    from httpretty import HTTPretty
-    import requests
-    
-    url = 'http://checkip.dyndns.com/'
-    
+    url = 'http://ip4.me/'
     response1 = requests.get(url)
-    
+
     HTTPretty.enable()
     HTTPretty.register_uri(HTTPretty.GET, 'http://google.com/', body="Not Google")
-    
+
     response2 = requests.get('http://google.com/')
     expect(response2.content).to.equal('Not Google')
-    
+
     response3 = requests.get(url)
     expect(response3.content).to.equal(response1.content)
-    
+
     HTTPretty.disable()
-    
+
     response4 = requests.get(url)
     expect(response4.content).to.equal(response1.content)
-    
+
+
+@httprettified
 def test_https_passthrough():
-    from sure import expect
-    from httpretty import HTTPretty
-    import requests
-    
     url = 'https://www.cloudflare.com/ips-v4'
-    
+
     response1 = requests.get(url)
-    
+
     HTTPretty.enable()
     HTTPretty.register_uri(HTTPretty.GET, 'http://google.com/', body="Not Google")
-    
+
     response2 = requests.get('http://google.com/')
     expect(response2.content).to.equal('Not Google')
-    
+
     response3 = requests.get(url)
     expect(response3.content).to.equal(response1.content)
-    
+
     HTTPretty.disable()
-    
+
     response4 = requests.get(url)
     expect(response4.content).to.equal(response1.content)
