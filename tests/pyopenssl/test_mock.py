@@ -31,19 +31,10 @@ import requests
 from httpretty import HTTPretty, httprettified
 from sure import expect
 
-from requests.packages.urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
-
 
 @httprettified
 def test_httpretty_overrides_when_pyopenssl_installed():
     ('HTTPretty should remove PyOpenSSLs urllib3 mock if it is installed')
-
-    # When we run Httpretty with PyOpenSSL and ndg-httpsclient installed
-    from httpretty.core import pyopenssl_override
-
-    # Then we override pyopenssl
-    pyopenssl_override.should.be.true
-
     # And HTTPretty works successfully
     HTTPretty.register_uri(HTTPretty.GET, "https://yipit.com/",
                            body="Find the best daily deals")
@@ -53,20 +44,3 @@ def test_httpretty_overrides_when_pyopenssl_installed():
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/')
 
-
-@httprettified
-def test_httpretty_fails_when_pyopenssl_is_not_replaced():
-    ('HTTPretty should fail if PyOpenSSL is installed and we do not remove the monkey patch')
-
-    # When we don't replace the PyOpenSSL monkeypatch
-    inject_into_urllib3()
-
-    # And we use HTTPretty on as ssl site
-    HTTPretty.register_uri(HTTPretty.GET, "https://yipit.com/",
-                           body="Find the best daily deals")
-
-    # Then we get an SSL error
-    requests.get.when.called_with('https://yipit.com').should.throw(requests.exceptions.SSLError)
-
-    # Undo injection after test
-    extract_from_urllib3()
