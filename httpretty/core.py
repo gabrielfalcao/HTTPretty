@@ -360,7 +360,7 @@ class fakesock(object):
                 else:
                     raise UnmockedError()
             elif self.truesock is not None and not self._connected_truesock:
-                matcher = httpretty.match_address(self._host, self._port)
+                matcher = httpretty.match_http_address(self._host, self._port)
                 if matcher is None:
                     self.truesock.connect(self._address)
                     self._connected_truesock = True
@@ -558,7 +558,7 @@ class fakesock(object):
 def fake_wrap_socket(orig_wrap_socket_fn, _socket, *args, **kw):
     server_hostname = kw.get('server_hostname')
     if server_hostname is not None:
-        matcher = httpretty.match_hostname(server_hostname)
+        matcher = httpretty.match_https_hostname(server_hostname)
         if matcher is None:
             return orig_wrap_socket_fn(
                 _socket,
@@ -957,7 +957,7 @@ class httpretty(HttpBaseClass):
         return (None, [])
 
     @classmethod
-    def match_hostname(cls, hostname):
+    def match_https_hostname(cls, hostname):
         items = sorted(
             cls._entries.items(),
             key=lambda matcher_entries: matcher_entries[0].priority,
@@ -965,14 +965,19 @@ class httpretty(HttpBaseClass):
         )
         for matcher, value in items:
             if matcher.info is None:
-                if hostname == urlsplit(matcher.regex.pattern).hostname:
-                    return matcher
+                pattern_with_port = "https://{}:".format(hostname)
+                pattern_without_port = "https://{}/".format(hostname)
+                for pattern in [pattern_with_port, pattern_without_port]:
+                    if matcher.regex.search(pattern) is not None \
+                            or matcher.regex.pattern.startswith(pattern):
+                        return matcher
+
             elif matcher.info.hostname == hostname:
                 return matcher
         return None
 
     @classmethod
-    def match_address(cls, hostname, port):
+    def match_http_address(cls, hostname, port):
         items = sorted(
             cls._entries.items(),
             key=lambda matcher_entries: matcher_entries[0].priority,
@@ -980,9 +985,17 @@ class httpretty(HttpBaseClass):
         )
         for matcher, value in items:
             if matcher.info is None:
-                split = urlsplit(matcher.regex.pattern)
-                if split.hostname == hostname and split.port == port:
-                    return matcher
+                if port in POTENTIAL_HTTPS_PORTS:
+                    scheme = 'https://'
+                else:
+                    scheme = 'http://'
+
+                pattern_without_port = "{}{}/".format(scheme, hostname)
+                pattern_with_port = "{}{}:{}/".format(scheme, hostname, port)
+                for pattern in [pattern_with_port, pattern_without_port]:
+                    if matcher.regex.search(pattern_without_port) is not None \
+                            or matcher.regex.pattern.startswith(pattern):
+                        return matcher
 
             elif matcher.info.hostname == hostname \
                     and matcher.info.port == port:
