@@ -37,7 +37,7 @@ import tornado.web
 from functools import wraps
 
 from os.path import abspath, dirname, join
-from httpretty.core import POTENTIAL_HTTP_PORTS, old_socket
+from httpretty.core import POTENTIAL_HTTP_PORTS, old_socket, decode_utf8
 
 
 def get_free_tcp_port():
@@ -63,7 +63,7 @@ class JSONEchoHandler(tornado.web.RequestHandler):
         payload = dict(self.request.arguments)
         self.write(json.dumps({
             matched or 'index': payload,
-            'req_body': self.request.body,
+            'req_body': decode_utf8(self.request.body),
             'req_headers': dict(self.request.headers.items()),
         }, indent=4))
 
