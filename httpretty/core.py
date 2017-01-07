@@ -971,7 +971,12 @@ class httpretty(HttpBaseClass):
                 'response': {
                     'status': response.status,
                     'body': decode_utf8(response.data),
-                    'headers': dict(response.headers)
+                    # urllib3 1.10 had a bug if you just did:
+                    # dict(response.headers)
+                    # which would cause all the values to become lists
+                    # with the header name as the first item and the
+                    # true value as the second item. Workaround that
+                    'headers': dict(response.headers.items())
                 }
             })
             cls.enable()
