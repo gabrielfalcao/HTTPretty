@@ -1189,6 +1189,7 @@ def httprettified(test):
                           if hasattr(klass, 'setUp')
                           else None)
         def new_setUp(self):
+            httpretty.reset()
             httpretty.enable()
             if use_addCleanup:
                 self.addCleanup(httpretty.disable)
@@ -1202,6 +1203,7 @@ def httprettified(test):
                                  else None)
             def new_tearDown(self):
                 httpretty.disable()
+                httpretty.reset()
                 if original_tearDown:
                     original_tearDown(self)
             klass.tearDown = new_tearDown
