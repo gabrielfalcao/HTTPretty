@@ -673,14 +673,13 @@ class Entry(BaseClass):
         headers = self.normalize_headers(headers)
         status = headers.get('status', self.status)
         if self.body_is_callable:
-            status, headers, self.body = self.callable_body(
-                self.request,
-                self.info.full_url(),
-                headers
-            )
-            headers.update({
-                'content-length': text_type(len(self.body))
-            })
+            status, headers, self.body = self.callable_body(self.request, self.info.full_url(), headers)
+            headers = self.normalize_headers(headers)
+            # TODO: document this behavior:
+            if 'content-length' not in headers:
+                headers.update({
+                    'content-length': len(self.body)
+                })
 
         string_list = [
             'HTTP/1.1 %d %s' % (status, STATUSES[status]),
