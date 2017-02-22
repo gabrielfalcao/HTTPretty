@@ -99,7 +99,6 @@ try:  # pragma: no cover
     if not PY3:
         old_sslwrap_simple = ssl.sslwrap_simple
     old_sslsocket = ssl.SSLSocket
-    old_sslcontext = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 except ImportError:  # pragma: no cover
     ssl = None
 
@@ -359,7 +358,7 @@ class fakesock(object):
                     self._connected_truesock = True
                 else:
                     raise UnmockedError()
-            elif self.truesock is not None and not self._connected_truesock:
+            elif self.truesock and not self._connected_truesock:
                 matcher = httpretty.match_http_address(self._host, self._port)
                 if matcher is None:
                     self.truesock.connect(self._address)
@@ -555,17 +554,16 @@ class fakesock(object):
             return getattr(self.truesock, name)
 
 
-def fake_wrap_socket(orig_wrap_socket_fn, _socket, *args, **kw):
+def fake_wrap_socket(orig_wrap_socket_fn, *args, **kw):
     server_hostname = kw.get('server_hostname')
     if server_hostname is not None:
         matcher = httpretty.match_https_hostname(server_hostname)
         if matcher is None:
-            return orig_wrap_socket_fn(
-                _socket,
-                *args,
-                **kw
-            )
-    return _socket
+                return orig_wrap_socket_fn(*args, **kw)
+    if 'sock' in kw:
+        return kw['sock']
+    else:
+        return args[0]
 
 
 def create_fake_connection(
@@ -965,8 +963,8 @@ class httpretty(HttpBaseClass):
         )
         for matcher, value in items:
             if matcher.info is None:
-                pattern_with_port = "https://{}:".format(hostname)
-                pattern_without_port = "https://{}/".format(hostname)
+                pattern_with_port = "https://{0}:".format(hostname)
+                pattern_without_port = "https://{0}/".format(hostname)
                 for pattern in [pattern_with_port, pattern_without_port]:
                     if matcher.regex.search(pattern) is not None \
                             or matcher.regex.pattern.startswith(pattern):
@@ -990,8 +988,8 @@ class httpretty(HttpBaseClass):
                 else:
                     scheme = 'http://'
 
-                pattern_without_port = "{}{}/".format(scheme, hostname)
-                pattern_with_port = "{}{}:{}/".format(scheme, hostname, port)
+                pattern_without_port = "{0}{1}/".format(scheme, hostname)
+                pattern_with_port = "{0}{1}:{2}/".format(scheme, hostname, port)
                 for pattern in [pattern_with_port, pattern_without_port]:
                     if matcher.regex.search(pattern_without_port) is not None \
                             or matcher.regex.pattern.startswith(pattern):

@@ -27,13 +27,9 @@
 import requests
 from sure import expect
 
-from httpretty import (
-    HTTPretty,
-    httprettified,
-)
+from httpretty import HTTPretty
 
 
-@httprettified
 def test_http_passthrough():
     url = 'http://ip4.me/'
     response1 = requests.get(url)
@@ -42,7 +38,7 @@ def test_http_passthrough():
     HTTPretty.register_uri(HTTPretty.GET, 'http://google.com/', body="Not Google")
 
     response2 = requests.get('http://google.com/')
-    expect(response2.content).to.equal('Not Google')
+    expect(response2.content).to.equal(b'Not Google')
 
     response3 = requests.get(url)
     expect(response3.content).to.equal(response1.content)
@@ -53,7 +49,6 @@ def test_http_passthrough():
     expect(response4.content).to.equal(response1.content)
 
 
-@httprettified
 def test_https_passthrough():
     url = 'https://www.cloudflare.com/ips-v4'
 
@@ -63,7 +58,7 @@ def test_https_passthrough():
     HTTPretty.register_uri(HTTPretty.GET, 'http://google.com/', body="Not Google")
 
     response2 = requests.get('http://google.com/')
-    expect(response2.content).to.equal('Not Google')
+    expect(response2.content).to.equal(b'Not Google')
 
     response3 = requests.get(url)
     expect(response3.content).to.equal(response1.content)
