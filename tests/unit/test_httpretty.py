@@ -286,6 +286,19 @@ def test_Entry_class_counts_dynamic():
     expect(b'content-length: 15\n').to.be.within(response)
 
 
+def callable_body(request, url, headers):
+    return 200, headers, 'foo'
+
+
+def test_Entry_class_counts_callable():
+    entry = Entry(HTTPretty.GET, 'http://example.com', callable_body)
+    entry.info = MagicMock()
+    buf = FakeSockFile()
+    entry.fill_filekind(buf)
+    response = buf.getvalue()
+    expect(b'content-length: 3\n').to.be.within(response)
+
+
 def test_fake_socket_passes_through_setblocking():
     import socket
     HTTPretty.enable()
