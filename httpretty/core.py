@@ -211,7 +211,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         return bool(self.body) or bool(self.raw_headers)
 
     def __str__(self):
-        tmpl = '<HTTPrettyRequest("{0}", total_headers={1}, body_length={2})>'
+        tmpl = '<HTTPrettyRequest("{}", total_headers={}, body_length={})>'
         return tmpl.format(
             self.headers.get('content-type', ''),
             len(self.headers),
@@ -706,7 +706,7 @@ class Entry(BaseClass):
 
         for k, v in headers.items():
             string_list.append(
-                '{0}: {1}'.format(k, v),
+                '{}: {}'.format(k, v),
             )
 
         for item in string_list:
@@ -795,12 +795,12 @@ class URIInfo(BaseClass):
     def full_url(self, use_querystring=True):
         credentials = ""
         if self.password:
-            credentials = "{0}:{1}@".format(
+            credentials = "{}:{}@".format(
                 self.username, self.password)
 
         query = ""
         if use_querystring and self.query:
-            query = "?{0}".format(decode_utf8(self.query))
+            query = "?{}".format(decode_utf8(self.query))
 
         result = "{scheme}://{credentials}{domain}{path}{query}".format(
             scheme=self.scheme,
@@ -870,7 +870,7 @@ class URIMatcher(object):
                 use_querystring=self._match_querystring))
 
     def __str__(self):
-        wrap = 'URLMatcher({0})'
+        wrap = 'URLMatcher({})'
         if self.info:
             return wrap.format(text_type(self.info))
         else:

@@ -54,7 +54,7 @@ def start_http_server(context):
         httpretty.disable()
         time.sleep(.1)
         try:
-            requests.get('http://localhost:{0}/'.format(context.http_port))
+            requests.get('http://localhost:{}/'.format(context.http_port))
             ready = True
         except:
             if time.time() - started_at >= timeout:
@@ -88,19 +88,19 @@ def test_httpretty_bypasses_when_disabled(context):
     "httpretty should bypass all requests by disabling it"
 
     httpretty.register_uri(
-        httpretty.GET, "http://localhost:{0}/go-for-bubbles/".format(context.http_port),
+        httpretty.GET, "http://localhost:{}/go-for-bubbles/".format(context.http_port),
         body="glub glub")
 
     httpretty.disable()
 
-    fd = urllib2.urlopen('http://localhost:{0}/go-for-bubbles/'.format(context.http_port))
+    fd = urllib2.urlopen('http://localhost:{}/go-for-bubbles/'.format(context.http_port))
     got1 = fd.read()
     fd.close()
 
     expect(got1).to.equal(
         b'. o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o .')
 
-    fd = urllib2.urlopen('http://localhost:{0}/come-again/'.format(context.http_port))
+    fd = urllib2.urlopen('http://localhost:{}/come-again/'.format(context.http_port))
     got2 = fd.read()
     fd.close()
 
@@ -108,7 +108,7 @@ def test_httpretty_bypasses_when_disabled(context):
 
     httpretty.enable()
 
-    fd = urllib2.urlopen('http://localhost:{0}/go-for-bubbles/'.format(context.http_port))
+    fd = urllib2.urlopen('http://localhost:{}/go-for-bubbles/'.format(context.http_port))
     got3 = fd.read()
     fd.close()
 
@@ -122,16 +122,16 @@ def test_httpretty_bypasses_a_unregistered_request(context):
     "httpretty should bypass a unregistered request by disabling it"
 
     httpretty.register_uri(
-        httpretty.GET, "http://localhost:{0}/go-for-bubbles/".format(context.http_port),
+        httpretty.GET, "http://localhost:{}/go-for-bubbles/".format(context.http_port),
         body="glub glub")
 
-    fd = urllib2.urlopen('http://localhost:{0}/go-for-bubbles/'.format(context.http_port))
+    fd = urllib2.urlopen('http://localhost:{}/go-for-bubbles/'.format(context.http_port))
     got1 = fd.read()
     fd.close()
 
     expect(got1).to.equal(b'glub glub')
 
-    fd = urllib2.urlopen('http://localhost:{0}/come-again/'.format(context.http_port))
+    fd = urllib2.urlopen('http://localhost:{}/come-again/'.format(context.http_port))
     got2 = fd.read()
     fd.close()
 
@@ -182,7 +182,7 @@ def test_disallow_net_connect_1(context):
     def foo():
         fd = None
         try:
-            fd = urllib2.urlopen('http://localhost:{0}/go-for-bubbles/'.format(context.http_port))
+            fd = urllib2.urlopen('http://localhost:{}/go-for-bubbles/'.format(context.http_port))
         finally:
             if fd:
                 fd.close()
