@@ -72,7 +72,7 @@ except ImportError:  # pragma: no cover
             qs = qs.encode('utf-8')
         s = unquote(qs)
         if isinstance(s, byte_type):
-            return s.decode("utf-8")
+            return s.decode('utf-8', errors='ignore')
         else:
             return s
 
