@@ -1,7 +1,7 @@
 # #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -35,12 +35,15 @@ import warnings
 import traceback
 import json
 import contextlib
+import threading
+import tempfile
 
 
 from .compat import (
     PY3,
     StringIO,
     text_type,
+    byte_type,
     BaseClass,
     BaseHTTPRequestHandler,
     quote,
@@ -71,19 +74,19 @@ from datetime import timedelta
 from errno import EAGAIN
 
 old_socket = socket.socket
+old_SocketType = socket.SocketType
 old_create_connection = socket.create_connection
 old_gethostbyname = socket.gethostbyname
 old_gethostname = socket.gethostname
 old_getaddrinfo = socket.getaddrinfo
-old_fileobject = socket._fileobject
 old_socksocket = None
 old_ssl_wrap_socket = None
 old_sslwrap_simple = None
 old_sslsocket = None
-old_openssl_ssl_connection = None
 
-if PY3:  # pragma: no cover
-    basestring = (bytes, str)
+MULTILINE_ANY_REGEX = re.compile(r'.*', re.M)
+
+
 try:  # pragma: no cover
     import socks
     old_socksocket = socks.socksocket
@@ -99,11 +102,14 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     ssl = None
 
+
+# used to handle error caused by ndg-httpsclient
 try:  # pragma: no cover
-    import OpenSSL
-    old_openssl_ssl_connection = OpenSSL.SSL.Connection
+    from requests.packages.urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
+    pyopenssl_override = True
 except ImportError:  # pragma: no cover
-    OpenSSL = None
+    pyopenssl_override = False
+
 
 DEFAULT_HTTP_PORTS = frozenset([80])
 POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
@@ -112,7 +118,7 @@ POTENTIAL_HTTPS_PORTS = set(DEFAULT_HTTPS_PORTS)
 
 
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
-    """Represents a HTTP request. It takes a valid multi-line, `\r\n`
+    """Represents a HTTP request. It takes a valid multi-line, ``\r\n``
     separated string with HTTP headers and parse them out using the
     internal `parse_request` method.
 
@@ -122,40 +128,41 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
     It has some convenience attributes:
 
-    `headers` -> a mimetype object that can be cast into a dictionary,
+    ``headers`` -> a mimetype object that can be cast into a dictionary,
     contains all the request headers
 
-    `method` -> the HTTP method used in this request
+    ``method`` -> the HTTP method used in this request
 
-    `querystring` -> a dictionary containing lists with the
+    ``querystring`` -> a dictionary containing lists with the
     attributes. Please notice that if you need a single value from a
     query string you will need to get it manually like:
 
-    ```python
-    >>> request.querystring
-    {'name': ['Gabriel Falcao']}
-    >>> print request.querystring['name'][0]
-    ```
+    ::
 
-    `parsed_body` -> a dictionary containing parsed request body or
+      >>> request.querystring
+      {'name': ['Gabriel Falcao']}
+      >>> print request.querystring['name'][0]
+
+    ``parsed_body`` -> a dictionary containing parsed request body or
     None if HTTPrettyRequest doesn't know how to parse it.  It
     currently supports parsing body data that was sent under the
-    `content-type` headers values: 'application/json' or
-    'application/x-www-form-urlencoded'
+    ``content`-type` headers values: ``application/json`` or
+    ``application/x-www-form-urlencoded``
     """
     def __init__(self, headers, body=''):
         # first of all, lets make sure that if headers or body are
         # unicode strings, it must be converted into a utf-8 encoded
         # byte string
         self.raw_headers = utf8(headers.strip())
-        self.body = utf8(body)
+        self._body = utf8(body)
 
         # Now let's concatenate the headers with the body, and create
         # `rfile` based on it
         self.rfile = StringIO(b'\r\n\r\n'.join([self.raw_headers, self.body]))
-        self.wfile = StringIO()  # Creating `wfile` as an empty
-                                 # StringIO, just to avoid any real
-                                 # I/O calls
+
+        # Creating `wfile` as an empty StringIO, just to avoid any
+        # real I/O calls
+        self.wfile = StringIO()
 
         # parsing the request line preemptively
         self.raw_requestline = self.rfile.readline()
@@ -186,10 +193,26 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
         # And the body will be attempted to be parsed as
         # `application/json` or `application/x-www-form-urlencoded`
-        self.parsed_body = self.parse_request_body(self.body)
+        self.parsed_body = self.parse_request_body(self._body)
+
+    @property
+    def body(self):
+        return self._body
+
+    @body.setter
+    def body(self, value):
+        self._body = utf8(value)
+
+        # And the body will be attempted to be parsed as
+        # `application/json` or `application/x-www-form-urlencoded`
+        self.parsed_body = self.parse_request_body(self._body)
+
+    def __nonzero__(self):
+        return bool(self.body) or bool(self.raw_headers)
 
     def __str__(self):
-        return '<HTTPrettyRequest("{0}", total_headers={1}, body_length={2})>'.format(
+        tmpl = '<HTTPrettyRequest("{0}", total_headers={1}, body_length={2})>'
+        return tmpl.format(
             self.headers.get('content-type', ''),
             len(self.headers),
             len(self.body),
@@ -205,7 +228,8 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         return result
 
     def parse_request_body(self, body):
-        """ Attempt to parse the post based on the content-type passed. Return the regular body if not """
+        """Attempt to parse the post based on the content-type passed.
+        Return the regular body if not"""
 
         PARSING_FUNCTIONS = {
             'application/json': json.loads,
@@ -233,34 +257,31 @@ class HTTPrettyRequestEmpty(object):
     headers = EmptyRequestHeaders()
 
 
-class FakeSockFile(StringIO):
+class FakeSockFile(object):
+    def __init__(self):
+        self.file = tempfile.TemporaryFile()
+        self._fileno = self.file.fileno()
+
+    def getvalue(self):
+        if hasattr(self.file, 'getvalue'):
+            return self.file.getvalue()
+        else:
+            return self.file.read()
+
     def close(self):
         self.socket.close()
-        StringIO.close(self)
+        self.file.close()
+
+    def fileno(self):
+        return self._fileno
+
+    def __getattr__(self, name):
+        return getattr(self.file, name)
 
 
 class FakeSSLSocket(object):
-    """
-    This is for mocking python's embedded "ssl" module
-    """
     def __init__(self, sock, *args, **kw):
         self._httpretty_sock = sock
-
-    def __getattr__(self, attr):
-        return getattr(self._httpretty_sock, attr)
-
-
-class FakeOpenSSLConnection(object):
-    """
-    This is for mocking pyopenssl's OpenSSL module
-    """
-    def __init__(self, context, sock, *args, **kw):
-        self._httpretty_sock = sock
-
-    def noop(self, *args, **kwargs):
-        pass
-
-    set_tlsext_host_name = set_connect_state = do_handshake = noop
 
     def __getattr__(self, attr):
         return getattr(self._httpretty_sock, attr)
@@ -273,15 +294,15 @@ class fakesock(object):
         _sent_data = []
 
         def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM,
-                     protocol=0):
+                     protocol=0, _sock=None):
             self.truesock = (old_socket(family, type, protocol)
                              if httpretty.allow_net_connect
                              else None)
             self._closed = True
             self.fd = FakeSockFile()
-            self.fd.socket = self
+            self.fd.socket = _sock or self
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
-            self._sock = self
+            self._sock = _sock or self
             self.is_http = False
             self._bufsize = 1024
 
@@ -318,6 +339,7 @@ class fakesock(object):
 
         def connect(self, address):
             self._closed = False
+
             try:
                 self._address = (self._host, self._port) = address
             except ValueError:
@@ -327,13 +349,20 @@ class fakesock(object):
                 # See issue #206
                 self.is_http = False
             else:
-                self.is_http = self._port in POTENTIAL_HTTP_PORTS | POTENTIAL_HTTPS_PORTS
+                ports_to_check = (
+                    POTENTIAL_HTTP_PORTS.union(POTENTIAL_HTTPS_PORTS))
+                self.is_http = self._port in ports_to_check
 
             if not self.is_http:
                 if self.truesock:
                     self.truesock.connect(self._address)
                 else:
                     raise UnmockedError()
+
+        def fileno(self):
+            if self.truesock:
+                return self.truesock.fileno()
+            return self.fd.fileno()
 
         def close(self):
             if not (self.is_http and self._closed):
@@ -342,7 +371,7 @@ class fakesock(object):
             self._closed = True
 
         def makefile(self, mode='r', bufsize=-1):
-            """Returns this fake socket's own StringIO buffer.
+            """Returns this fake socket's own tempfile buffer.
 
             If there is an entry associated with the socket, the file
             descriptor gets filled in with the entry data before being
@@ -352,7 +381,17 @@ class fakesock(object):
             self._bufsize = bufsize
 
             if self._entry:
-                self._entry.fill_filekind(self.fd)
+                t = threading.Thread(
+                    target=self._entry.fill_filekind, args=(self.fd,)
+                )
+                t.start()
+                if self.timeout == socket._GLOBAL_DEFAULT_TIMEOUT:
+                    timeout = None
+                else:
+                    timeout = self.timeout
+                t.join(timeout)
+                if t.isAlive():
+                    raise socket.timeout
 
             return self.fd
 
@@ -361,10 +400,11 @@ class fakesock(object):
             when HTTPretty identifies that someone is trying to send
             non-http data.
 
-            The received bytes are written in this socket's StringIO
+            The received bytes are written in this socket's tempfile
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
+
             if not self.truesock:
                 raise UnmockedError()
 
@@ -381,7 +421,7 @@ class fakesock(object):
                 try:
                     received = self.truesock.recv(self._bufsize)
                     self.fd.write(received)
-                    should_continue = len(received) == self._bufsize
+                    should_continue = bool(received.strip())
 
                 except socket.error as e:
                     if e.errno == EAGAIN:
@@ -396,14 +436,20 @@ class fakesock(object):
             self.fd.socket = self
             try:
                 requestline, _ = data.split(b'\r\n', 1)
-                method, path, version = parse_requestline(decode_utf8(requestline))
+                method, path, version = parse_requestline(
+                    decode_utf8(requestline))
                 is_parsing_headers = True
             except ValueError:
+                path = ''
                 is_parsing_headers = False
 
-                if not self._entry:
-                    # If the previous request wasn't mocked, don't mock the subsequent sending of data
+                if self._entry is None:
+                    # If the previous request wasn't mocked, don't
+                    # mock the subsequent sending of data
                     return self.real_sendall(data, *args, **kw)
+                else:
+                    method = self._entry.method
+                    path = self._entry.info.path
 
             self.fd.seek(0)
 
@@ -413,7 +459,11 @@ class fakesock(object):
                     meta = self._entry.request.headers
                     body = utf8(self._sent_data[-1])
                     if meta.get('transfer-encoding', '') == 'chunked':
-                        if not body.isdigit() and body != b'\r\n' and body != b'0\r\n\r\n':
+                        if (
+                                not body.isdigit()
+                                and (body != b'\r\n')
+                                and (body != b'0\r\n\r\n')
+                        ):
                             self._entry.request.body += body
                     else:
                         self._entry.request.body += body
@@ -424,14 +474,22 @@ class fakesock(object):
             # path might come with
             s = urlsplit(path)
             POTENTIAL_HTTP_PORTS.add(int(s.port or 80))
-            headers, body = list(map(utf8, data.split(b'\r\n\r\n', 1)))
+            parts = list(map(utf8, data.split(b'\r\n\r\n', 1)))
+            if len(parts) == 2:
+                headers, body = parts
+            else:
+                headers = ''
+                body = data
 
             request = httpretty.historify_request(headers, body)
 
-            info = URIInfo(hostname=self._host, port=self._port,
-                           path=s.path,
-                           query=s.query,
-                           last_request=request)
+            info = URIInfo(
+                hostname=self._host,
+                port=self._port,
+                path=s.path,
+                query=s.query,
+                last_request=request
+            )
 
             matcher, entries = httpretty.match_uriinfo(info)
 
@@ -490,28 +548,10 @@ def fake_wrap_socket(s, *args, **kw):
     return s
 
 
-def fake_fileobject(s, *args, **kwargs):
-    """
-    When someone calls _fileobject for a socket, that socket is actually mocked
-    by httpretty and we can call it's makefile() method in order to get the
-    _entry (if any).
-    """
-    # This handles the case where there is no FakeOpenSSLConnection
-    if isinstance(s, fakesock.socket):
-        return s.makefile()
-
-    # This is the case of FakeOpenSSLConnection
-    elif hasattr(s, '_httpretty_sock'):
-        return s._httpretty_sock.makefile()
-
-    # Default to the old _fileobject
-    else:
-        return old_fileobject(s, *args, **kwargs)
-
-
-def create_fake_connection(address,
-                           timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-                           source_address=None):
+def create_fake_connection(
+        address,
+        timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+        source_address=None):
     s = fakesock.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
         s.settimeout(timeout)
@@ -582,19 +622,20 @@ class Entry(BaseClass):
             if got is None:
                 continue
 
+            igot = None
             try:
                 igot = int(got)
-            except ValueError:
+            except (ValueError, TypeError):
                 warnings.warn(
-                    'HTTPretty got to register the Content-Length header ' \
-                    'with "%r" which is not a number' % got,
-                )
+                    'HTTPretty got to register the Content-Length header '
+                    'with "%r" which is not a number' % got)
+                return
 
-            if igot > self.body_length:
+            if igot and igot > self.body_length:
                 raise HTTPrettyError(
-                    'HTTPretty got inconsistent parameters. The header ' \
-                    'Content-Length you registered expects size "%d" but ' \
-                    'the body you registered for that has actually length ' \
+                    'HTTPretty got inconsistent parameters. The header '
+                    'Content-Length you registered expects size "%d" but '
+                    'the body you registered for that has actually length '
                     '"%d".' % (
                         igot, self.body_length,
                     )
@@ -626,15 +667,20 @@ class Entry(BaseClass):
             headers = self.forcing_headers
 
         if self.adding_headers:
-            headers.update(self.normalize_headers(self.adding_headers))
+            headers.update(
+                self.normalize_headers(
+                    self.adding_headers))
 
         headers = self.normalize_headers(headers)
         status = headers.get('status', self.status)
         if self.body_is_callable:
             status, headers, self.body = self.callable_body(self.request, self.info.full_url(), headers)
-            headers.update({
-                'content-length': len(self.body)
-            })
+            headers = self.normalize_headers(headers)
+            # TODO: document this behavior:
+            if 'content-length' not in headers:
+                headers.update({
+                    'content-length': len(self.body)
+                })
 
         string_list = [
             'HTTP/1.1 %d %s' % (status, STATUSES[status]),
@@ -647,13 +693,16 @@ class Entry(BaseClass):
             content_type = headers.pop('content-type',
                                        'text/plain; charset=utf-8')
 
-            content_length = headers.pop('content-length', self.body_length)
+            content_length = headers.pop('content-length',
+                                         self.body_length)
 
             string_list.append('content-type: %s' % content_type)
             if not self.streaming:
                 string_list.append('content-length: %s' % content_length)
 
-            string_list.append('server: %s' % headers.pop('server'))
+            server = headers.pop('server', None)
+            if server:
+                string_list.append('server: %s' % server)
 
         for k, v in headers.items():
             string_list.append(
@@ -792,9 +841,12 @@ class URIMatcher(object):
     regex = None
     info = None
 
-    def __init__(self, uri, entries, match_querystring=False):
+    def __init__(self, uri, entries, match_querystring=False, priority=0):
         self._match_querystring = match_querystring
-        if type(uri).__name__ == 'SRE_Pattern':
+        # CPython, Jython
+        regex_types = ('SRE_Pattern', 'org.python.modules.sre.PatternObject')
+        is_regex = type(uri).__name__ in regex_types
+        if is_regex:
             self.regex = uri
             result = urlsplit(uri.pattern)
             if result.scheme == 'https':
@@ -805,8 +857,9 @@ class URIMatcher(object):
             self.info = URIInfo.from_uri(uri, entries)
 
         self.entries = entries
+        self.priority = priority
 
-        #hash of current_entry pointers, per method.
+        # hash of current_entry pointers, per method.
         self.current_entries = {}
 
     def matches(self, info):
@@ -830,7 +883,8 @@ class URIMatcher(object):
         if method not in self.current_entries:
             self.current_entries[method] = 0
 
-        #restrict selection to entries that match the requested method
+        # restrict selection to entries that match the requested
+        # method
         entries_for_method = [e for e in self.entries if e.method == method]
 
         if self.current_entries[method] >= len(entries_for_method):
@@ -871,11 +925,16 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def match_uriinfo(cls, info):
-        for matcher, value in cls._entries.items():
+        items = sorted(
+            cls._entries.items(),
+            key=lambda matcher_entries: matcher_entries[0].priority,
+            reverse=True,
+        )
+        for matcher, value in items:
             if matcher.matches(info):
-                return matcher, info
+                return (matcher, info)
 
-        return None, []
+        return (None, [])
 
     @classmethod
     @contextlib.contextmanager
@@ -883,18 +942,24 @@ class httpretty(HttpBaseClass):
         try:
             import urllib3
         except ImportError:
-            raise RuntimeError('HTTPretty requires urllib3 installed for'
-                               ' recording actual requests.')
-
+            msg = (
+                'HTTPretty requires urllib3 installed '
+                'for recording actual requests.'
+            )
+            raise RuntimeError(msg)
 
         http = urllib3.PoolManager()
 
         cls.enable()
         calls = []
+
         def record_request(request, uri, headers):
             cls.disable()
 
-            response = http.request(request.method, uri)
+            kw = {}
+            kw.setdefault('body', request.body)
+            kw.setdefault('headers', dict(request.headers))
+            response = http.request(request.method, uri, **kw)
             calls.append({
                 'request': {
                     'uri': uri,
@@ -913,7 +978,7 @@ class httpretty(HttpBaseClass):
             return response.status, response.headers, response.data
 
         for method in cls.METHODS:
-            cls.register_uri(method, re.compile(r'.*', re.M), body=record_request)
+            cls.register_uri(method, MULTILINE_ANY_REGEX, body=record_request)
 
         yield
         cls.disable()
@@ -929,7 +994,9 @@ class httpretty(HttpBaseClass):
         for item in data:
             uri = item['request']['uri']
             method = item['request']['method']
-            cls.register_uri(method, uri, body=item['response']['body'], forcing_headers=item['response']['headers'])
+            body = item['response']['body']
+            headers = item['response']['headers']
+            cls.register_uri(method, uri, body=body, forcing_headers=headers)
 
         yield
         cls.disable()
@@ -958,6 +1025,7 @@ class httpretty(HttpBaseClass):
                      forcing_headers=None,
                      status=200,
                      responses=None, match_querystring=False,
+                     priority=0,
                      **headers):
 
         uri_is_string = isinstance(uri, basestring)
@@ -981,7 +1049,7 @@ class httpretty(HttpBaseClass):
             ]
 
         matcher = URIMatcher(uri, entries_for_this_uri,
-                             match_querystring)
+                             match_querystring, priority)
         if matcher in cls._entries:
             matcher.entries.extend(cls._entries[matcher])
             del cls._entries[matcher]
@@ -992,8 +1060,15 @@ class httpretty(HttpBaseClass):
         return '<HTTPretty with %d URI entries>' % len(self._entries)
 
     @classmethod
-    def Response(cls, body, method=None, uri=None, adding_headers=None, forcing_headers=None,
-                 status=200, streaming=False, **headers):
+    def Response(
+            cls, body,
+            method=None,
+            uri=None,
+            adding_headers=None,
+            forcing_headers=None,
+            status=200,
+            streaming=False,
+            **headers):
 
         headers[str('body')] = body
         headers[str('adding_headers')] = adding_headers
@@ -1006,32 +1081,26 @@ class httpretty(HttpBaseClass):
     def disable(cls):
         cls._is_enabled = False
         socket.socket = old_socket
-        socket.SocketType = old_socket
+        socket.SocketType = old_SocketType
         socket._socketobject = old_socket
 
         socket.create_connection = old_create_connection
         socket.gethostname = old_gethostname
         socket.gethostbyname = old_gethostbyname
         socket.getaddrinfo = old_getaddrinfo
-        socket._fileobject = old_fileobject
 
         socket.__dict__['socket'] = old_socket
         socket.__dict__['_socketobject'] = old_socket
-        socket.__dict__['SocketType'] = old_socket
+        socket.__dict__['SocketType'] = old_SocketType
 
         socket.__dict__['create_connection'] = old_create_connection
         socket.__dict__['gethostname'] = old_gethostname
         socket.__dict__['gethostbyname'] = old_gethostbyname
         socket.__dict__['getaddrinfo'] = old_getaddrinfo
-        socket.__dict__['_fileobject'] = old_fileobject
 
         if socks:
             socks.socksocket = old_socksocket
             socks.__dict__['socksocket'] = old_socksocket
-
-        if OpenSSL:
-            OpenSSL.SSL.Connection = old_openssl_ssl_connection
-            OpenSSL.SSL.__dict__['Connection'] = old_openssl_ssl_connection
 
         if ssl:
             ssl.wrap_socket = old_ssl_wrap_socket
@@ -1042,6 +1111,10 @@ class httpretty(HttpBaseClass):
             if not PY3:
                 ssl.sslwrap_simple = old_sslwrap_simple
                 ssl.__dict__['sslwrap_simple'] = old_sslwrap_simple
+
+        if pyopenssl_override:
+            # Replace PyOpenSSL Monkeypatching
+            inject_into_urllib3()
 
     @classmethod
     def is_enabled(cls):
@@ -1063,7 +1136,6 @@ class httpretty(HttpBaseClass):
         socket.gethostname = fake_gethostname
         socket.gethostbyname = fake_gethostbyname
         socket.getaddrinfo = fake_getaddrinfo
-        socket._fileobject = fake_fileobject
 
         socket.__dict__['socket'] = fakesock.socket
         socket.__dict__['_socketobject'] = fakesock.socket
@@ -1074,15 +1146,10 @@ class httpretty(HttpBaseClass):
         socket.__dict__['gethostname'] = fake_gethostname
         socket.__dict__['gethostbyname'] = fake_gethostbyname
         socket.__dict__['getaddrinfo'] = fake_getaddrinfo
-        socket.__dict__['_fileobject'] = fake_fileobject
 
         if socks:
             socks.socksocket = fakesock.socket
             socks.__dict__['socksocket'] = fakesock.socket
-
-        if OpenSSL:
-            OpenSSL.SSL.Connection = FakeOpenSSLConnection
-            OpenSSL.SSL.__dict__['Connection'] = FakeOpenSSLConnection
 
         if ssl:
             ssl.wrap_socket = fake_wrap_socket
@@ -1095,10 +1162,53 @@ class httpretty(HttpBaseClass):
                 ssl.sslwrap_simple = fake_wrap_socket
                 ssl.__dict__['sslwrap_simple'] = fake_wrap_socket
 
+        if pyopenssl_override:
+            # Remove PyOpenSSL monkeypatch - use the default implementation
+            extract_from_urllib3()
+
+class httprettized(object):
+
+    def __enter__(self):
+        httpretty.reset()
+        httpretty.enable()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        httpretty.disable()
+        httpretty.reset()
+
 
 def httprettified(test):
-    "A decorator tests that use HTTPretty"
-    def decorate_class(klass):
+
+    def decorate_unittest_TestCase_setUp(klass):
+
+        # Prefer addCleanup (added in python 2.7), but fall back
+        # to using tearDown if it isn't available
+        use_addCleanup = hasattr(klass, 'addCleanup')
+
+        original_setUp = (klass.setUp
+                          if hasattr(klass, 'setUp')
+                          else None)
+        def new_setUp(self):
+            httpretty.enable()
+            if use_addCleanup:
+                self.addCleanup(httpretty.disable)
+            if original_setUp:
+                original_setUp(self)
+        klass.setUp = new_setUp
+
+        if not use_addCleanup:
+            original_tearDown = (klass.setUp
+                                 if hasattr(klass, 'tearDown')
+                                 else None)
+            def new_tearDown(self):
+                httpretty.disable()
+                if original_tearDown:
+                    original_tearDown(self)
+            klass.tearDown = new_tearDown
+
+        return klass
+
+    def decorate_test_methods(klass):
         for attr in dir(klass):
             if not attr.startswith('test_'):
                 continue
@@ -1110,15 +1220,24 @@ def httprettified(test):
             setattr(klass, attr, decorate_callable(attr_value))
         return klass
 
+    def is_unittest_TestCase(klass):
+        try:
+            import unittest
+            return issubclass(klass, unittest.TestCase)
+        except ImportError:
+            return False
+
+    "A decorator for tests that use HTTPretty"
+    def decorate_class(klass):
+        if is_unittest_TestCase(klass):
+            return decorate_unittest_TestCase_setUp(klass)
+        return decorate_test_methods(klass)
+
     def decorate_callable(test):
         @functools.wraps(test)
         def wrapper(*args, **kw):
-            httpretty.reset()
-            httpretty.enable()
-            try:
+            with httprettized():
                 return test(*args, **kw)
-            finally:
-                httpretty.disable()
         return wrapper
 
     if isinstance(test, ClassTypes):

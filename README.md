@@ -1,15 +1,21 @@
-# HTTPretty 0.8.10
+# HTTPretty 0.8.14
 
 ![https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg](https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg)
-[![tip for next commit](http://tip4commit.com/projects/133.svg)](http://tip4commit.com/projects/133)
-[![Build Status](https://travis-ci.org/gabrielfalcao/HTTPretty.png?branch=master)](https://travis-ci.org/gabrielfalcao/HTTPretty)
-[ChangeLog](NEWS.md)
+[![Build Status](https://travis-ci.org/gabrielfalcao/HTTPretty.svg?branch=master)](https://travis-ci.org/gabrielfalcao/HTTPretty)
+[ChangeLog](https://github.com/gabrielfalcao/HTTPretty/blob/master/docs/NEWS.md)
 
+### disclaimer:
+
+Due to big API incompatibility between python 3.3, 3.4 and 3.5, the
+author of HTTPretty is **not** supporting python3 officially.  You
+will notice that the travis build for python 3 might be broken, and
+while pull requests fixing py3 support are most welcome, it is still
+not official at least *for now*.
 
 # Installing
 
 Since you are interested in HTTPretty you should also be interested in speeding up your build.
-Replace `pip` with [`curdling`](http://clarete.github.io/curdling/) and see your build running a lot faster.
+Replace `pip` with [curdling](http://clarete.github.io/curdling/) and see your build running a lot faster.
 
 You can use curdling to install not only HTTPretty but every dependency in your project and see the speed gains.
 
@@ -396,7 +402,7 @@ def order_pizza(user, home_delivery=True):
         # for pick up.
         pass
     return check_number
-    
+
 @httpretty.activate
 def test_pizza_delivery():
     httpretty.register_uri(httpretty.POST, 'http://api.pizzas.com/deliveries/', body='OK')
@@ -413,7 +419,6 @@ def test_pizza_delivery():
 ## checking if is enabled
 
 ```python
-
 httpretty.enable()
 httpretty.is_enabled().should.be.true
 
@@ -434,7 +439,7 @@ httpretty.HTTPretty.allow_net_connect = False
 httpretty.register_uri(httpretty.GET, 'http://www.google.com', body='OK')
 
 urllib2.urlopen('http://www.google.com')
-urllib2.urlopen('http://www.reddit.com') # raises httpretty.errors.UnmockedError
+urllib2.urlopen.when.called_with('http://www.reddit.com').should.have.raised(httpretty.errors.UnmockedError)
 ```
 
 # Motivation
@@ -481,7 +486,7 @@ Because HTTPretty works in the socket level it should work with any HTTP client 
 
 # Hacking on HTTPretty
 
-#### create a virtual env
+## create a virtual env
 
 you will need [virtualenvwrapper](http://www.doughellmann.com/projects/virtualenvwrapper/)
 
@@ -490,13 +495,13 @@ you will need [virtualenvwrapper](http://www.doughellmann.com/projects/virtualen
 mkvirtualenv --distribute --no-site-packages HTTPretty
 ```
 
-#### install the dependencies
+## install the dependencies
 
 ```console
 pip install -r requirements.txt
 ```
 
-#### next steps:
+## next steps:
 
 1. run the tests with make:
 ```bash
@@ -509,7 +514,7 @@ make unit functional
 # License
 
     <HTTPretty - HTTP client mock for Python>
-    Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+    Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation

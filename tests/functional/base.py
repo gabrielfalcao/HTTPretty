@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -26,16 +26,28 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 from __future__ import unicode_literals
+
 import os
+import json
+import socket
 import threading
-import traceback
+
 import tornado.ioloop
 import tornado.web
 from functools import wraps
-from sure import scenario
-import json
+
 from os.path import abspath, dirname, join
-from httpretty.core import POTENTIAL_HTTP_PORTS
+from httpretty.core import POTENTIAL_HTTP_PORTS, old_socket
+
+
+def get_free_tcp_port():
+    """returns a TCP port that can be used for listen in the host.
+    """
+    tcp = old_socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcp.bind(('', 0))
+    host, port = tcp.getsockname()
+    tcp.close()
+    return port
 
 
 LOCAL_FILE = lambda *path: join(abspath(dirname(__file__)), *path)
@@ -49,11 +61,15 @@ class JSONEchoHandler(tornado.web.RequestHandler):
 
     def post(self, matched):
         payload = dict(self.request.arguments)
-        self.write(json.dumps({matched or 'index': payload}, indent=4))
+        self.write(json.dumps({
+            matched or 'index': payload,
+            'req_body': self.request.body,
+            'req_headers': dict(self.request.headers.items()),
+        }, indent=4))
 
 
 class JSONEchoServer(threading.Thread):
-    def __init__(self, lock, port=8888, *args, **kw):
+    def __init__(self, lock, port, *args, **kw):
         self.lock = lock
         self.port = int(port)
         self._stop = threading.Event()
@@ -78,14 +94,16 @@ class JSONEchoServer(threading.Thread):
         tornado.ioloop.IOLoop.instance().start()
 
 
-
 def use_tornado_server(callback):
     lock = threading.Lock()
     lock.acquire()
 
     @wraps(callback)
     def func(*args, **kw):
-        server = JSONEchoServer(lock, os.getenv('TEST_PORT', 8888))
+        port = os.getenv('TEST_PORT', get_free_tcp_port())
+        POTENTIAL_HTTP_PORTS.add(port)
+        kw['port'] = port
+        server = JSONEchoServer(lock, port)
         server.start()
         try:
             lock.acquire()
@@ -93,6 +111,6 @@ def use_tornado_server(callback):
         finally:
             lock.release()
             server.stop()
-            if 8888 in POTENTIAL_HTTP_PORTS:
-                POTENTIAL_HTTP_PORTS.remove(8888)
+            if port in POTENTIAL_HTTP_PORTS:
+                POTENTIAL_HTTP_PORTS.remove(port)
     return func

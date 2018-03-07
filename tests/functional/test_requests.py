@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -52,8 +52,7 @@ except NameError:
         return it.next()
 next = advance_iterator
 
-PORT = int(os.getenv('TEST_PORT') or 8888)
-server_url = lambda path: "http://localhost:{0}/{1}".format(PORT, path.lstrip('/'))
+server_url = lambda path, port: "http://localhost:{0}/{1}".format(port, path.lstrip('/'))
 
 
 @httprettified
@@ -500,6 +499,43 @@ def test_callback_setting_headers_and_status_response(now):
     expect(response.headers).to.have.key('a').being.equal("b")
     expect(response.status_code).to.equal(418)
 
+
+@httprettified
+def test_httpretty_should_respect_matcher_priority():
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile(r".*"),
+        body='high priority',
+        priority=5,
+    )
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile(r".+"),
+        body='low priority',
+        priority=0,
+    )
+    response = requests.get('http://api.yipit.com/v1/')
+    expect(response.text).to.equal('high priority')
+
+
+@within(two=microseconds)
+def test_callback_setting_content_length_on_head(now):
+    ("HTTPretty should call a callback function, use it's return tuple as status code, headers and body"
+     " requests and respect the content-length header when responding to HEAD")
+
+    def request_callback(request, uri, headers):
+        headers.update({'content-length': 12345})
+        return [200, headers, ""]
+
+    HTTPretty.register_uri(
+        HTTPretty.HEAD, "https://api.yahoo.com/test",
+        body=request_callback)
+
+    response = requests.head('https://api.yahoo.com/test')
+    expect(response.headers).to.have.key('content-length').being.equal("12345")
+    expect(response.status_code).to.equal(200)
+
+
 @httprettified
 def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_the_callback():
     "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
@@ -684,15 +720,17 @@ def test_unicode_querystrings():
 
 
 @use_tornado_server
-def test_recording_calls():
+def test_recording_calls(port):
     ("HTTPretty should be able to record calls")
     # Given a destination path:
-    destination = FIXTURE_FILE("recording-.json")
+    destination = FIXTURE_FILE("recording-1.json")
 
     # When I record some calls
     with HTTPretty.record(destination):
-        requests.get(server_url("/foobar?name=Gabriel&age=25"))
-        requests.post(server_url("/foobar"), data=json.dumps({'test': '123'}))
+        requests.get(server_url("/foobar?name=Gabriel&age=25", port))
+        requests.post(server_url("/foobar", port),
+                      data=json.dumps({'test': '123'}),
+                      headers={"Test": "foobar"})
 
     # Then the destination path should exist
     os.path.exists(destination).should.be.true
@@ -724,23 +762,24 @@ def test_recording_calls():
     response['response'].should.have.key("status").being.equal(200)
     response['response'].should.have.key("body").being.an(text_type)
     response['response'].should.have.key("headers").being.a(dict)
-    response['response']["headers"].should.have.key("server").being.equal("TornadoServer/" + tornado_version)
+    response['response']["headers"].should.have.key("Server").being.equal("TornadoServer/" + tornado_version)
 
-
-def test_playing_calls():
-    ("HTTPretty should be able to record calls")
-    # Given a destination path:
-    destination = FIXTURE_FILE("playback-1.json")
-
-    # When I playback some previously recorded calls
+    # And When I playback the previously recorded calls
     with HTTPretty.playback(destination):
         # And make the expected requests
-        response1 = requests.get(server_url("/foobar?name=Gabriel&age=25"))
-        response2 = requests.post(server_url("/foobar"), data=json.dumps({'test': '123'}))
+        response1 = requests.get(server_url("/foobar?name=Gabriel&age=25", port))
+        response2 = requests.post(
+            server_url("/foobar", port),
+            data=json.dumps({'test': '123'}),
+            headers={"Test": "foobar"},
+        )
 
     # Then the responses should be the expected
     response1.json().should.equal({"foobar": {"age": "25", "name": "Gabriel"}})
-    response2.json().should.equal({"foobar": {}})
+    response2.json()["foobar"].should.equal({})
+    response2.json()["req_body"].should.equal(json.dumps({"test": "123"}))
+    response2.json()["req_headers"].should.have.key("Test")
+    response2.json()["req_headers"]["Test"].should.equal("foobar")
 
 
 @httprettified
@@ -843,64 +882,6 @@ def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
-@httprettified
-def test_httpretty_should_work_with_non_standard_ports():
-    "HTTPretty should work with a non-standard port number"
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        re.compile("https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-    HTTPretty.register_uri(
-        HTTPretty.POST,
-        "https://asdf.com:666/meow",
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-    response = requests.post('https://asdf.com:666/meow')
-
-    expect(response.text).to.equal('https://asdf.com:666/meow')
-    expect(HTTPretty.last_request.method).to.equal('POST')
-    expect(HTTPretty.last_request.path).to.equal('/meow')
-
-
-@httprettified
-def test_httpretty_reset_by_switching_protocols_for_same_port():
-    "HTTPretty should reset protocol/port associations"
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        "http://api.yipit.com:1234/v1/deal",
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('http://api.yipit.com:1234/v1/deal')
-
-    expect(response.text).to.equal('http://api.yipit.com:1234/v1/deal')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal')
-
-    HTTPretty.reset()
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        "https://api.yipit.com:1234/v1/deal",
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('https://api.yipit.com:1234/v1/deal')
-
-    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal')
-
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_match_to_the_callback():
@@ -917,9 +898,6 @@ def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_
     expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-
-import json
 
 
 def hello():

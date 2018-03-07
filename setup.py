@@ -25,6 +25,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 import ast
+import io
 import os
 import re
 from setuptools import setup, find_packages
@@ -43,7 +44,8 @@ class VersionFinder(ast.NodeVisitor):
 def read_version():
     """Read version from httpretty/version.py without loading any files"""
     finder = VersionFinder()
-    finder.visit(ast.parse(local_file('httpretty', '__init__.py')))
+    finder.visit(
+        ast.parse(local_file('httpretty', '__init__.py').encode('utf-8')))
     return finder.version
 
 
@@ -55,7 +57,7 @@ def parse_requirements(path):
     function properly.
     """
     try:
-        requirements = map(str.strip, local_file(path).splitlines())
+        requirements = [req.strip() for req in local_file(path).splitlines()]
     except IOError:
         raise RuntimeError("Couldn't find the `requirements.txt' file :(")
 
@@ -75,14 +77,18 @@ def parse_requirements(path):
 
 
 local_file = lambda *f: \
-    open(os.path.join(os.path.dirname(__file__), *f)).read()
+    io.open(
+        os.path.join(os.path.dirname(__file__), *f), encoding='utf-8').read()
 
 
 install_requires, dependency_links = \
     parse_requirements('requirements.txt')
+tests_requires, tests_dependency_links = \
+    parse_requirements('development.txt')
 
 
-setup(name='httpretty',
+setup(
+    name='httpretty',
     version=read_version(),
     description='HTTP client mock for Python',
     long_description=local_file('README.rst'),
@@ -91,12 +97,20 @@ setup(name='httpretty',
     url='http://github.com/gabrielfalcao/httpretty',
     zip_safe=False,
     packages=find_packages(exclude=['*tests*']),
-    tests_require=parse_requirements('test-requirements.txt'),
+    tests_require=tests_requires,
     install_requires=install_requires,
     dependency_links=dependency_links,
     license='MIT',
     test_suite='nose.collector',
-    classifiers=["Intended Audience :: Developers",
-                 "License :: OSI Approved :: MIT License",
-                 "Topic :: Software Development :: Testing"],
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Software Development :: Testing'
+    ],
 )

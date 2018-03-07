@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -42,6 +42,9 @@ from tornado.web import Application
 from tornado.web import RequestHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
+from httpretty import HTTPretty
+from httpretty.core import old_socket as true_socket
+
 from multiprocessing import Process
 
 PY3 = sys.version_info[0] == 3
@@ -58,8 +61,6 @@ def utf8(s):
         s = s.encode('utf-8')
 
     return byte_type(s)
-
-true_socket = socket.socket
 
 PY3 = sys.version_info[0] == 3
 
@@ -95,7 +96,10 @@ class TornadoServer(object):
         def go(app, port, data={}):
             from httpretty import HTTPretty
             HTTPretty.disable()
+
             http = HTTPServer(app)
+            HTTPretty.disable()
+
             http.listen(int(port))
             IOLoop.instance().start()
 
@@ -103,9 +107,10 @@ class TornadoServer(object):
 
         data = {}
         args = (app, self.port, data)
+        HTTPretty.disable()
         self.process = Process(target=go, args=args)
         self.process.start()
-        time.sleep(0.4)
+        time.sleep(1)
 
     def stop(self):
         try:
@@ -121,6 +126,8 @@ class TCPServer(object):
         self.port = int(port)
 
     def start(self):
+        HTTPretty.disable()
+
         def go(port):
             from httpretty import HTTPretty
             HTTPretty.disable()
@@ -139,7 +146,7 @@ class TCPServer(object):
         args = [self.port]
         self.process = Process(target=go, args=args)
         self.process.start()
-        time.sleep(0.4)
+        time.sleep(1)
 
     def stop(self):
         try:

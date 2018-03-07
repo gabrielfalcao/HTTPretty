@@ -1,16 +1,25 @@
-HTTPretty 0.8.0
-===============
+HTTPretty 0.8.14
+================
 
 |https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo\_1.svg|
-|tip for next commit| |Build Status| |instanc.es Badge|
-`ChangeLog <NEWS.md>`__
+|Build Status|
+`ChangeLog <https://github.com/gabrielfalcao/HTTPretty/blob/master/docs/NEWS.md>`__
+
+disclaimer:
+~~~~~~~~~~~
+
+Due to big API incompatibility between python 3.3, 3.4 and 3.5, the
+author of HTTPretty is **not** supporting python3 officially. You will
+notice that the travis build for python 3 might be broken, and while
+pull requests fixing py3 support are most welcome, it is still not
+official at least *for now*.
 
 Installing
 ==========
 
-Since you are interested in HTTPretty you should also be insterested in
+Since you are interested in HTTPretty you should also be interested in
 speeding up your build. Replace ``pip`` with
-```curdling`` <http://clarete.github.io/curdling/>`__ and see your build
+`curdling <http://clarete.github.io/curdling/>`__ and see your build
 running a lot faster.
 
 You can use curdling to install not only HTTPretty but every dependency
@@ -313,8 +322,8 @@ Set a callback to allow for dynamic responses based on the request.
     @httpretty.activate
     def test_response_callbacks():
 
-        def request_callback(method, uri, headers):
-            return (200, headers, "The {} response from {}".format(method, uri))
+        def request_callback(request, uri, headers):
+            return (200, headers, "The {} response from {}".format(request.method, uri))
 
         httpretty.register_uri(
             httpretty.GET, "https://api.yahoo.com/test",
@@ -323,6 +332,33 @@ Set a callback to allow for dynamic responses based on the request.
         response = requests.get('https://api.yahoo.com/test')
 
         expect(response.text).to.equal('The GET response from https://api.yahoo.com/test')
+
+Dynamic responses can also be used when you have to work with badly
+designed APIs where, for example, the same uri and method are used to
+handle different requests based on request body which contains xml.
+
+.. code:: python
+
+    import requests
+    import httpretty
+
+    @httpretty.activate
+    def test_response_callbacks():
+
+        def request_callback(request, uri, headers):
+            # parse_xml() extracts important data from request
+            data = parse_xml(request.body)
+            # response based on that data
+            if data.something_important:
+                return (200, headers, "relevant data")
+            else:
+                return (400, headers, "panic mode!")
+
+        httpretty.register_uri(
+            httpretty.GET, "https://api.brilliant-api.com/",
+            body=request_callback)
+
+        response = requests.get('https://api.brilliant-api.com/')
 
 matching regular expressions
 ----------------------------
@@ -411,7 +447,6 @@ checking if is enabled
 
 .. code:: python
 
-
     httpretty.enable()
     httpretty.is_enabled().should.be.true
 
@@ -422,6 +457,7 @@ raising an error if an unregistered endpoint is requested
 ---------------------------------------------------------
 
 .. code:: python
+
     import urllib2
     import httpretty
 
@@ -431,7 +467,7 @@ raising an error if an unregistered endpoint is requested
     httpretty.register_uri(httpretty.GET, 'http://www.google.com', body='OK')
 
     urllib2.urlopen('http://www.google.com')
-    urllib2.urlopen('http://www.reddit.com') # raises httpretty.errors.UnmockedError
+    urllib2.urlopen.when.called_with('http://www.reddit.com').should.have.raised(httpretty.errors.UnmockedError)
 
 Motivation
 ==========
@@ -491,7 +527,7 @@ Hacking on HTTPretty
 ====================
 
 create a virtual env
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 you will need
 `virtualenvwrapper <http://www.doughellmann.com/projects/virtualenvwrapper/>`__
@@ -501,14 +537,14 @@ you will need
     mkvirtualenv --distribute --no-site-packages HTTPretty
 
 install the dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 .. code:: console
 
     pip install -r requirements.txt
 
 next steps:
-^^^^^^^^^^^
+-----------
 
 1. run the tests with make:
 
@@ -526,7 +562,7 @@ License
 ::
 
     <HTTPretty - HTTP client mock for Python>
-    Copyright (C) <2011-2013>  Gabriel Falcão <gabriel@nacaolivre.org>
+    Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -560,9 +596,5 @@ There folks made remarkable contributions to HTTPretty:
 -  James Rowe ~> @JNRowe
 
 .. |https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo\_1.svg| image:: https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo_1.svg
-.. |tip for next commit| image:: http://tip4commit.com/projects/133.svg
-   :target: http://tip4commit.com/projects/133
-.. |Build Status| image:: https://travis-ci.org/gabrielfalcao/HTTPretty.png?branch=master
+.. |Build Status| image:: https://travis-ci.org/gabrielfalcao/HTTPretty.svg?branch=master
    :target: https://travis-ci.org/gabrielfalcao/HTTPretty
-.. |instanc.es Badge| image:: https://instanc.es/bin/gabrielfalcao/HTTPretty.png
-   :target: http://instanc.es
