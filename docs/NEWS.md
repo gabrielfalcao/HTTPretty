@@ -1,6 +1,12 @@
 # Release Notes
 
-## 0.8.14 (current)
+## 0.8.15 (current)
+
+Bug fixes:
+
+* Fixed an error when "Content-Length" is not int like [#165](https://github.com/gabrielfalcao/HTTPretty/pull/165)
+
+## 0.8.14
 
 Improvements:
 
