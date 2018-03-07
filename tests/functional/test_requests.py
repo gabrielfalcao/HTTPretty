@@ -52,7 +52,7 @@ except NameError:
         return it.next()
 next = advance_iterator
 
-server_url = lambda path, port: "http://localhost:{0}/{1}".format(port, path.lstrip('/'))
+server_url = lambda path, port: "http://localhost:{}/{}".format(port, path.lstrip('/'))
 
 
 @httprettified
@@ -427,7 +427,7 @@ def test_callback_response(now):
      " requests")
 
     def request_callback(request, uri, headers):
-        return [200, headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+        return [200, headers,"The {} response from {}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -455,7 +455,7 @@ def test_callback_body_remains_callable_for_any_subsequent_requests(now):
      " requests")
 
     def request_callback(request, uri, headers):
-        return [200, headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+        return [200, headers,"The {} response from {}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -475,7 +475,7 @@ def test_callback_setting_headers_and_status_response(now):
 
     def request_callback(request, uri, headers):
         headers.update({'a':'b'})
-        return [418,headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+        return [418,headers,"The {} response from {}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -790,7 +790,7 @@ def test_py26_callback_response():
     from mock import Mock
 
     def _request_callback(request, uri, headers):
-        return [200, headers,"The {0} response from {1}".format(decode_utf8(request.method), uri)]
+        return [200, headers,"The {} response from {}".format(decode_utf8(request.method), uri)]
 
     request_callback = Mock()
     request_callback.side_effect = _request_callback

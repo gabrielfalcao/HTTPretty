@@ -289,7 +289,7 @@ def test_callback_response(now):
       " urllib2")
 
     def request_callback(request, uri, headers):
-        return [200, headers, "The {0} response from {1}".format(decode_utf8(request.method), uri)]
+        return [200, headers, "The {} response from {}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
