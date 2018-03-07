@@ -518,8 +518,8 @@ def test_httpretty_should_respect_matcher_priority():
     expect(response.text).to.equal('high priority')
 
 
-@within(two=microseconds)
-def test_callback_setting_content_length_on_head(now):
+# @within(five=microseconds)
+def test_callback_setting_content_length_on_head(*args):
     ("HTTPretty should call a callback function, use it's return tuple as status code, headers and body"
      " requests and respect the content-length header when responding to HEAD")
 
@@ -543,7 +543,7 @@ def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_t
     HTTPretty.register_uri(
         HTTPretty.GET,
         re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
-        body=lambda method,uri,headers: [200,headers,uri]
+        body=lambda method,uri,headers: [200, headers, uri]
     )
 
     response = requests.get('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
@@ -551,6 +551,7 @@ def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_t
     expect(response.text).to.equal('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes():
