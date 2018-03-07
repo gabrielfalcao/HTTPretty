@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2015>  Gabriel Falcao <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -72,7 +72,7 @@ except ImportError:  # pragma: no cover
             qs = qs.encode('utf-8')
         s = unquote(qs)
         if isinstance(s, byte_type):
-            return s.decode("utf-8")
+            return s.decode('utf-8', errors='ignore')
         else:
             return s
 

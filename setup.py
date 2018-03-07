@@ -69,7 +69,7 @@ def parse_requirements(path):
         if 'http:' in req or 'https:' in req:
             links.append(req)
             name, version = re.findall("\#egg=([^\-]+)-(.+$)", req)[0]
-            pkgs.append('{0}=={1}'.format(name, version))
+            pkgs.append('{}=={}'.format(name, version))
         else:
             pkgs.append(req)
 
@@ -107,8 +107,8 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 2 :: Only',
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Testing'
