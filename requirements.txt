@@ -1,1 +1,3 @@
 # HTTPretty doesn't have any requirements per se so far. yay!
+nose-randomly==1.2.5
+rednose==1.2.2
