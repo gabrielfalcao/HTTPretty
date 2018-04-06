@@ -13,3 +13,6 @@ _public/
 tests/functional/fixtures/recording-*.json
 #*
 *#*
+.idea
+venv
+.eggs

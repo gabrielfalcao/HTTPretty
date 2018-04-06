@@ -6,9 +6,9 @@
 
 ### disclaimer:
 
-Due to big API incompatibility between python 3.3, 3.4 and 3.5, the
-author of HTTPretty is **not** supporting python3 officially.  You
-will notice that the travis build for python 3 might be broken, and
+Due to big API incompatibility between Python 2 and Python 3, the
+author of HTTPretty is **not** supporting Python 3 officially.  You
+will notice that the Travis build for Python 3 might be broken, and
 while pull requests fixing py3 support are most welcome, it is still
 not official at least *for now*.
 
