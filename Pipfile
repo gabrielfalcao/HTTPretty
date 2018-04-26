@@ -27,6 +27,7 @@ coverage = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
 twine = "*"
+"pathlib2" = "*"
 
 
 [requires]

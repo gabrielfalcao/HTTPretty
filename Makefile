@@ -26,11 +26,11 @@ lint: prepare
 
 unit: prepare
 	@echo "Running unit tests ..."
-	@pipenv run nosetests --rednose -x --with-randomly --with-coverage --cover-package=httpretty -s tests/unit
+	@pipenv run nosetests --cover-erase tests/$@
 
 functional: prepare
 	@echo "Running functional tests ..."
-	@pipenv run nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/functional
+	@pipenv run nosetests --cover-erase tests/$@
 
 pyopenssl: prepare
 	@echo "Running PyOpenSSL mocking tests ..."

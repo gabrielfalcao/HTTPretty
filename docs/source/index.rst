@@ -11,9 +11,11 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   tutorial
+   introduction
    acks
-   api-reference
+   api
+   contributing
+   changelog
 
 Indices and tables
 ==================

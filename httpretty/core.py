@@ -25,24 +25,27 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-import re
 import codecs
-import inspect
-import socket
-import functools
-from functools import partial
-import itertools
-import warnings
-import traceback
-import json
 import contextlib
-import threading
+import functools
+import hashlib
+import inspect
+import itertools
+import json
+import re
+import socket
 import tempfile
+import threading
+import traceback
+import warnings
+
+from functools import partial
 
 from .compat import (
     PY3,
     StringIO,
     text_type,
+    binary_type,
     BaseClass,
     BaseHTTPRequestHandler,
     quote,
@@ -220,6 +223,12 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         )
 
     def parse_querystring(self, qs):
+        """parses an UTF-8 encoded query string into a dict of string lists
+
+        :param qs: a querystring
+        :returns: a dict of lists
+
+        """
         expanded = unquote_utf8(qs)
         parsed = parse_qs(expanded)
         result = {}
@@ -230,7 +239,11 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
     def parse_request_body(self, body):
         """Attempt to parse the post based on the content-type passed.
-        Return the regular body if not"""
+        Return the regular body if not
+
+        :param body: string
+        :returns: a python object such as dict or list in case the deserialization suceeded. Else returns the given param ``body``
+        """
 
         PARSING_FUNCTIONS = {
             'application/json': json.loads,
@@ -249,10 +262,16 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
 
 class EmptyRequestHeaders(dict):
-    pass
+    """A dict subclass used as internal representation of empty request
+    headers
+    """
 
 
 class HTTPrettyRequestEmpty(object):
+    """Represents an empty :py:class:`~httpretty.core.HTTPrettyRequest`
+    where all its properties are somehow empty or ``None``
+    """
+
     method = None
     url = None
     body = ''
@@ -260,6 +279,10 @@ class HTTPrettyRequestEmpty(object):
 
 
 class FakeSockFile(object):
+    """Fake socket file descriptor. Under the hood all data is written in
+    a temporary file, giving it a real file descriptor number.
+
+    """
     def __init__(self):
         self.file = tempfile.TemporaryFile()
         self._fileno = self.file.fileno()
@@ -282,6 +305,8 @@ class FakeSockFile(object):
 
 
 class FakeSSLSocket(object):
+    """Shorthand for :py:class:`~httpretty.core.fakesock`
+    """
     def __init__(self, sock, *args, **kw):
         self._httpretty_sock = sock
 
@@ -290,7 +315,12 @@ class FakeSSLSocket(object):
 
 
 class fakesock(object):
+    """
+    fake :py:mod:`socket`
+    """
     class socket(object):
+        """drop-in replacement for :py:class:`socket.socket`
+        """
         _entry = None
         debuglevel = 0
         _sent_data = []
@@ -570,6 +600,7 @@ def create_fake_connection(
         address,
         timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
         source_address=None):
+    """drop-in replacement for :py:func:`socket.create_connection`"""
     s = fakesock.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
         s.settimeout(timeout)
@@ -580,19 +611,35 @@ def create_fake_connection(
 
 
 def fake_gethostbyname(host):
+    """drop-in replacement for :py:func:`socket.gethostbyname`"""
     return '127.0.0.1'
 
 
 def fake_gethostname():
+    """drop-in replacement for :py:func:`socket.gethostname`"""
     return 'localhost'
 
 
 def fake_getaddrinfo(
         host, port, family=None, socktype=None, proto=None, flags=None):
+    """drop-in replacement for :py:func:`socket.getaddrinfo`"""
     return [(2, 1, 6, '', (host, port))]
 
 
 class Entry(BaseClass):
+    """Created by :py:meth:`~httpretty.core.httpretty.register_uri` and
+    stored in memory as internal representation of a HTTP
+    request/response definition.
+
+    :param method: string
+    :param uri: string
+    :param body: string
+    :param adding_headers: dict - headers to be added to the response
+    :param forcing_headers: dict - headers to be forcefully set in the response
+    :param status: an integer (e.g.: ``status=200``)
+    :param streaming: bool - whether to stream the response
+    :param headers: keyword-args with headers to be added to the response
+    """
     def __init__(self, method, uri, body,
                  adding_headers=None,
                  forcing_headers=None,
@@ -632,6 +679,9 @@ class Entry(BaseClass):
         self.validate()
 
     def validate(self):
+        """validates the body size with the value of the ``Content-Length``
+        header
+        """
         content_length_keys = 'Content-Length', 'content-length'
         for key in content_length_keys:
             got = self.adding_headers.get(
@@ -660,18 +710,33 @@ class Entry(BaseClass):
                 )
 
     def __str__(self):
-        return r'<Entry %s %s getting %d>' % (
-            self.method, self.uri, self.status)
+        return r'<Entry {} {} getting {}>'.format(
+            self.method,
+            self.uri,
+            self.status
+        )
 
     def normalize_headers(self, headers):
+        """Normalize keys in header names so that ``COntent-tyPe`` becomes ``Content-Type``
+
+        :param headers: dict
+
+        :returns: dict
+        """
         new = {}
         for k in headers:
-            new_k = '-'.join([s.lower() for s in k.split('-')])
+            new_k = '-'.join([s.capitalize() for s in k.split('-')])
             new[new_k] = headers[k]
 
         return new
 
     def fill_filekind(self, fk):
+        """writes HTTP Response data to a file descriptor
+
+        :parm fk: a file-like object
+
+        .. warning:: **side-effect:** this method moves the cursor of the given file object to zero
+        """
         now = datetime.utcnow()
 
         headers = {
@@ -742,7 +807,12 @@ class Entry(BaseClass):
         fk.seek(0)
 
 
-def url_fix(s, charset='utf-8'):
+def url_fix(s, charset=None):
+    """escapes special characters
+    """
+    if charset:
+        warnings.warn("{}.url_fix() charset argument is deprecated".format(__name__), DeprecationWarning)
+
     scheme, netloc, path, querystring, fragment = urlsplit(s)
     path = quote(path, b'/%')
     querystring = quote_plus(querystring, b':&=')
@@ -750,6 +820,20 @@ def url_fix(s, charset='utf-8'):
 
 
 class URIInfo(BaseClass):
+    """Internal representation of `URIs <https://en.wikipedia.org/wiki/Uniform_Resource_Identifier>`_
+
+    .. tip:: all arguments are optional
+
+    :param username:
+    :param password:
+    :param hostname:
+    :param port:
+    :param path:
+    :param query:
+    :param fragment:
+    :param scheme:
+    :param last_request:
+    """
     def __init__(self,
                  username='',
                  password='',
@@ -795,7 +879,7 @@ class URIInfo(BaseClass):
         return r'<httpretty.URIInfo(%s)>' % fmt
 
     def __hash__(self):
-        return hash(text_type(self))
+        return int(hashlib.sha1(binary_type(self, 'ascii')).hexdigest(), 16)
 
     def __eq__(self, other):
         self_tuple = (
@@ -811,6 +895,10 @@ class URIInfo(BaseClass):
         return self_tuple == other_tuple
 
     def full_url(self, use_querystring=True):
+        """
+        :param use_querystring: bool
+        :returns: a string with the full url with the format ``{scheme}://{credentials}{domain}{path}{query}``
+        """
         credentials = ""
         if self.password:
             credentials = "{}:{}@".format(
@@ -830,6 +918,9 @@ class URIInfo(BaseClass):
         return result
 
     def get_full_domain(self):
+        """
+        :returns: a string in the form ``{domain}:{port}`` or just the domain if the port is 80 or 443
+        """
         hostname = decode_utf8(self.hostname)
         # Port 80/443 should not be appended to the url
         if self.port not in DEFAULT_HTTP_PORTS | DEFAULT_HTTPS_PORTS:
@@ -839,6 +930,10 @@ class URIInfo(BaseClass):
 
     @classmethod
     def from_uri(cls, uri, entry):
+        """
+        :param uri: string
+        :param entry: an instance of :py:class:`~httpretty.core.Entry`
+        """
         result = urlsplit(uri)
         if result.scheme == 'https':
             POTENTIAL_HTTPS_PORTS.add(int(result.port or 443))
