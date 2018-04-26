@@ -8,18 +8,15 @@ OPEN_COMMAND		:= open
 endif
 
 
-all: check_dependencies unit functional
+all: dependencies lint unit functional docs
 
-filename=httpretty-`python -c 'import httpretty;print httpretty.version'`.tar.gz
+export PYTHONPATH		:= ${PWD}
+export PYTHONASYNCIODEBUG	:=1
 
-export HTTPRETTY_DEPENDENCIES:= nose sure
-export PYTHONPATH:= ${PWD}
-
-check_dependencies:
-	@echo "Checking for dependencies to run tests ..."
-	@for dependency in `echo $$HTTPRETTY_DEPENDENCIES`; do \
-		pipenv run python -c "import $$dependency" 2>/dev/null || (echo "You must install $$dependency in order to run httpretty's tests" && exit 3) ; \
-		done
+dependencies:
+	@pip install -U pip
+	@pip install pipenv
+	@pipenv install --dev
 
 test: unit functional
 

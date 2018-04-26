@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2012>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -24,23 +24,46 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-from __future__ import unicode_literals
-
 import requests
-
-from httpretty import HTTPretty, httprettified
 from sure import expect
 
+from httpretty import HTTPretty
 
-@httprettified
-def test_httpretty_overrides_when_pyopenssl_installed():
-    ('HTTPretty should remove PyOpenSSLs urllib3 mock if it is installed')
-    # And HTTPretty works successfully
-    HTTPretty.register_uri(HTTPretty.GET, "https://yipit.com/",
-                           body="Find the best daily deals")
 
-    response = requests.get('https://yipit.com')
-    expect(response.text).to.equal('Find the best daily deals')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/')
+def test_http_passthrough():
+    url = 'http://ip4.me/'
+    response1 = requests.get(url)
 
+    HTTPretty.enable()
+    HTTPretty.register_uri(HTTPretty.GET, 'http://google.com/', body="Not Google")
+
+    response2 = requests.get('http://google.com/')
+    expect(response2.content).to.equal(b'Not Google')
+
+    response3 = requests.get(url)
+    expect(response3.content).to.equal(response1.content)
+
+    HTTPretty.disable()
+
+    response4 = requests.get(url)
+    expect(response4.content).to.equal(response1.content)
+
+
+def test_https_passthrough():
+    url = 'https://www.cloudflare.com/ips-v4'
+
+    response1 = requests.get(url)
+
+    HTTPretty.enable()
+    HTTPretty.register_uri(HTTPretty.GET, 'http://google.com/', body="Not Google")
+
+    response2 = requests.get('http://google.com/')
+    expect(response2.content).to.equal(b'Not Google')
+
+    response3 = requests.get(url)
+    expect(response3.content).to.equal(response1.content)
+
+    HTTPretty.disable()
+
+    response4 = requests.get(url)
+    expect(response4.content).to.equal(response1.content)

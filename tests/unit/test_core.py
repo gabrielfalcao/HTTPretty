@@ -263,6 +263,7 @@ def test_fakesock_socket_close(old_socket):
     # Given a fake socket instance that is synthetically open
     socket = fakesock.socket()
     socket._closed = False
+    socket._connected_truesock = True
 
     # When I close it
     socket.close()
