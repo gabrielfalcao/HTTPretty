@@ -1,7 +1,7 @@
 # #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcao <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcao <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -43,7 +43,6 @@ from .compat import (
     PY3,
     StringIO,
     text_type,
-    byte_type,
     BaseClass,
     BaseHTTPRequestHandler,
     quote,
@@ -113,6 +112,10 @@ DEFAULT_HTTP_PORTS = frozenset([80])
 POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
 DEFAULT_HTTPS_PORTS = frozenset([443])
 POTENTIAL_HTTPS_PORTS = set(DEFAULT_HTTPS_PORTS)
+
+
+def FALLBACK_FUNCTION(x):
+    return x
 
 
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
@@ -234,7 +237,6 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
             'text/json': json.loads,
             'application/x-www-form-urlencoded': self.parse_querystring,
         }
-        FALLBACK_FUNCTION = lambda x: x
 
         content_type = self.headers.get('content-type', '')
 
@@ -242,7 +244,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         try:
             body = decode_utf8(body)
             return do_parse(body)
-        except:
+        except (Exception, BaseException):
             return body
 
 
@@ -471,11 +473,7 @@ class fakesock(object):
                     meta = self._entry.request.headers
                     body = utf8(self._sent_data[-1])
                     if meta.get('transfer-encoding', '') == 'chunked':
-                        if (
-                                not body.isdigit()
-                                and (body != b'\r\n')
-                                and (body != b'0\r\n\r\n')
-                        ):
+                        if not body.isdigit() and (body != b'\r\n') and (body != b'0\r\n\r\n'):
                             self._entry.request.body += body
                     else:
                         self._entry.request.body += body
@@ -1260,6 +1258,7 @@ def httprettified(test):
         original_setUp = (klass.setUp
                           if hasattr(klass, 'setUp')
                           else None)
+
         def new_setUp(self):
             httpretty.enable()
             if use_addCleanup:
@@ -1272,6 +1271,7 @@ def httprettified(test):
             original_tearDown = (klass.setUp
                                  if hasattr(klass, 'tearDown')
                                  else None)
+
             def new_tearDown(self):
                 httpretty.disable()
                 if original_tearDown:

@@ -15,6 +15,7 @@ matrix:
 
 
 env:
+  - TEST_TYPE=lint
   - TEST_TYPE=unit
   - TEST_TYPE=functional
   - TEST_TYPE=pyopenssl
@@ -25,6 +26,9 @@ install:
 
 script:
   - make $TEST_TYPE
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 
 # automated pypi releases
 deploy:

@@ -1,0 +1,19 @@
+machine:
+  environment:
+    LANG: en_US.UTF-8
+
+  post:
+    - pyenv global 2.7.13 3.6.5
+
+dependencies:
+  override:
+    - pip install -U pip
+    - pip install pipenv
+    - pipenv install --dev
+
+test:
+  override:
+    - make test
+
+  post:
+    - bash <(curl -s https://codecov.io/bash)

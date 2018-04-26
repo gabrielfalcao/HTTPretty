@@ -55,7 +55,6 @@ def test_request_stubs_internals():
     request.should.have.property('method').being.equal('POST')
 
 
-
 def test_request_parse_querystring():
     ("HTTPrettyRequest#parse_querystring should parse unicode data")
 
@@ -232,7 +231,6 @@ def test_fakesock_socket_ssl():
 
     # Then it should have returned its first argument
     result.should.equal(sentinel)
-
 
 
 @patch('httpretty.core.old_socket')
@@ -433,7 +431,7 @@ def test_fakesock_socket_real_sendall_socket_error_when_http(socket, old_socket)
 
 @patch('httpretty.core.old_socket')
 @patch('httpretty.core.POTENTIAL_HTTP_PORTS')
-def test_fakesock_socket_real_sendall_when_http(POTENTIAL_HTTP_PORTS, old_socket):
+def test_fakesock_socket_real_sendall_when_sending_data(POTENTIAL_HTTP_PORTS, old_socket):
     ("fakesock.socket#real_sendall should connect before sending data")
     # Background: the real socket will stop returning bytes after the
     # first call

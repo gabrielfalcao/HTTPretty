@@ -8,7 +8,7 @@ OPEN_COMMAND		:= open
 endif
 
 
-all: dependencies lint unit functional docs
+all: lint unit functional docs
 
 export PYTHONPATH		:= ${PWD}
 export PYTHONASYNCIODEBUG	:=1
@@ -18,11 +18,11 @@ dependencies:
 	@pip install pipenv
 	@pipenv install --dev
 
-test: unit functional
+test: lint unit functional pyopenssl
 
-lint:
+lint: prepare
 	@echo "Checking code style ..."
-	@pipenv run flake8 --show-source --ignore=F821,E901 httpretty
+	@pipenv run flake8 --show-source httpretty tests
 
 unit: prepare
 	@echo "Running unit tests ..."

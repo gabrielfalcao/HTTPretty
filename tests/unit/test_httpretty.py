@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -46,16 +46,17 @@ Content-Type: %(content_type)s
 
 
 def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
-    "HTTPretty should raise proper exception on inconsistent Content-Length / "\
-       "registered response body"
-    expect(HTTPretty.register_uri).when.called_with(
-      HTTPretty.GET,
+    ("HTTPretty should raise proper exception on inconsistent Content-Length / "
+     "registered response body")
+
+    HTTPretty.register_uri.when.called_with(
+        HTTPretty.GET,
         "http://github.com/gabrielfalcao",
         body="that's me!",
         adding_headers={
             'Content-Length': '999'
         }
-    ).to.throw(
+    ).should.have.raised(
         HTTPrettyError,
         'HTTPretty got inconsistent parameters. The header Content-Length you registered expects size "999" '
         'but the body you registered for that has actually length "10".'
@@ -63,9 +64,9 @@ def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
 
 
 def test_httpretty_should_raise_on_socket_send_when_uri_registered():
-    """HTTPretty should raise a RuntimeError when the fakesocket is used in
-    an invalid usage.
-    """
+    ("HTTPretty should raise a RuntimeError when the fakesocket is "
+     "used in an invalid usage.")
+
     import socket
     HTTPretty.enable()
 
@@ -86,9 +87,9 @@ def test_httpretty_should_raise_on_socket_send_when_uri_registered():
 
 
 def test_httpretty_should_not_raise_on_socket_send_when_uri_not_registered():
-    """HTTPretty should not raise a RuntimeError when the fakesocket is used in
-    an invalid usage.
-    """
+    ("HTTPretty should not raise a RuntimeError when the fakesocket "
+     "is used in an invalid usage.")
+
     import socket
     HTTPretty.enable()
 
@@ -160,7 +161,6 @@ def test_status_codes():
         422: "Unprocessable Entity",
         423: "Locked",
         424: "Failed Dependency",
-        424: "Method Failure",
         425: "Unordered Collection",
         426: "Upgrade Required",
         428: "Precondition Required",
@@ -170,7 +170,6 @@ def test_status_codes():
         449: "Retry With",
         450: "Blocked by Windows Parental Controls",
         451: "Unavailable For Legal Reasons",
-        451: "Redirect",
         494: "Request Header Too Large",
         495: "Cert Error",
         496: "No Cert",
@@ -192,6 +191,7 @@ def test_status_codes():
         599: "Network connect timeout error",
     })
 
+
 def test_uri_info_full_url():
     uri_info = URIInfo(
         username='johhny',
@@ -211,6 +211,7 @@ def test_uri_info_full_url():
     expect(uri_info.full_url(use_querystring=False)).to.equal(
         "http://johhny:password@google.com/"
     )
+
 
 def test_uri_info_eq_ignores_case():
     """Test that URIInfo.__eq__ method ignores case for
@@ -261,10 +262,10 @@ def test_Entry_class_normalizes_headers():
     entry = Entry(HTTPretty.GET, 'http://example.com', 'example',
                   host='example.com', cache_control='no-cache', x_forward_for='proxy')
 
-    expect(entry.adding_headers).to.equal({
-       'Host':'example.com',
-       'Cache-Control':'no-cache',
-       'X-Forward-For':'proxy'
+    entry.adding_headers.should.equal({
+        'Host': 'example.com',
+        'Cache-Control': 'no-cache',
+        'X-Forward-For': 'proxy'
     })
 
 
@@ -294,6 +295,7 @@ def test_fake_socket_passes_through_setblocking():
     expect(s.setblocking).called_with(0).should_not.throw(AttributeError)
     s.truesock.setblocking.assert_called_with(0)
 
+
 def test_fake_socket_passes_through_fileno():
     import socket
     HTTPretty.enable()
@@ -311,6 +313,7 @@ def test_fake_socket_passes_through_getsockopt():
     expect(s.getsockopt).called_with(socket.SOL_SOCKET, 1).should_not.throw(AttributeError)
     s.truesock.getsockopt.assert_called_with(socket.SOL_SOCKET, 1)
 
+
 def test_fake_socket_passes_through_bind():
     import socket
     HTTPretty.enable()
@@ -318,6 +321,7 @@ def test_fake_socket_passes_through_bind():
     s.truesock = MagicMock()
     expect(s.bind).called_with().should_not.throw(AttributeError)
     s.truesock.bind.assert_called_with()
+
 
 def test_fake_socket_passes_through_connect_ex():
     import socket
@@ -327,6 +331,7 @@ def test_fake_socket_passes_through_connect_ex():
     expect(s.connect_ex).called_with().should_not.throw(AttributeError)
     s.truesock.connect_ex.assert_called_with()
 
+
 def test_fake_socket_passes_through_listen():
     import socket
     HTTPretty.enable()
@@ -334,6 +339,7 @@ def test_fake_socket_passes_through_listen():
     s.truesock = MagicMock()
     expect(s.listen).called_with().should_not.throw(AttributeError)
     s.truesock.listen.assert_called_with()
+
 
 def test_fake_socket_passes_through_getpeername():
     import socket
@@ -343,6 +349,7 @@ def test_fake_socket_passes_through_getpeername():
     expect(s.getpeername).called_with().should_not.throw(AttributeError)
     s.truesock.getpeername.assert_called_with()
 
+
 def test_fake_socket_passes_through_getsockname():
     import socket
     HTTPretty.enable()
@@ -350,6 +357,7 @@ def test_fake_socket_passes_through_getsockname():
     s.truesock = MagicMock()
     expect(s.getsockname).called_with().should_not.throw(AttributeError)
     s.truesock.getsockname.assert_called_with()
+
 
 def test_fake_socket_passes_through_gettimeout():
     import socket
@@ -359,6 +367,7 @@ def test_fake_socket_passes_through_gettimeout():
     expect(s.gettimeout).called_with().should_not.throw(AttributeError)
     s.truesock.gettimeout.assert_called_with()
 
+
 def test_fake_socket_passes_through_shutdown():
     import socket
     HTTPretty.enable()
@@ -366,6 +375,7 @@ def test_fake_socket_passes_through_shutdown():
     s.truesock = MagicMock()
     expect(s.shutdown).called_with(socket.SHUT_RD).should_not.throw(AttributeError)
     s.truesock.shutdown.assert_called_with(socket.SHUT_RD)
+
 
 def test_unix_socket():
     import socket
@@ -379,6 +389,7 @@ def test_unix_socket():
     except socket.error:
         # We expect this, since the server_address does not exist
         pass
+
 
 def test_HTTPrettyRequest_json_body():
     """ A content-type of application/json should parse a valid json body """

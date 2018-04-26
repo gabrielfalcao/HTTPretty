@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -27,45 +27,29 @@
 from __future__ import unicode_literals
 
 import os
-import sys
-
-try:
-    import io
-    StringIO = io.StringIO
-except ImportError:
-    import StringIO
-    StringIO = StringIO.StringIO
-
 import time
 import socket
+
 from tornado.web import Application
 from tornado.web import RequestHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from httpretty import HTTPretty
 from httpretty.core import old_socket as true_socket
-
+# from httpretty.compat import PY3
+from httpretty.compat import binary_type
+from httpretty.compat import text_type
 from multiprocessing import Process
-
-PY3 = sys.version_info[0] == 3
-if PY3:
-    text_type = str
-    byte_type = bytes
-else:
-    text_type = unicode
-    byte_type = str
 
 
 def utf8(s):
     if isinstance(s, text_type):
         s = s.encode('utf-8')
 
-    return byte_type(s)
+    return binary_type(s)
 
-PY3 = sys.version_info[0] == 3
-
-if not PY3:
-    bytes = lambda s, *args: str(s)
+# if not PY3:
+#     bytes = lambda s, *args: str(s)
 
 
 class BubblesHandler(RequestHandler):
@@ -164,7 +148,7 @@ class TCPClient(object):
         self.sock.connect(('localhost', self.port))
 
     def send(self, what):
-        data = bytes(what, 'utf-8')
+        data = binary_type(what, 'utf-8')
         self.sock.sendall(data)
         return self.sock.recv(len(data) + 11)
 

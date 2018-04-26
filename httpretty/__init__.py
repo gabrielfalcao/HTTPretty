@@ -1,7 +1,7 @@
 # #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcao <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcao <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -25,13 +25,15 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
+from .core import httpretty
+from .core import httprettified
+from .core import EmptyRequestHeaders
+from .core import HTTPrettyRequestEmpty  # noqa
+from .core import URIInfo
+from .errors import HTTPrettyError, UnmockedError
 from .version import version
 
 __version__ = version
-
-from .core import httpretty, httprettified, EmptyRequestHeaders, HTTPrettyRequestEmpty
-from .errors import HTTPrettyError, UnmockedError
-from .core import URIInfo
 
 HTTPretty = httpretty
 activate = httprettified
