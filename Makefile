@@ -42,6 +42,10 @@ clean:
 	@printf "Cleaning up files that are already in .gitignore... "
 	@for pattern in `cat .gitignore`; do rm -rf $$pattern; done
 	@echo "OK!"
+	@printf "Deleting built documentation"
+	@rm -rf docs/build
+	@printf "Deleting dist files"
+	@rm -rf dist
 
 release: lint unit functional docs
 	@rm -rf dist/*

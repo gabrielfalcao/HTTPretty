@@ -27,7 +27,10 @@
 from __future__ import unicode_literals
 import json
 from sure import expect
-from httpretty import HTTPretty, HTTPrettyError, core
+import httpretty
+from httpretty import HTTPretty
+from httpretty import HTTPrettyError
+from httpretty import core
 from httpretty.core import URIInfo, BaseClass, Entry, FakeSockFile, HTTPrettyRequest
 from httpretty.http import STATUSES
 
@@ -298,11 +301,11 @@ def test_fake_socket_passes_through_setblocking():
 
 def test_fake_socket_passes_through_fileno():
     import socket
-    HTTPretty.enable()
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.truesock = MagicMock()
-    expect(s.fileno).called_with().should_not.throw(AttributeError)
-    s.truesock.fileno.assert_called_with()
+    with httpretty.enabled():
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.truesock = MagicMock()
+        expect(s.fileno).called_with().should_not.throw(AttributeError)
+        s.truesock.fileno.assert_called_with()
 
 
 def test_fake_socket_passes_through_getsockopt():

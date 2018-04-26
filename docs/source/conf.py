@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import sys
 import sphinx_rtd_theme
 try:
@@ -14,8 +15,8 @@ from httpretty.version import version # noqa
 
 
 project = 'HTTPretty'
-copyright = '2018, Gabriel Falcão'
-author = 'Gabriel Falcão'
+copyright = '2018, Gabriel Falcao'
+author = 'Gabriel Falcao'
 
 # The short X.Y version
 version = version
@@ -31,6 +32,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinx.ext.autosummary',
 ]
 
 templates_path = ['_templates']

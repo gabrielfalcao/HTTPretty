@@ -122,9 +122,10 @@ def FALLBACK_FUNCTION(x):
 
 
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
-    """Represents a HTTP request. It takes a valid multi-line, ``\r\n``
-    separated string with HTTP headers and parse them out using the
-    internal `parse_request` method.
+    """
+    Represents a HTTP request. It takes a valid multi-line,
+    ``\r\n`` separated string with HTTP headers and parse them out using
+    the internal `parse_request` method.
 
     It also replaces the `rfile` and `wfile` attributes with StringIO
     instances so that we guarantee that it won't make any I/O, neighter
@@ -141,17 +142,14 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
     attributes. Please notice that if you need a single value from a
     query string you will need to get it manually like:
 
-    ::
+    .. testcode::
 
       >>> request.querystring
       {'name': ['Gabriel Falcao']}
       >>> print request.querystring['name'][0]
 
-    ``parsed_body`` -> a dictionary containing parsed request body or
-    None if HTTPrettyRequest doesn't know how to parse it.  It
-    currently supports parsing body data that was sent under the
-    ``content`-type` headers values: ``application/json`` or
-    ``application/x-www-form-urlencoded``
+
+
     """
     def __init__(self, headers, body=''):
         # first of all, lets make sure that if headers or body are
@@ -197,6 +195,12 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
         # And the body will be attempted to be parsed as
         # `application/json` or `application/x-www-form-urlencoded`
+        """a dictionary containing parsed request body or None if
+        HTTPrettyRequest doesn't know how to parse it.  It currently
+        supports parsing body data that was sent under the
+        ``content`-type` headers values: ``application/json`` or
+        ``application/x-www-form-urlencoded``
+        """
         self.parsed_body = self.parse_request_body(self._body)
 
     @property
@@ -585,6 +589,8 @@ class fakesock(object):
 
 
 def fake_wrap_socket(orig_wrap_socket_fn, *args, **kw):
+    """drop-in replacement for py:func:`ssl.wrap_socket`
+    """
     server_hostname = kw.get('server_hostname')
     if server_hostname is not None:
         matcher = httpretty.match_https_hostname(server_hostname)
@@ -1028,7 +1034,8 @@ class URIMatcher(object):
 
 
 class httpretty(HttpBaseClass):
-    """The URI registration class"""
+    """manages HTTPretty's internal request/response registry and request matching.
+    """
     _entries = {}
     latest_requests = []
 
@@ -1038,6 +1045,10 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def match_uriinfo(cls, info):
+        """
+        :param info: an :py:class:`~httpretty.core.URIInfo`
+        :returns: a 2-item tuple: (:py:class:`~httpretty.core.URLMatcher`, :py:class:`~httpretty.core.URIInfo`) or ``(None, [])``
+        """
         items = sorted(
             cls._entries.items(),
             key=lambda matcher_entries: matcher_entries[0].priority,
@@ -1051,6 +1062,10 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def match_https_hostname(cls, hostname):
+        """
+        :param hostname: a string
+        :returns: an :py:class:`~httpretty.core.URLMatcher` or ``None``
+        """
         items = sorted(
             cls._entries.items(),
             key=lambda matcher_entries: matcher_entries[0].priority,
@@ -1071,6 +1086,11 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def match_http_address(cls, hostname, port):
+        """
+        :param hostname: a string
+        :param port: an integer
+        :returns: an :py:class:`~httpretty.core.URLMatcher` or ``None``
+        """
         items = sorted(
             cls._entries.items(),
             key=lambda matcher_entries: matcher_entries[0].priority,
@@ -1099,6 +1119,26 @@ class httpretty(HttpBaseClass):
     @classmethod
     @contextlib.contextmanager
     def record(cls, filename, indentation=4, encoding='utf-8'):
+        """
+        .. testcode::
+
+           import io
+           import json
+           import requests
+           import httpretty
+
+           with httpretty.record('/tmp/ip.json'):
+               data = requests.get('https://httpbin.org/ip').json()
+
+           with io.open('/tmp/ip.json') as fd:
+               assert data == json.load(fd)
+
+        :param filename: a string
+        :param indentation: an integer, defaults to **4**
+        :param encoding: a string, defaults to **"utf-8"**
+
+        :returns: a `context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_
+        """
         try:
             import urllib3
         except ImportError:
@@ -1147,10 +1187,27 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     @contextlib.contextmanager
-    def playback(cls, origin):
+    def playback(cls, filename):
+        """
+        .. testcode::
+
+           import io
+           import json
+           import requests
+           import httpretty
+
+           with httpretty.record('/tmp/ip.json'):
+               data = requests.get('https://httpbin.org/ip').json()
+
+           with io.open('/tmp/ip.json') as fd:
+               assert data == json.load(fd)
+
+        :param filename: a string
+        :returns: a `context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_
+        """
         cls.enable()
 
-        data = json.loads(open(origin).read())
+        data = json.loads(open(filename).read())
         for item in data:
             uri = item['request']['uri']
             method = item['request']['method']
@@ -1163,6 +1220,8 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def reset(cls):
+        """resets the internal state of HTTPretty, unregistering all URLs
+        """
         POTENTIAL_HTTP_PORTS.intersection_update(DEFAULT_HTTP_PORTS)
         POTENTIAL_HTTPS_PORTS.intersection_update(DEFAULT_HTTPS_PORTS)
         cls._entries.clear()
@@ -1171,6 +1230,18 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def historify_request(cls, headers, body='', append=True):
+        """appends request to a list for later retrieval
+
+        .. testcode::
+
+           import httpretty
+
+           httpretty.register_uri(httpretty.GET, 'https://httpbin.org/ip', body='')
+           with httpretty.enabled():
+               requests.get('https://httpbin.org/ip')
+
+           assert httpretty.latest_requests[-1].url == 'https://httpbin.org/ip'
+        """
         request = HTTPrettyRequest(headers, body)
         cls.last_request = request
         if append or not cls.latest_requests:
@@ -1180,14 +1251,38 @@ class httpretty(HttpBaseClass):
         return request
 
     @classmethod
-    def register_uri(cls, method, uri, body='HTTPretty :)',
+    def register_uri(cls, method, uri, body='{"message": "HTTPretty :)"}',
                      adding_headers=None,
                      forcing_headers=None,
                      status=200,
-                     responses=None, match_querystring=False,
+                     responses=None,
+                     match_querystring=False,
                      priority=0,
                      **headers):
+        """
+        .. testcode::
 
+           import httpretty
+
+           httpretty.register_uri(httpretty.GET, 'https://httpbin.org/ip', body='')
+           with httpretty.enabled():
+               requests.get('https://httpbin.org/ip')
+
+           assert httpretty.latest_requests[-1].url == 'https://httpbin.org/ip'
+
+
+
+        :param method: one of ``httpretty.GET``, ``httpretty.PUT``, ``httpretty.POST``, ``httpretty.DELETE``, ``httpretty.HEAD``, ``httpretty.PATCH``, ``httpretty.OPTIONS``, ``httpretty.CONNECT``
+        :param uri: a string (e.g.: **"https://httpbin.org/ip"**)
+        :param body: a string, defaults to ``{"message": "HTTPretty :)"}``
+        :param adding_headers: dict - headers to be added to the response
+        :param forcing_headers: dict - headers to be forcefully set in the response
+        :param status: an integer, defaults to **200**
+        :param responses: a list of entries, ideally each created with :py:meth:`~httpretty.core.httpretty.Response`
+        :param priority: an integer, useful for setting higher priority over previously registered urls. defaults to zero
+        :param match_querystring: bool - whether to take the querystring into account when matching an URL
+        :param headers: headers to be added to the response
+        """
         uri_is_string = isinstance(uri, basestring)
 
         if uri_is_string and re.search(r'^\w+://[^/]+[.]\w{2,}$', uri):
@@ -1228,17 +1323,49 @@ class httpretty(HttpBaseClass):
             forcing_headers=None,
             status=200,
             streaming=False,
-            **headers):
+            **kw):
+        """
+        shortcut to create an :py:class:`~httpretty.core.Entry` that takes the body as first positional argument
 
-        headers[str('body')] = body
-        headers[str('adding_headers')] = adding_headers
-        headers[str('forcing_headers')] = forcing_headers
-        headers[str('status')] = int(status)
-        headers[str('streaming')] = streaming
-        return Entry(method, uri, **headers)
+        .. seealso:: the parameters of this function match those of the :py:class:`~httpretty.core.Entry` constructor
+        :param body:
+        :param method: one of ``httpretty.GET``, ``httpretty.PUT``, ``httpretty.POST``, ``httpretty.DELETE``, ``httpretty.HEAD``, ``httpretty.PATCH``, ``httpretty.OPTIONS``, ``httpretty.CONNECT``
+        :param uri:
+        :param adding_headers:
+        :param forcing_headers:
+        :param status: defaults to **200**
+        :param streaming: defaults to **False**
+        :param kw: keyword-arguments passed onto the :py:class:`~httpretty.core.Entry`
+        :returns: an :py:class:`~httpretty.core.Entry`
+        """
+        kw['body'] = body
+        kw['adding_headers'] = adding_headers
+        kw['forcing_headers'] = forcing_headers
+        kw['status'] = int(status)
+        kw['streaming'] = streaming
+        return Entry(method, uri, **kw)
 
     @classmethod
     def disable(cls):
+        """Disables HTTPretty entirely, putting the original :py:mod:`socket`
+        module back in its place.
+
+
+        .. code::
+
+           import re, json
+           import httpretty
+
+           httpretty.enable()
+           # request passes through fake socket
+           response = requests.get('https://httpbin.org')
+
+           httpretty.disable()
+           # request uses real python socket module
+           response = requests.get('https://httpbin.org')
+
+        .. note:: This method does not call :py:meth:`httpretty.core.reset` automatically.
+        """
         cls._is_enabled = False
         socket.socket = old_socket
         socket.SocketType = old_SocketType
@@ -1280,10 +1407,48 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     def is_enabled(cls):
+        """Check if HTTPretty is enabled
+
+        :returns: bool
+
+        .. testcode::
+
+           import httpretty
+
+           httpretty.enable()
+           assert httpretty.is_enabled() == True
+
+           httpretty.disable()
+           assert httpretty.is_enabled() == False
+        """
         return cls._is_enabled
 
     @classmethod
     def enable(cls):
+        """Enables HTTPretty.
+
+        .. testcode::
+
+           import re, json
+           import httpretty
+
+           httpretty.enable()
+
+           httpretty.register_uri(
+               httpretty.GET,
+               re.compile(r'http://.*'),
+               body=json.dumps({'man': 'in', 'the': 'middle'})
+           )
+
+           response = requests.get('https://foo.bar/foo/bar')
+
+           response.json().should.equal({
+               "man": "in",
+               "the": "middle",
+           })
+
+        .. warning:: after calling this method the original :py:mod:`socket` is replaced with :py:class:`httpretty.core.fakesock`. Make sure to call :py:meth:`~httpretty.disable` after done with your tests or use the :py:class:`httpretty.enabled` as decorator or `context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_
+        """
         cls._is_enabled = True
         # Some versions of python internally shadowed the
         # SocketType variable incorrectly https://bugs.python.org/issue20386
@@ -1332,7 +1497,18 @@ class httpretty(HttpBaseClass):
 
 
 class httprettized(object):
+    """`context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_ for enabling HTTPretty.
 
+    .. testcode::
+
+       import httpretty
+
+       httpretty.register_uri(httpretty.GET, 'https://httpbin.org/ip', body='')
+       with httpretty.enabled():
+           requests.get('https://httpbin.org/ip')
+
+       assert httpretty.latest_requests[-1].url == 'https://httpbin.org/ip'
+    """
     def __enter__(self):
         httpretty.reset()
         httpretty.enable()
@@ -1343,7 +1519,50 @@ class httprettized(object):
 
 
 def httprettified(test):
+    """decorator for test functions
 
+    :param test: a callable
+
+
+    example usage with `nosetests <https://nose.readthedocs.io/en/latest/>`_
+
+    .. testcode::
+
+       import sure
+       from httpretty import httprettified
+
+       @httprettified
+       def test_using_nosetests():
+           httpretty.register_uri(
+               httpretty.GET,
+               'https://httpbin.org/ip'
+           )
+
+           response = requests.get('https://httpbin.org/ip')
+
+           response.json().should.equal({
+               "message": "HTTPretty :)"
+           })
+
+    example usage with `unittest module <https://docs.python.org/3/library/unittest.html>`_
+
+    .. testcode::
+
+       import unittest
+       from sure import expect
+       from httpretty import httprettified
+
+       @httprettified
+       class TestWithPyUnit(unittest.TestCase):
+           def test_httpbin(self):
+               httpretty.register_uri(httpretty.GET, 'https://httpbin.org/ip')
+               response = requests.get('https://httpbin.org/ip')
+               expect(response.json()).to.equal({
+                   "message": "HTTPretty :)"
+               })
+
+
+    """
     def decorate_unittest_TestCase_setUp(klass):
 
         # Prefer addCleanup (added in python 2.7), but fall back

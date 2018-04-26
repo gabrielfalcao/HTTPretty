@@ -23,20 +23,28 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-from __future__ import unicode_literals
+# flake8: noqa
 
-from .core import httpretty
-from .core import httprettified
-from .core import EmptyRequestHeaders
-from .core import HTTPrettyRequestEmpty  # noqa
-from .core import URIInfo
+from . import core
 from .errors import HTTPrettyError, UnmockedError
 from .version import version
 
 __version__ = version
 
+# aliases
+EmptyRequestHeaders = core.EmptyRequestHeaders
+Entry = core.Entry
+HTTPrettyRequestEmpty = core.HTTPrettyRequestEmpty
+URIInfo = core.URIInfo
+URIMatcher = core.URIMatcher
+httprettified = core.httprettified
+httprettized = core.httprettized
+httpretty = core.httpretty
+
 HTTPretty = httpretty
 activate = httprettified
+
+enabled = httprettized
 
 enable = httpretty.enable
 register_uri = httpretty.register_uri
@@ -56,36 +64,14 @@ CONNECT = httpretty.CONNECT
 
 
 def last_request():
-    """returns the last request"""
+    """
+    :returns: the last :py:class:`~httpretty.core.HTTPrettyRequest`
+    """
     return httpretty.last_request
 
 
 def has_request():
-    """returns a boolean indicating whether any request has been made"""
+    """
+    :returns: bool - whether any request has been made
+    """
     return not isinstance(httpretty.last_request.headers, EmptyRequestHeaders)
-
-
-__all__ = [
-    'last_request',
-    'has_request',
-    'GET',
-    'PUT',
-    'POST',
-    'DELETE',
-    'HEAD',
-    'PATCH',
-    'OPTIONS',
-    'CONNECT',
-    'register_uri',
-    'enable',
-    'disable',
-    'is_enabled',
-    'reset',
-    'Response',
-    'URIInfo',
-    'UnmockedError',
-    'HTTPrettyError',
-    'httpretty',
-    'httprettified',
-    'EmptyRequestHeaders',
-]

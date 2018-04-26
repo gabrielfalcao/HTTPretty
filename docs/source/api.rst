@@ -3,11 +3,129 @@
 API Reference
 =============
 
-.. autosummary::
-   :toctree: stubs
+.. _httpretty:
+
+register_uri
+------------
+
+.. automethod:: httpretty.core.httpretty.register_uri
+
+enable
+------
+
+.. automethod:: httpretty.core.httpretty.enable
+
+disable
+-------
+
+.. automethod:: httpretty.core.httpretty.disable
+
+is_enabled
+----------
+
+.. automethod:: httpretty.core.httpretty.is_enabled
+
+last_request
+------------
+
+.. autofunction:: httpretty.last_request
 
 
-.. _api core:
+.. _httprettified:
+
+httprettified
+-------------
+
+.. autofunction:: httpretty.core.httprettified
+
+
+.. _httprettized:
+
+httprettized
+------------
+
+.. autoclass:: httpretty.core.httprettized
+   :members:
+
+
+.. _HTTPrettyRequest:
+
+HTTPrettyRequest
+----------------
+
+.. autoclass:: httpretty.core.HTTPrettyRequest
+   :members:
+
+
+.. _HTTPrettyRequestEmpty:
+
+HTTPrettyRequestEmpty
+---------------------
+
+.. autoclass:: httpretty.core.HTTPrettyRequestEmpty
+   :members:
+
+.. _FakeSockFile:
+
+FakeSockFile
+------------
+
+.. autoclass:: httpretty.core.FakeSockFile
+   :members:
+
+
+.. _FakeSSLSocket:
+
+FakeSSLSocket
+------------
+
+.. autoclass:: httpretty.core.FakeSSLSocket
+   :members:
+
+
+.. _FakeSockFile:
+
+FakeSockFile
+------------
+
+.. autoclass:: httpretty.core.FakeSockFile
+   :members:
+
+
+
+.. _URIInfo:
+
+URIInfo
+-------
+
+.. autoclass:: httpretty.URIInfo
+   :members:
+
+
+.. _URIMatcher:
+
+URIMatcher
+----------
+
+.. autoclass:: httpretty.URIMatcher
+   :members:
+
+
+.. _Entry:
+
+Entry
+-----
+
+.. autoclass:: httpretty.Entry
+   :members:
+
+
+.. _api modules:
+
+Modules
+=======
+
+.. _api module core:
 
 Core
 ----
@@ -15,12 +133,15 @@ Core
 .. automodule:: httpretty.core
    :members:
 
+.. _api module http:
+
 Http
 ----
 
 .. automodule:: httpretty.http
    :members:
 
+.. _api module utils:
 
 Utils
 -----
@@ -28,16 +149,10 @@ Utils
 .. automodule:: httpretty.utils
    :members:
 
+.. _api module exceptions:
 
 Exceptions
 ----------
 
 .. automodule:: httpretty.errors
-   :members:
-
-
-Compat
-------
-
-.. automodule:: httpretty.compat
    :members:
