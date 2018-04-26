@@ -1,4 +1,4 @@
-HTTPretty 0.8.14
+HTTPretty 0.9.0
 ================
 
 |https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo\_1.svg|

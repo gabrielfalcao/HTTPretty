@@ -253,6 +253,8 @@ class EmptyRequestHeaders(dict):
 
 
 class HTTPrettyRequestEmpty(object):
+    method = None
+    url = None
     body = ''
     headers = EmptyRequestHeaders()
 

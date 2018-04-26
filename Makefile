@@ -18,52 +18,46 @@ export PYTHONPATH:= ${PWD}
 check_dependencies:
 	@echo "Checking for dependencies to run tests ..."
 	@for dependency in `echo $$HTTPRETTY_DEPENDENCIES`; do \
-		python -c "import $$dependency" 2>/dev/null || (echo "You must install $$dependency in order to run httpretty's tests" && exit 3) ; \
+		pipenv run python -c "import $$dependency" 2>/dev/null || (echo "You must install $$dependency in order to run httpretty's tests" && exit 3) ; \
 		done
 
 test: unit functional
 
 lint:
 	@echo "Checking code style ..."
-	@flake8 --show-source --ignore=F821,E901 httpretty
+	@pipenv run flake8 --show-source --ignore=F821,E901 httpretty
 
 unit: prepare
 	@echo "Running unit tests ..."
-	@nosetests --rednose -x --with-randomly --with-coverage --cover-package=httpretty -s tests/unit
+	@pipenv run nosetests --rednose -x --with-randomly --with-coverage --cover-package=httpretty -s tests/unit
 
 functional: prepare
 	@echo "Running functional tests ..."
-	@nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/functional
+	@pipenv run nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/functional
 
 pyopenssl: prepare
 	@echo "Running PyOpenSSL mocking tests ..."
-	@pip install --quiet pyOpenSSL==16.1.0
-	@pip install --quiet ndg-httpsclient==0.4.2
-	@nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/pyopenssl
+	@pipenv install pyOpenSSL==16.1.0
+	@pipenv install ndg-httpsclient==0.4.2
+	@pipenv run nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/pyopenssl
 
 clean:
 	@printf "Cleaning up files that are already in .gitignore... "
 	@for pattern in `cat .gitignore`; do rm -rf $$pattern; done
 	@echo "OK!"
 
-release: clean unit functional
-	@echo "Releasing httpretty..."
+release: lint unit functional docs
+	@rm -rf dist/*
 	@./.release
-	@python setup.py sdist bdist_wheel register upload
+	@make pypi
+
+pypi:
+	@pipenv run python setup.py build sdist
+	@pipenv run twine upload dist/*.tar.gz
 
 docs:
 	@cd docs && make html
 	$(OPEN_COMMAND) docs/build/html/index.html
-
-deploy-docs:
-	@git co master && \
-		(git br -D gh-pages || printf "") && \
-		git checkout --orphan gh-pages && \
-		markment -o . -t ./theme --sitemap-for="http://falcao.it/HTTPretty" docs && \
-		git add . && \
-		git commit -am 'documentation' && \
-		git push --force origin gh-pages && \
-		git checkout master
 
 prepare:
 	@reset

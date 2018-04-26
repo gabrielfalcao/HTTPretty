@@ -24,29 +24,17 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-import ast
 import io
 import os
 import re
 from setuptools import setup, find_packages
 
 
-class VersionFinder(ast.NodeVisitor):
-
-    def __init__(self):
-        self.version = None
-
-    def visit_Assign(self, node):
-        if node.targets[0].id == '__version__':
-            self.version = node.value.s
-
-
 def read_version():
     """Read version from httpretty/version.py without loading any files"""
-    finder = VersionFinder()
-    finder.visit(
-        ast.parse(local_file('httpretty', '__init__.py').encode('utf-8')))
-    return finder.version
+    ctx = {}
+    exec(local_file('httpretty', 'version.py'), ctx)
+    return ctx['version']
 
 
 def parse_requirements(path):
