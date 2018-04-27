@@ -723,7 +723,7 @@ class Entry(BaseClass):
         )
 
     def normalize_headers(self, headers):
-        """Normalize keys in header names so that ``COntent-tyPe`` becomes ``Content-Type``
+        """Normalize keys in header names so that ``COntent-tyPe`` becomes ``content-type``
 
         :param headers: dict
 
@@ -731,7 +731,7 @@ class Entry(BaseClass):
         """
         new = {}
         for k in headers:
-            new_k = '-'.join([s.capitalize() for s in k.split('-')])
+            new_k = '-'.join([s.lower() for s in k.split('-')])
             new[new_k] = headers[k]
 
         return new
