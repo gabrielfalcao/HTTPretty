@@ -25,11 +25,13 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 import requests
+from unittest import skip
 from sure import expect
 
 from httpretty import HTTPretty
 
 
+@skip
 def test_http_passthrough():
     url = 'http://httpbin.org/status/200'
     response1 = requests.get(url)
@@ -51,6 +53,7 @@ def test_http_passthrough():
     (response4.content).should.equal(response1.content)
 
 
+@skip
 def test_https_passthrough():
     url = 'https://raw.githubusercontent.com/gabrielfalcao/HTTPretty/master/COPYING'
 

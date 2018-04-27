@@ -88,11 +88,12 @@ class JSONEchoServer(threading.Thread):
         ])
 
     def run(self):
-        tornado.ioloop.IOLoop.instance()
+        loop = tornado.ioloop.IOLoop()
+
         application = self.setup_application()
         application.listen(self.port)
         self.lock.release()
-        tornado.ioloop.IOLoop.instance().start()
+        loop.start()
 
 
 def use_tornado_server(callback):
