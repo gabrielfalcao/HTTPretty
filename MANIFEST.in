@@ -1,10 +1,8 @@
-include requirements.txt
-include test-requirements.txt
-include development.txt
-recursive-include tests *.py
-include tests/functional/fixtures/playback-*.json
 include COPYING
 include Makefile
-include README.md
 include README.rst
+include requirements.txt
+include tests/functional/fixtures/playback-*.json
 include tox.ini
+recursive-include docs *.*
+recursive-include tests *.py
