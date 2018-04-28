@@ -3,7 +3,7 @@ HTTPretty 0.9.0
 
 |https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo\_1.svg|
 |Build Status|
-`ChangeLog <https://github.com/gabrielfalcao/HTTPretty/blob/master/docs/NEWS.md>`__
+`ChangeLog <https://github.com/gabrielfalcao/HTTPretty/blob/master/docs/source/changelog.rst>`__
 
 disclaimer:
 ~~~~~~~~~~~
@@ -17,18 +17,14 @@ official at least *for now*.
 Installing
 ==========
 
-Since you are interested in HTTPretty you should also be interested in
-speeding up your build. Replace ``pip`` with
-`curdling <http://clarete.github.io/curdling/>`__ and see your build
-running a lot faster.
-
-You can use curdling to install not only HTTPretty but every dependency
-in your project and see the speed gains.
-
 .. code:: bash
 
-    $ easy_install curdling
-    $ curd install HTTPretty
+   pipenv install --dev httpretty
+
+   # or
+
+   pip install httpretty
+
 
 In a nutshell
 =============
