@@ -3,7 +3,7 @@ machine:
     LANG: en_US.UTF-8
 
   post:
-    - pyenv global 2.7.13 3.6.5
+    - pyenv global 2.7 3.6
 
 dependencies:
   override:

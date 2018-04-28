@@ -15,7 +15,6 @@ matrix:
 
 
 env:
-  - TEST_TYPE=lint
   - TEST_TYPE=unit
   - TEST_TYPE=functional
   - TEST_TYPE=pyopenssl
