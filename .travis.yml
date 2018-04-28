@@ -21,7 +21,7 @@ env:
 
 install:
   - pip install pipenv
-  - pipenv install --dev
+  - pipenv install --dev --skip-lock
 
 script:
   - make $TEST_TYPE

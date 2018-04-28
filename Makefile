@@ -16,7 +16,7 @@ export PYTHONASYNCIODEBUG	:=1
 dependencies:
 	@pip install -U pip
 	@pip install pipenv
-	@pipenv install --dev
+	@pipenv install --dev --skip-lock
 
 test: lint unit functional pyopenssl
 
@@ -34,8 +34,8 @@ functional: prepare
 
 pyopenssl: prepare
 	@echo "Running PyOpenSSL mocking tests ..."
-	@pipenv install pyOpenSSL==16.1.0
-	@pipenv install ndg-httpsclient==0.4.2
+	@pipenv install --skip-lock pyOpenSSL==16.1.0
+	@pipenv install --skip-lock ndg-httpsclient==0.4.2
 	@pipenv run nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/pyopenssl
 
 clean:
