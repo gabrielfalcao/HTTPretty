@@ -97,9 +97,11 @@ License
 Main contributors
 =================
 
-There folks made remarkable contributions to HTTPretty:
+HTTPretty has received `many contributions <https://github.com/gabrielfalcao/HTTPretty/graphs/contributors>`_
+but some folks made remarkable contributions and deserve extra credit:
 
--  Steve Pulec ~> @spulec
--  Hugh Saunders ~> @hughsaunders
--  Matt Luongo ~> @mhluongo
--  James Rowe ~> @JNRowe
+-  Andrew Gross ~> `@andrewgross <https://github.com/andrewgross>`_
+-  Hugh Saunders ~> `@hughsaunders <https://github.com/hughsaunders>`_
+-  James Rowe ~> `@JNRowe <https://github.com/JNRowe>`_
+-  Matt Luongo ~> `@mhluongo <https://github.com/mhluongo>`_
+-  Steve Pulec ~> `@spulec <https://github.com/spulec>`_
