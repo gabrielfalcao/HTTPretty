@@ -15,7 +15,7 @@ Looking for the `Github Repository <https://github.com/gabrielfalcao/HTTPretty>`
 - **2.7.13**
 - **3.6.5**
 
-.. image:: docs/source/_static/logo.svg
+.. image:: https://github.com/gabrielfalcao/HTTPretty/raw/master/docs/source/_static/logo.svg?sanitize=true
 
 .. image:: https://readthedocs.org/projects/httpretty/badge/?version=latest
    :target: http://httpretty.readthedocs.io/en/latest/?badge=latest
