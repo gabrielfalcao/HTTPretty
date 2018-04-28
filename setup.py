@@ -26,42 +26,13 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 import io
 import os
-import re
 from setuptools import setup, find_packages
 
 
 def read_version():
-    """Read version from httpretty/version.py without loading any files"""
     ctx = {}
     exec(local_file('httpretty', 'version.py'), ctx)
     return ctx['version']
-
-
-def parse_requirements(path):
-    """Rudimentary parser for the `requirements.txt` file
-
-    We just want to separate regular packages from links to pass them to the
-    `install_requires` and `dependency_links` params of the `setup()`
-    function properly.
-    """
-    try:
-        requirements = [req.strip() for req in local_file(path).splitlines()]
-    except IOError:
-        raise RuntimeError("Couldn't find the `requirements.txt' file :(")
-
-    links = []
-    pkgs = []
-    for req in requirements:
-        if not req:
-            continue
-        if 'http:' in req or 'https:' in req:
-            links.append(req)
-            name, version = re.findall("\#egg=([^\-]+)-(.+$)", req)[0]
-            pkgs.append('{}=={}'.format(name, version))
-        else:
-            pkgs.append(req)
-
-    return pkgs, links
 
 
 local_file = lambda *f: \
@@ -69,10 +40,8 @@ local_file = lambda *f: \
         os.path.join(os.path.dirname(__file__), *f), encoding='utf-8').read()
 
 
-install_requires, dependency_links = \
-    parse_requirements('requirements.txt')
-tests_requires, tests_dependency_links = \
-    parse_requirements('development.txt')
+install_requires = ['six']
+tests_requires = ['nose', 'sure', 'coverage', 'mock', 'rednose']
 
 
 setup(
@@ -87,7 +56,6 @@ setup(
     packages=find_packages(exclude=['*tests*']),
     tests_require=tests_requires,
     install_requires=install_requires,
-    dependency_links=dependency_links,
     license='MIT',
     test_suite='nose.collector',
     classifiers=[
