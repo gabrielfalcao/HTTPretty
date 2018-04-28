@@ -147,8 +147,10 @@ class TCPClient(object):
         self.sock = true_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect(('localhost', self.port))
 
-    def send(self, what):
-        data = binary_type(what, 'utf-8')
+    def send(self, data):
+        if isinstance(data, text_type):
+            data = data.encode('utf-8')
+
         self.sock.sendall(data)
         return self.sock.recv(len(data) + 11)
 
