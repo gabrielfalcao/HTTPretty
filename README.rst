@@ -1,4 +1,4 @@
-HTTPretty 0.9.3
+HTTPretty 0.9.4
 ===============
 
 HTTP Client mocking tool for Python. Provides a full fake TCP socket module. Inspired by `FakeWeb <https://github.com/chrisk/fakeweb>`_

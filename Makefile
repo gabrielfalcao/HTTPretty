@@ -48,6 +48,9 @@ clean:
 
 release: lint unit functional docs
 	@rm -rf dist/*
+	@make rogue-release
+
+rogue-release:
 	@./.release
 	@make pypi
 
