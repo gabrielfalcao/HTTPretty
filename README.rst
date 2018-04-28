@@ -5,6 +5,7 @@ HTTP Client mocking tool for Python. Provides a full fake TCP socket module. Ins
 
 - `Github Repository <https://github.com/gabrielfalcao/HTTPretty>`_
 - `Documentation <https://httpretty.readthedocs.io/en/latest/>`_
+- `PyPI Package <https://pypi.org/project/httpretty/>`_
 
 
 **Python Support:**
@@ -12,7 +13,7 @@ HTTP Client mocking tool for Python. Provides a full fake TCP socket module. Ins
 - **2.7.13**
 - **3.6.5**
 
-.. image:: docs/source/_static/logo.svg
+.. image:: https://github.com/gabrielfalcao/HTTPretty/raw/master/docs/source/_static/logo.svg?sanitize=true
 
 .. image:: https://readthedocs.org/projects/httpretty/badge/?version=latest
    :target: http://httpretty.readthedocs.io/en/latest/?badge=latest
