@@ -1521,6 +1521,8 @@ class httprettized(object):
 def httprettified(test):
     """decorator for test functions
 
+    .. tip:: Also available under the alias :py:func:`httpretty.activate`
+
     :param test: a callable
 
 
@@ -1560,9 +1562,6 @@ def httprettified(test):
                expect(response.json()).to.equal({
                    "message": "HTTPretty :)"
                })
-
-
-    .. tip:: this is the alias of :py:func:`httpretty.activate`
 
     """
     def decorate_unittest_TestCase_setUp(klass):
