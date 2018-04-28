@@ -645,6 +645,8 @@ class Entry(BaseClass):
     :param status: an integer (e.g.: ``status=200``)
     :param streaming: bool - whether to stream the response
     :param headers: keyword-args with headers to be added to the response
+
+    .. warning:: When using the ``forcing_headers`` option make sure to add the header ``Content-Length`` otherwise calls using :py:mod:`requests` will try to load the response endlessly.
     """
     def __init__(self, method, uri, body,
                  adding_headers=None,
@@ -1501,13 +1503,15 @@ class httprettized(object):
 
     .. testcode::
 
+       import json
        import httpretty
 
-       httpretty.register_uri(httpretty.GET, 'https://httpbin.org/ip', body='')
+       httpretty.register_uri(httpretty.GET, 'https://httpbin.org/ip', body=json.dumps({'origin': '42.42.42.42'}))
        with httpretty.enabled():
-           requests.get('https://httpbin.org/ip')
+           response = requests.get('https://httpbin.org/ip')
 
        assert httpretty.latest_requests[-1].url == 'https://httpbin.org/ip'
+       assert response.json() == {'origin': '42.42.42.42'}
     """
     def __enter__(self):
         httpretty.reset()

@@ -6,7 +6,7 @@ install development dependencies
 
 .. tip:: Make sure to have `pipenv <https://docs.pipenv.org/>`_
          installed before working on HTTPretty.
-         HTTPretty is tested against Python **2.7.13** and **3.6.5**
+         This works with Python **2.7.13** and **3.6.5**.
 
 
 .. code:: bash
