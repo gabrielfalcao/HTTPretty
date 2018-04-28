@@ -31,12 +31,23 @@ last_request
 .. autofunction:: httpretty.last_request
 
 
+
+.. _activate:
+
+activate
+--------
+
+.. autoclass:: httpretty.activate
+   :members:
+
+
 .. _httprettified:
 
 httprettified
 -------------
 
-.. autofunction:: httpretty.core.httprettified
+.. autoclass:: httpretty.core.httprettified
+   :members:
 
 
 .. _httprettized:

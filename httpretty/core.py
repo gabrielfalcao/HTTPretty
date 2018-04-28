@@ -1562,6 +1562,8 @@ def httprettified(test):
                })
 
 
+    .. tip:: this is the alias of :py:func:`httpretty.activate`
+
     """
     def decorate_unittest_TestCase_setUp(klass):
 
