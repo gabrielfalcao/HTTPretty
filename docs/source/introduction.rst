@@ -1,3 +1,5 @@
+.. _introduction:
+
 What is HTTPretty ?
 ###################
 
@@ -43,7 +45,7 @@ Installing httpretty is as easy as:
 
 ::
 
-   pip install HTTPretty
+   pip install httpretty
 
 
 Demo

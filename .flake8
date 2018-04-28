@@ -1,0 +1,4 @@
+[flake8]
+ignore = E501,E731,F401,F821,E901
+max-line-length = 120
+exclude=patterns = .git,__pycache__,.tox,.eggs,*.egg

@@ -1,34 +1,39 @@
-# Hacking on HTTPretty
+Hacking on HTTPretty
+====================
 
-## creating a virtual env
+install development dependencies
+--------------------------------
 
-you will need [virtualenvwrapper](http://www.doughellmann.com/projects/virtualenvwrapper/)
+.. tip:: Make sure to have `pipenv <https://docs.pipenv.org/>`_
+         installed before working on HTTPretty.
+         HTTPretty is tested against Python **2.7.13** and **3.6.5**
 
 
-```console
-mkvirtualenv HTTPretty
-```
+.. code:: bash
 
-## installing the dependencies
+    pipenv install --dev
 
-```console
-pip install -r requirements.txt
-```
 
-## next steps
+next steps
+----------
 
 1. run the tests with make:
-```bash
-make unit functional
-```
+
+.. code:: bash
+
+   make lint unit functional
+
 2. hack at will
 3. commit, push etc
 4. send a pull request
 
-# License
+License
+=======
+
+::
 
     <HTTPretty - HTTP client mock for Python>
-    Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
+    Copyright (C) <2011-2018>  Gabriel Falcão <gabriel@nacaolivre.org>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -51,12 +56,14 @@ make unit functional
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     OTHER DEALINGS IN THE SOFTWARE.
 
+Main contributors
+=================
 
-# Main contributors
+HTTPretty has received `many contributions <https://github.com/gabrielfalcao/HTTPretty/graphs/contributors>`_
+but some folks made remarkable contributions and deserve extra credit:
 
-There folks made remarkable contributions to HTTPretty:
-
-* Steve Pulec ~> @spulec
-* Hugh Saunders ~> @hughsaunders
-* Matt Luongo ~> @mhluongo
-* James Rowe ~> @JNRowe
+-  Andrew Gross ~> `@andrewgross <https://github.com/andrewgross>`_
+-  Hugh Saunders ~> `@hughsaunders <https://github.com/hughsaunders>`_
+-  James Rowe ~> `@JNRowe <https://github.com/JNRowe>`_
+-  Matt Luongo ~> `@mhluongo <https://github.com/mhluongo>`_
+-  Steve Pulec ~> `@spulec <https://github.com/spulec>`_

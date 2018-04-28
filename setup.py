@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011>  Gabriel Falcao <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcao <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -24,29 +24,17 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-import ast
 import io
 import os
 import re
 from setuptools import setup, find_packages
 
 
-class VersionFinder(ast.NodeVisitor):
-
-    def __init__(self):
-        self.version = None
-
-    def visit_Assign(self, node):
-        if node.targets[0].id == '__version__':
-            self.version = node.value.s
-
-
 def read_version():
     """Read version from httpretty/version.py without loading any files"""
-    finder = VersionFinder()
-    finder.visit(
-        ast.parse(local_file('httpretty', '__init__.py').encode('utf-8')))
-    return finder.version
+    ctx = {}
+    exec(local_file('httpretty', 'version.py'), ctx)
+    return ctx['version']
 
 
 def parse_requirements(path):
@@ -103,12 +91,13 @@ setup(
     license='MIT',
     test_suite='nose.collector',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 2 :: Only',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Testing'

@@ -1,4 +1,4 @@
-HTTPretty 0.8.14
+HTTPretty 0.9.0
 ================
 
 |https://s3-us-west-2.amazonaws.com/s.cdpn.io/18885/httpretty-logo\_1.svg|
@@ -562,7 +562,7 @@ License
 ::
 
     <HTTPretty - HTTP client mock for Python>
-    Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
+    Copyright (C) <2011-2018>  Gabriel Falcão <gabriel@nacaolivre.org>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
