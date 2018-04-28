@@ -53,7 +53,7 @@ latex_elements = {}
 
 latex_documents = [
     (master_doc, 'HTTPretty.tex', 'HTTPretty Documentation',
-     'Gabriel Falcão', 'manual'),
+     'Gabriel Falcao', 'manual'),
 ]
 
 man_pages = [
