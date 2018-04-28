@@ -94,16 +94,6 @@ FakeSSLSocket
    :members:
 
 
-.. _FakeSockFile:
-
-FakeSockFile
-------------
-
-.. autoclass:: httpretty.core.FakeSockFile
-   :members:
-
-
-
 .. _URIInfo:
 
 URIInfo
