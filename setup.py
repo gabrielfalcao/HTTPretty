@@ -51,7 +51,7 @@ setup(
     long_description=local_file('README.rst'),
     author='Gabriel Falcao',
     author_email='gabriel@nacaolivre.org',
-    url='http://github.com/gabrielfalcao/httpretty',
+    url='https://httpretty.readthedocs.io',
     zip_safe=False,
     packages=find_packages(exclude=['*tests*']),
     tests_require=tests_requires,
