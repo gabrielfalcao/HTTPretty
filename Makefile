@@ -34,8 +34,7 @@ functional: prepare
 
 pyopenssl: prepare
 	@echo "Running PyOpenSSL mocking tests ..."
-	@pipenv install --skip-lock pyOpenSSL==16.1.0
-	@pipenv install --skip-lock ndg-httpsclient==0.4.2
+	@pipenv install --skip-lock ndg-httpsclient
 	@pipenv run nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/pyopenssl
 
 clean:

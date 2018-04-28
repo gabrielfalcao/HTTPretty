@@ -24,7 +24,7 @@ twine = "*"
 "pathlib2" = "*"
 tox = "*"
 singledispatch = "*"
-pyopenssl = "*"
+pyopenssl = "==16.2.0"
 
 [requires]
 python_version = "3.6"
