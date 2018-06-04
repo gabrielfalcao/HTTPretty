@@ -351,7 +351,7 @@ class fakesock(object):
             return {
                 'notAfter': shift.strftime('%b %d %H:%M:%S GMT'),
                 'subjectAltName': (
-                    ('DNS', '*%s' % self._host),
+                    ('DNS', '*.%s' % self._host),
                     ('DNS', self._host),
                     ('DNS', '*'),
                 ),

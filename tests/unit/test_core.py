@@ -211,7 +211,7 @@ def test_fakesock_socket_getpeercert(dt):
             ((u'organizationalUnitName', u'Domain Control Validated'),),
             ((u'commonName', u'*.somewhere.com'),)),
         u'subjectAltName': (
-            (u'DNS', u'*somewhere.com'),
+            (u'DNS', u'*.somewhere.com'),
             (u'DNS', u'somewhere.com'),
             (u'DNS', u'*')
         )
