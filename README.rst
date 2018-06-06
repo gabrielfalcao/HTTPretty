@@ -105,3 +105,4 @@ but some folks made remarkable contributions and deserve extra credit:
 -  James Rowe ~> `@JNRowe <https://github.com/JNRowe>`_
 -  Matt Luongo ~> `@mhluongo <https://github.com/mhluongo>`_
 -  Steve Pulec ~> `@spulec <https://github.com/spulec>`_
+-  Miro Hrončok ~> `@hroncok <https://github.com/hroncok>`_
