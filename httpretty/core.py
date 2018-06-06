@@ -85,6 +85,7 @@ old_socksocket = None
 old_ssl_wrap_socket = None
 old_sslwrap_simple = None
 old_sslsocket = None
+old_sslcontext_wrap_socket = None
 
 MULTILINE_ANY_REGEX = re.compile(r'.*', re.M)
 
@@ -98,6 +99,7 @@ except ImportError:
 try:  # pragma: no cover
     import ssl
     old_ssl_wrap_socket = ssl.wrap_socket
+    old_sslcontext_wrap_socket = ssl.SSLContext.wrap_socket
     if not PY3:
         old_sslwrap_simple = ssl.sslwrap_simple
     old_sslsocket = ssl.SSLSocket
@@ -349,7 +351,7 @@ class fakesock(object):
             return {
                 'notAfter': shift.strftime('%b %d %H:%M:%S GMT'),
                 'subjectAltName': (
-                    ('DNS', '*%s' % self._host),
+                    ('DNS', '*.%s' % self._host),
                     ('DNS', self._host),
                     ('DNS', '*'),
                 ),
@@ -965,7 +967,8 @@ class URIMatcher(object):
     def __init__(self, uri, entries, match_querystring=False, priority=0):
         self._match_querystring = match_querystring
         # CPython, Jython
-        regex_types = ('SRE_Pattern', 'org.python.modules.sre.PatternObject')
+        regex_types = ('SRE_Pattern', 'org.python.modules.sre.PatternObject',
+                       'Pattern')
         is_regex = type(uri).__name__ in regex_types
         if is_regex:
             self.regex = uri
@@ -1394,6 +1397,7 @@ class httpretty(HttpBaseClass):
         if ssl:
             ssl.wrap_socket = old_ssl_wrap_socket
             ssl.SSLSocket = old_sslsocket
+            ssl.SSLContext.wrap_socket = old_sslcontext_wrap_socket
             ssl.__dict__['wrap_socket'] = old_ssl_wrap_socket
             ssl.__dict__['SSLSocket'] = old_sslsocket
 
@@ -1484,6 +1488,7 @@ class httpretty(HttpBaseClass):
             new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
             ssl.wrap_socket = new_wrap
             ssl.SSLSocket = FakeSSLSocket
+            ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_sslcontext_wrap_socket)
 
             ssl.__dict__['wrap_socket'] = new_wrap
             ssl.__dict__['SSLSocket'] = FakeSSLSocket
