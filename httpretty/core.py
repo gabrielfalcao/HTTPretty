@@ -99,7 +99,10 @@ except ImportError:
 try:  # pragma: no cover
     import ssl
     old_ssl_wrap_socket = ssl.wrap_socket
-    old_sslcontext_wrap_socket = ssl.SSLContext.wrap_socket
+    try:
+        old_sslcontext_wrap_socket = ssl.SSLContext.wrap_socket
+    except AttributeError:
+        pass
     if not PY3:
         old_sslwrap_simple = ssl.sslwrap_simple
     old_sslsocket = ssl.SSLSocket
@@ -1397,7 +1400,10 @@ class httpretty(HttpBaseClass):
         if ssl:
             ssl.wrap_socket = old_ssl_wrap_socket
             ssl.SSLSocket = old_sslsocket
-            ssl.SSLContext.wrap_socket = old_sslcontext_wrap_socket
+            try:
+                ssl.SSLContext.wrap_socket = old_sslcontext_wrap_socket
+            except AttributeError:
+                pass
             ssl.__dict__['wrap_socket'] = old_ssl_wrap_socket
             ssl.__dict__['SSLSocket'] = old_sslsocket
 
@@ -1488,7 +1494,10 @@ class httpretty(HttpBaseClass):
             new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
             ssl.wrap_socket = new_wrap
             ssl.SSLSocket = FakeSSLSocket
-            ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_sslcontext_wrap_socket)
+            try:
+                ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_sslcontext_wrap_socket)
+            except AttributeError:
+                pass
 
             ssl.__dict__['wrap_socket'] = new_wrap
             ssl.__dict__['SSLSocket'] = FakeSSLSocket
