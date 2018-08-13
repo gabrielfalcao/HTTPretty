@@ -26,6 +26,7 @@ twine = "*"
 tox = "*"
 singledispatch = "*"
 pyopenssl = "==16.2.0"
+cryptography = "==2.3"
 
 [requires]
 python_version = "3.6"
