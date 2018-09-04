@@ -127,7 +127,7 @@ def FALLBACK_FUNCTION(x):
 
 
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
-    """
+    r"""
     Represents a HTTP request. It takes a valid multi-line,
     ``\r\n`` separated string with HTTP headers and parse them out using
     the internal `parse_request` method.
@@ -146,6 +146,10 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
     ``querystring`` -> a dictionary containing lists with the
     attributes. Please notice that if you need a single value from a
     query string you will need to get it manually like:
+
+    ``body`` -> the request body as a string
+
+    ``parsed_body`` -> the request body parsed by ``parse_request_body``
 
     .. testcode::
 
