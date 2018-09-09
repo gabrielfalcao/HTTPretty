@@ -991,7 +991,8 @@ class URIMatcher(object):
 
     def matches(self, info):
         if self.info:
-            return self.info == info
+            # Query string is not considered when comparing info objects, compare separately
+            return self.info == info and (not self._match_querystring or self.info.query == info.query)
         else:
             return self.regex.search(info.full_url(
                 use_querystring=self._match_querystring))

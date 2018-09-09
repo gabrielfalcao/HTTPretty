@@ -10,6 +10,7 @@ from sure import expect
 
 from httpretty.compat import StringIO
 from httpretty.core import HTTPrettyRequest, FakeSSLSocket, fakesock, httpretty
+from httpretty.core import URIMatcher, URIInfo
 
 
 class SocketErrorStub(Exception):
@@ -607,3 +608,18 @@ def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTT
 
     # Then the entry should have that body
     httpretty.last_request.body.should.equal(b'BLABLABLABLA')
+
+
+def test_URIMatcher_respects_querystring():
+    ("URIMatcher response querystring")
+    matcher = URIMatcher('http://www.foo.com/?query=true', None)
+    info = URIInfo.from_uri('http://www.foo.com/', None)
+    assert matcher.matches(info)
+
+    matcher = URIMatcher('http://www.foo.com/?query=true', None, match_querystring=True)
+    info = URIInfo.from_uri('http://www.foo.com/', None)
+    assert not matcher.matches(info)
+
+    matcher = URIMatcher('http://www.foo.com/?query=true', None, match_querystring=True)
+    info = URIInfo.from_uri('http://www.foo.com/?query=true', None)
+    assert matcher.matches(info)
