@@ -786,6 +786,11 @@ def test_recording_calls(port):
     response['response'].should.have.key("status").being.equal(200)
     response['response'].should.have.key("body").being.an(text_type)
     response['response'].should.have.key("headers").being.a(dict)
+    # older urllib3 had a bug where header keys were lower-cased:
+    # https://github.com/shazow/urllib3/issues/236
+    # cope with that
+    if 'server' in response['response']["headers"]:
+        response['response']["headers"]["Server"] = response['response']["headers"].pop("server")
     response['response']["headers"].should.have.key("Server").being.equal("TornadoServer/" + tornado_version)
 
     # And When I playback the previously recorded calls
