@@ -1,7 +1,7 @@
 # #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcao <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcao <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -76,7 +76,6 @@ STATUSES = {
     422: "Unprocessable Entity",
     423: "Locked",
     424: "Failed Dependency",
-    424: "Method Failure",
     425: "Unordered Collection",
     426: "Upgrade Required",
     428: "Precondition Required",
@@ -86,7 +85,6 @@ STATUSES = {
     449: "Retry With",
     450: "Blocked by Windows Parental Controls",
     451: "Unavailable For Legal Reasons",
-    451: "Redirect",
     494: "Request Header Too Large",
     495: "Cert Error",
     496: "No Cert",

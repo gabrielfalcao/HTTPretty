@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -34,22 +34,30 @@ import requests
 from sure import within, microseconds, expect
 from tornado import version as tornado_version
 from httpretty import HTTPretty, httprettified
-from httpretty.compat import text_type
+from httpretty.compat import text_type, PY3
 from httpretty.core import decode_utf8
 
-from tests.functional.base import FIXTURE_FILE, use_tornado_server
-from tornado import version as tornado_version
 
 try:
-    xrange = xrange
-except NameError:
+    from unittest import skip
+except ImportError:
+    from unittest2 import skip
+
+from tests.functional.base import FIXTURE_FILE, use_tornado_server
+
+
+if PY3:
     xrange = range
+else:
+    pass
 
 try:
     advance_iterator = next
 except NameError:
     def advance_iterator(it):
         return it.next()
+
+
 next = advance_iterator
 
 server_url = lambda path, port: "http://localhost:{}/{}".format(port, path.lstrip('/'))
@@ -297,11 +305,11 @@ def test_streaming_responses(now):
         yield
         signal.setitimer(signal.ITIMER_REAL, 0)
 
-    #XXX this obviously isn't a fully functional twitter streaming client!
+    # XXX this obviously isn't a fully functional twitter streaming client!
     twitter_response_lines = [
         b'{"text":"If \\"for the boobs\\" requests to follow me one more time I\'m calling the police. http://t.co/a0mDEAD8"}\r\n',
         b'\r\n',
-        b'{"text":"RT @onedirection: Thanks for all your #FollowMe1D requests Directioners! We\u2019ll be following 10 people throughout the day starting NOW. G ..."}\r\n'
+        b'{"text":"RT @onedirection: Thanks for all your # FollowMe1D requests Directioners! We\u2019ll be following 10 people throughout the day starting NOW. G ..."}\r\n'
     ]
 
     TWITTER_STREAMING_URL = "https://stream.twitter.com/1/statuses/filter.json"
@@ -311,20 +319,26 @@ def test_streaming_responses(now):
                            streaming=True)
 
     # taken from the requests docs
-    # Http://docs.python-requests.org/en/latest/user/advanced/#streaming-requests
+    # Http://docs.python-requests.org/en/latest/user/advanced/# streaming-requests
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
                              auth=('username', 'password'), stream=True)
 
-    #test iterating by line
+    # test iterating by line
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever!'):
         for i in xrange(len(twitter_response_lines)):
             expect(next(line_iter).strip()).to.equal(
                 twitter_response_lines[i].strip())
 
-    #test iterating by line after a second request
-    response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
-                            auth=('username', 'password'), stream=True)
+    # test iterating by line after a second request
+    response = requests.post(
+        TWITTER_STREAMING_URL,
+        data={
+            'track': 'requests'
+        },
+        auth=('username', 'password'),
+        stream=True,
+    )
 
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever the second time '
@@ -333,9 +347,15 @@ def test_streaming_responses(now):
             expect(next(line_iter).strip()).to.equal(
                 twitter_response_lines[i].strip())
 
-    #test iterating by char
-    response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
-                            auth=('username', 'password'), stream=True)
+    # test iterating by char
+    response = requests.post(
+        TWITTER_STREAMING_URL,
+        data={
+            'track': 'requests'
+        },
+        auth=('username', 'password'),
+        stream=True
+    )
 
     twitter_expected_response_body = b''.join(twitter_response_lines)
     with in_time(0.02, 'Iterating by char is taking forever!'):
@@ -343,7 +363,7 @@ def test_streaming_responses(now):
 
     expect(twitter_body).to.equal(twitter_expected_response_body)
 
-    #test iterating by chunks larger than the stream
+    # test iterating by chunks larger than the stream
 
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
                              auth=('username', 'password'), stream=True)
@@ -400,7 +420,6 @@ def test_octet_stream():
     expect(len(HTTPretty.latest_requests)).to.equal(1)
 
 
-
 @httprettified
 def test_multipart():
     url = 'http://httpbin.org/post'
@@ -427,7 +446,7 @@ def test_callback_response(now):
      " requests")
 
     def request_callback(request, uri, headers):
-        return [200, headers,"The {} response from {}".format(decode_utf8(request.method), uri)]
+        return [200, headers, "The {} response from {}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -448,6 +467,7 @@ def test_callback_response(now):
 
     expect(response.text).to.equal("The POST response from https://api.yahoo.com/test_post")
 
+
 @httprettified
 @within(two=microseconds)
 def test_callback_body_remains_callable_for_any_subsequent_requests(now):
@@ -455,7 +475,7 @@ def test_callback_body_remains_callable_for_any_subsequent_requests(now):
      " requests")
 
     def request_callback(request, uri, headers):
-        return [200, headers,"The {} response from {}".format(decode_utf8(request.method), uri)]
+        return [200, headers, "The {} response from {}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -467,6 +487,7 @@ def test_callback_body_remains_callable_for_any_subsequent_requests(now):
     response = requests.get('https://api.yahoo.com/test')
     expect(response.text).to.equal("The GET response from https://api.yahoo.com/test")
 
+
 @httprettified
 @within(two=microseconds)
 def test_callback_setting_headers_and_status_response(now):
@@ -474,8 +495,8 @@ def test_callback_setting_headers_and_status_response(now):
      " requests")
 
     def request_callback(request, uri, headers):
-        headers.update({'a':'b'})
-        return [418,headers,"The {} response from {}".format(decode_utf8(request.method), uri)]
+        headers.update({'a': 'b'})
+        return [418, headers, "The {} response from {}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",
@@ -544,7 +565,7 @@ def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_t
     HTTPretty.register_uri(
         HTTPretty.GET,
         re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
-        body=lambda method,uri,headers: [200,headers,uri]
+        body=lambda method, uri, headers: [200, headers, uri]
     )
 
     response = requests.get('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
@@ -552,6 +573,7 @@ def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_t
     expect(response.text).to.equal('https://api.yipit.com/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
 
 @httprettified
 def test_httpretty_should_allow_registering_regexes():
@@ -586,12 +608,6 @@ def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
         'foo': ['bar', 'baz'],
         'chuck': ['norris'],
     })
-
-
-try:
-    from unittest import skip
-except ImportError:
-    from unittest2 import skip
 
 
 @httprettified
@@ -666,18 +682,22 @@ def test_httpretty_should_allow_multiple_responses_with_multiple_methods():
 
     url = 'http://test.com/list'
 
-    #add get responses
-    HTTPretty.register_uri(HTTPretty.GET, url,
-                           responses=[HTTPretty.Response(body='a'),
-                                      HTTPretty.Response(body='b')
-                           ]
+    # add get responses
+    HTTPretty.register_uri(
+        HTTPretty.GET, url,
+        responses=[
+            HTTPretty.Response(body='a'),
+            HTTPretty.Response(body='b'),
+        ]
     )
 
-    #add post responses
-    HTTPretty.register_uri(HTTPretty.POST, url,
-                           responses=[HTTPretty.Response(body='c'),
-                                      HTTPretty.Response(body='d')
-                           ]
+    # add post responses
+    HTTPretty.register_uri(
+        HTTPretty.POST, url,
+        responses=[
+            HTTPretty.Response(body='c'),
+            HTTPretty.Response(body='d'),
+        ]
     )
 
     expect(requests.get(url).text).to.equal('a')
@@ -766,6 +786,11 @@ def test_recording_calls(port):
     response['response'].should.have.key("status").being.equal(200)
     response['response'].should.have.key("body").being.an(text_type)
     response['response'].should.have.key("headers").being.a(dict)
+    # older urllib3 had a bug where header keys were lower-cased:
+    # https://github.com/shazow/urllib3/issues/236
+    # cope with that
+    if 'server' in response['response']["headers"]:
+        response['response']["headers"]["Server"] = response['response']["headers"].pop("server")
     response['response']["headers"].should.have.key("Server").being.equal("TornadoServer/" + tornado_version)
 
     # And When I playback the previously recorded calls
@@ -789,12 +814,12 @@ def test_recording_calls(port):
 @httprettified
 def test_py26_callback_response():
     ("HTTPretty should call a callback function *once* and set its return value"
-    " as the body of the response requests")
+     " as the body of the response requests")
 
     from mock import Mock
 
     def _request_callback(request, uri, headers):
-        return [200, headers,"The {} response from {}".format(decode_utf8(request.method), uri)]
+        return [200, headers, "The {} response from {}".format(decode_utf8(request.method), uri)]
 
     request_callback = Mock()
     request_callback.side_effect = _request_callback
@@ -803,7 +828,7 @@ def test_py26_callback_response():
         HTTPretty.POST, "https://api.yahoo.com/test_post",
         body=request_callback)
 
-    response = requests.post(
+    requests.post(
         "https://api.yahoo.com/test_post",
         {"username": "gabrielfalcao"}
     )
@@ -868,23 +893,6 @@ def test_httpretty_reset_by_switching_protocols_for_same_port():
     expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal')
-
-
-@httprettified
-def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_match_to_the_callback():
-    "HTTPretty should allow registering regexes with requests and giva a proper match to the callback"
-
-    HTTPretty.register_uri(
-        HTTPretty.GET,
-        re.compile("https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
-        body=lambda method, uri, headers: [200, headers, uri]
-    )
-
-    response = requests.get('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-
-    expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
 
 
 @httprettified

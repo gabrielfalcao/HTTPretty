@@ -2,11 +2,11 @@ language: python
 sudo: false
 python:
   - "2.7"
-  - "3.5"
-
-matrix:
-  allow_failures:
-    - python: "3.5"
+  # - "3.3"
+  # - "3.4"
+  # - "3.5"
+  - "3.6"
+  - "3.7-dev"
 
 env:
   - TEST_TYPE=unit
@@ -14,7 +14,22 @@ env:
   - TEST_TYPE=pyopenssl
 
 install:
-  - pip install -r development.txt
+  - pip install pipenv
+  - pipenv install --dev --skip-lock
 
 script:
   - make $TEST_TYPE
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+# automated pypi releases
+deploy:
+  provider: pypi
+  user: gabrielfalcao
+  password:
+    secure: E5KbnpQau7jv/mpHWAs19Y5zBaOHyBXRCGAsTS0S5lEOp/g8EEbjyt5rL7lcIeFAYarIds719BktC5iO+1AQbXOYicS5vDfiVRdLaJ5HPA4v6zyyQzwadFKSqE1Tv11AG9xkFDfBEPLTQmSrpI5cJIY5UoafDnMZe4CbLVETTw8=
+  on:
+    branch: master
+    tags: true
+  distributions: sdist bdist_wheel

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <httpretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -56,7 +56,7 @@ def start_http_server(context):
         try:
             requests.get('http://localhost:{}/'.format(context.http_port))
             ready = True
-        except:
+        except (Exception, BaseException):
             if time.time() - started_at >= timeout:
                 break
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -61,7 +61,6 @@ def test_httpretty_provides_easy_access_to_querystrings(now):
         'foo': ['bar', 'baz'],
         'chuck': ['norris'],
     })
-
 
 
 @httprettified
@@ -126,10 +125,10 @@ def test_httpretty_should_allow_forcing_headers_httplib2(now):
 
     expect(dict(headers)).to.equal({
         'content-location': 'http://github.com/foo',  # httplib2 FORCES
-                                                   # content-location
-                                                   # even if the
-                                                   # server does not
-                                                   # provide it
+                                                      # content-location
+                                                      # even if the
+                                                      # server does not
+                                                      # provide it
         'content-type': 'application/xml',
         'status': '200',  # httplib2 also ALWAYS put status on headers
     })
@@ -152,10 +151,10 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
     expect(dict(headers)).to.equal({
         'content-type': 'application/json',
         'content-location': 'http://github.com/foo',  # httplib2 FORCES
-                                                   # content-location
-                                                   # even if the
-                                                   # server does not
-                                                   # provide it
+                                                      # content-location
+                                                      # even if the
+                                                      # server does not
+                                                      # provide it
         'connection': 'close',
         'content-length': '27',
         'status': '200',
@@ -266,10 +265,10 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
 @within(two=microseconds)
 def test_callback_response(now):
     ("HTTPretty should all a callback function to be set as the body with"
-      " httplib2")
+     " httplib2")
 
     def request_callback(request, uri, headers):
-        return [200,headers,"The {} response from {}".format(decode_utf8(request.method), uri)]
+        return [200, headers, "The {} response from {}".format(decode_utf8(request.method), uri)]
 
     HTTPretty.register_uri(
         HTTPretty.GET, "https://api.yahoo.com/test",

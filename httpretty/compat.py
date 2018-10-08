@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2015>  Gabriel Falcao <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcao <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -26,23 +26,19 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
 
-import sys
+import io
 import types
 
-PY3 = sys.version_info[0] == 3
+from six import PY3, text_type, string_types, binary_type
+
 if PY3:  # pragma: no cover
-    text_type = str
-    byte_type = bytes
-    import io
     StringIO = io.BytesIO
-    basestring = (str, bytes)
+    basestring = string_types
 
 else:  # pragma: no cover
-    text_type = unicode
-    byte_type = str
     import StringIO
     StringIO = StringIO.StringIO
-    basestring = basestring
+    basestring = string_types
 
 
 class BaseClass(object):
@@ -71,7 +67,7 @@ except ImportError:  # pragma: no cover
         if isinstance(qs, text_type):
             qs = qs.encode('utf-8')
         s = unquote(qs)
-        if isinstance(s, byte_type):
+        if isinstance(s, binary_type):
             return s.decode('utf-8', errors='ignore')
         else:
             return s
@@ -92,7 +88,7 @@ __all__ = [
     'PY3',
     'StringIO',
     'text_type',
-    'byte_type',
+    'binary_type',
     'BaseClass',
     'BaseHTTPRequestHandler',
     'quote',

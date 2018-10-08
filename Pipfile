@@ -1,0 +1,32 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+six = "*"
+ndg-httpsclient = "*"
+
+[dev-packages]
+"flake8" = "*"
+"httplib2" = "*"
+ipdb = "*"
+mock = "*"
+nose = "*"
+nose-randomly = "*"
+rednose = "*"
+requests = "*"
+sure = "*"
+tornado = "*"
+coverage = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+twine = "*"
+"pathlib2" = "*"
+tox = "*"
+singledispatch = "*"
+pyopenssl = "==16.2.0"
+cryptography = "==2.3"
+
+[requires]
+python_version = "3.6"

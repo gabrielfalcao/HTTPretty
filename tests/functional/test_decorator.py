@@ -75,6 +75,7 @@ class ClassDecorator(TestCase):
 
         expect(got1).to.equal(b'buble buble')
 
+
 @httprettified
 class ClassDecoratorWithSetUp(TestCase):
 

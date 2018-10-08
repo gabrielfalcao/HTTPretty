@@ -8,62 +8,59 @@ OPEN_COMMAND		:= open
 endif
 
 
-all: check_dependencies unit functional
+all: lint unit functional docs
 
-filename=httpretty-`python -c 'import httpretty;print httpretty.version'`.tar.gz
+export PYTHONPATH		:= ${PWD}
+export PYTHONASYNCIODEBUG	:=1
 
-export HTTPRETTY_DEPENDENCIES:= nose sure
-export PYTHONPATH:= ${PWD}
+dependencies:
+	@pip install -U pip
+	@pip install pipenv
+	@pipenv install --dev --skip-lock
 
-check_dependencies:
-	@echo "Checking for dependencies to run tests ..."
-	@for dependency in `echo $$HTTPRETTY_DEPENDENCIES`; do \
-		python -c "import $$dependency" 2>/dev/null || (echo "You must install $$dependency in order to run httpretty's tests" && exit 3) ; \
-		done
+test: lint unit functional pyopenssl
 
-test: unit functional
-
-lint:
+lint: prepare
 	@echo "Checking code style ..."
-	@flake8 --show-source --ignore=F821,E901 httpretty
+	@pipenv run flake8 --show-source httpretty tests
 
 unit: prepare
 	@echo "Running unit tests ..."
-	@nosetests --rednose -x --with-randomly --with-coverage --cover-package=httpretty -s tests/unit
+	@pipenv run nosetests --cover-erase tests/$@
 
 functional: prepare
 	@echo "Running functional tests ..."
-	@nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/functional
+	@pipenv run nosetests --cover-erase tests/$@
 
 pyopenssl: prepare
 	@echo "Running PyOpenSSL mocking tests ..."
-	@pip install --quiet pyOpenSSL==16.1.0
-	@pip install --quiet ndg-httpsclient==0.4.2
-	@nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/pyopenssl
+	@pipenv install --skip-lock ndg-httpsclient
+	@pipenv run nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/pyopenssl
 
 clean:
 	@printf "Cleaning up files that are already in .gitignore... "
 	@for pattern in `cat .gitignore`; do rm -rf $$pattern; done
 	@echo "OK!"
+	@printf "Deleting built documentation"
+	@rm -rf docs/build
+	@printf "Deleting dist files"
+	@rm -rf dist
 
-release: clean unit functional
-	@echo "Releasing httpretty..."
+release: lint unit functional docs
+	@rm -rf dist/*
+	@make rogue-release
+
+rogue-release:
 	@./.release
-	@python setup.py sdist bdist_wheel register upload
+	@make pypi
+
+pypi:
+	@pipenv run python setup.py build sdist
+	@pipenv run twine upload dist/*.tar.gz
 
 docs:
 	@cd docs && make html
 	$(OPEN_COMMAND) docs/build/html/index.html
-
-deploy-docs:
-	@git co master && \
-		(git br -D gh-pages || printf "") && \
-		git checkout --orphan gh-pages && \
-		markment -o . -t ./theme --sitemap-for="http://falcao.it/HTTPretty" docs && \
-		git add . && \
-		git commit -am 'documentation' && \
-		git push --force origin gh-pages && \
-		git checkout master
 
 prepare:
 	@reset

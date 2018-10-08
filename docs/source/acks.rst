@@ -1,15 +1,15 @@
 Acknowledgements
-###############
+################
 
 caveats
 =======
 
 ``forcing_headers`` + ``Content-Length``
 ----------------------------------------
-if you use the ``forcing_headers`` options make sure to add the header
-``Content-Length`` otherwise the
-[requests](http://docs.python-requests.org/en/latest/) will try to
-load the response endlessly
+
+When using the ``forcing_headers`` option make sure to add the header
+``Content-Length`` otherwise calls using :py:mod:`requests` will try
+to load the response endlessly.
 
 supported libraries
 -------------------

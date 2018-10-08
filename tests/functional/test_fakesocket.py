@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2012>  Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2018>  Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -41,6 +41,7 @@ class FakeSocket(socket.socket):
 
 fake_socket_interupter_flag = {}
 
+
 def recv(flag, size):
     """
     Two pass recv implementation
@@ -53,9 +54,11 @@ def recv(flag, size):
         raise RuntimeError('Already sent everything')
     else:
         flag['was_here'] = None
-        return 'a'* (size - 1)
+        return 'a' * (size - 1)
+
 
 recv = functools.partial(recv, fake_socket_interupter_flag)
+
 
 @mock.patch('httpretty.old_socket', new=FakeSocket)
 def _test_shorten_response():
@@ -69,4 +72,4 @@ def _test_shorten_response():
         fakesocket.connect(('localhost', 80))
         fakesocket._true_sendall('WHATEVER')
         expect(fakesocket.fd.read()).to.equal(
-                                      'a' * (httpretty.socket_buffer_size - 1))
+            'a' * (httpretty.socket_buffer_size - 1))
