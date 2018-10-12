@@ -851,6 +851,14 @@ class URIInfo(BaseClass):
     :param scheme:
     :param last_request:
     """
+    default_str_attrs = (
+        'username',
+        'password',
+        'hostname',
+        'port',
+        'path',
+    )
+
     def __init__(self,
                  username='',
                  password='',
@@ -884,16 +892,16 @@ class URIInfo(BaseClass):
         self.fragment = fragment or ''
         self.last_request = last_request
 
-    def __str__(self):
-        attrs = (
-            'username',
-            'password',
-            'hostname',
-            'port',
-            'path',
-        )
+    def to_str(self, attrs):
         fmt = ", ".join(['%s="%s"' % (k, getattr(self, k, '')) for k in attrs])
         return r'<httpretty.URIInfo(%s)>' % fmt
+
+    def __str__(self):
+        return self.to_str(self.default_str_attrs)
+
+    def str_with_query(self):
+        attrs = self.default_str_attrs + ('query',)
+        return self.to_str(attrs)
 
     def __hash__(self):
         return int(hashlib.sha1(binary_type(self, 'ascii')).hexdigest(), 16)
@@ -1004,7 +1012,10 @@ class URIMatcher(object):
     def __str__(self):
         wrap = 'URLMatcher({})'
         if self.info:
-            return wrap.format(text_type(self.info))
+            if self._match_querystring:
+                return wrap.format(text_type(self.info.str_with_query()))
+            else:
+                return wrap.format(text_type(self.info))
         else:
             return wrap.format(self.regex.pattern)
 
