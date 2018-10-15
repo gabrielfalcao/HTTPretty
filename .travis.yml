@@ -14,7 +14,8 @@ env:
   - TEST_TYPE=pyopenssl
 
 install:
-  - pip install pipenv
+  - pip install -U pip --no-cache-dir
+  - pip install -U pipenv --no-cache-dir
   - pipenv install --dev --skip-lock
 
 script:
