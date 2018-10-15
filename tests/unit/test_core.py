@@ -623,3 +623,22 @@ def test_URIMatcher_respects_querystring():
     matcher = URIMatcher('http://www.foo.com/?query=true', None, match_querystring=True)
     info = URIInfo.from_uri('http://www.foo.com/?query=true', None)
     assert matcher.matches(info)
+
+
+def test_URIMatcher_equality_respects_querystring():
+    ("URIMatcher equality check should check querystring")
+    matcher_a = URIMatcher('http://www.foo.com/?query=true', None)
+    matcher_b = URIMatcher('http://www.foo.com/?query=false', None)
+    assert matcher_a == matcher_b
+
+    matcher_a = URIMatcher('http://www.foo.com/?query=true', None)
+    matcher_b = URIMatcher('http://www.foo.com/', None)
+    assert matcher_a == matcher_b
+
+    matcher_a = URIMatcher('http://www.foo.com/?query=true', None, match_querystring=True)
+    matcher_b = URIMatcher('http://www.foo.com/?query=false', None, match_querystring=True)
+    assert not matcher_a == matcher_b
+
+    matcher_a = URIMatcher('http://www.foo.com/?query=true', None, match_querystring=True)
+    matcher_b = URIMatcher('http://www.foo.com/', None, match_querystring=True)
+    assert not matcher_a == matcher_b
