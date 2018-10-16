@@ -8,7 +8,7 @@ machine:
 dependencies:
   override:
     - pip install -U pip
-    - pip install pipenv
+    - pip install -r test-requirements.txt
     - pipenv install --dev
 
 test:
