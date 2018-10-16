@@ -624,6 +624,10 @@ def test_URIMatcher_respects_querystring():
     info = URIInfo.from_uri('http://www.foo.com/?query=true', None)
     assert matcher.matches(info)
 
+    matcher = URIMatcher('http://www.foo.com/?query=true&unquery=false', None, match_querystring=True)
+    info = URIInfo.from_uri('http://www.foo.com/?unquery=false&query=true', None)
+    assert matcher.matches(info)
+
 
 def test_URIMatcher_equality_respects_querystring():
     ("URIMatcher equality check should check querystring")
