@@ -1,13 +1,12 @@
 -r development.txt
-httplib2==0.9
+pipenv
 requests==2.5.1
-tornado==4.0.2
-urllib3==1.7.1
 
 # test runner
-coverage==3.7.1
-nose==1.3.0
+coverage==4.5.1
 
 # testing utilities
-mock==1.0.1
-sure==1.2.3
+mock==2.0.0
+nose-randomly==1.2.5
+nose==1.3.7
+rednose==1.3.0
