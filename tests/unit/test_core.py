@@ -198,8 +198,8 @@ def test_fakesock_socket_getpeercert(dt):
     # Given a fake socket instance
     socket = fakesock.socket()
 
-    # And that it's bound to some host and port
-    socket.connect(('somewhere.com', 80))
+    # And that it's bound to some host
+    socket._host = 'somewhere.com'
 
     # When I retrieve the peer certificate
     certificate = socket.getpeercert()
