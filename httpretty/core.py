@@ -1293,12 +1293,22 @@ class httpretty(HttpBaseClass):
 
            import httpretty
 
-           httpretty.register_uri(httpretty.GET, 'https://httpbin.org/ip', body='')
+
+           def request_callback(request, uri, response_headers):
+               content_type = request.headers.get('Content-Type')
+               assert request.body == '{"nothing": "here"}', 'unexpected body: {}'.format(request.body)
+               assert content_type == 'application/json', 'expected application/json but received Content-Type: {}'.format(content_type)
+               return [200, response_headers, json.dumps({"hello": "world"})]
+
+           httpretty.register_uri(
+               HTTPretty.POST, "https://httpretty.example.com/api",
+               body=request_callback)
+
+
            with httpretty.enabled():
-               requests.get('https://httpbin.org/ip')
+               requests.post('https://httpretty.example.com/api', data='{"nothing": "here"}', headers={'Content-Type': 'application/json'})
 
            assert httpretty.latest_requests[-1].url == 'https://httpbin.org/ip'
-
 
 
         :param method: one of ``httpretty.GET``, ``httpretty.PUT``, ``httpretty.POST``, ``httpretty.DELETE``, ``httpretty.HEAD``, ``httpretty.PATCH``, ``httpretty.OPTIONS``, ``httpretty.CONNECT``

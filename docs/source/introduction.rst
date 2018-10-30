@@ -57,24 +57,49 @@ Demo
 expecting a simple response body
 ================================
 
-.. highlight:: python
 
-::
+.. code:: python
 
-  import requests
-  import httpretty
+   import requests
+   import httpretty
 
-  def test_one():
-      httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
-      httpretty.register_uri(httpretty.GET, "http://yipit.com/",
-                             body="Find the best daily deals")
+   def test_one():
+       httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
+       httpretty.register_uri(httpretty.GET, "http://yipit.com/",
+                              body="Find the best daily deals")
 
-      response = requests.get('http://yipit.com')
+       response = requests.get('http://yipit.com')
 
-      assert response.text == "Find the best daily deals"
+       assert response.text == "Find the best daily deals"
 
-      httpretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
-      httpretty.reset()    # reset HTTPretty state (clean up registered urls and request history)
+       httpretty.disable()  # disable afterwards, so that you will have no problems in code that uses that socket module
+       httpretty.reset()    # reset HTTPretty state (clean up registered urls and request history)
+
+
+making assertions in a callback that generates the response body
+================================================================
+
+.. code:: python
+
+   import requests
+   import json
+   import httpretty
+
+   @httpretty.activate
+   def test_with_callback_response():
+     def request_callback(request, uri, response_headers):
+         content_type = request.headers.get('Content-Type')
+         assert request.body == '{"nothing": "here"}', 'unexpected body: {}'.format(request.body)
+         assert content_type == 'application/json', 'expected application/json but received Content-Type: {}'.format(content_type)
+         return [200, response_headers, json.dumps({"hello": "world"})]
+
+     httpretty.register_uri(
+         HTTPretty.POST, "https://httpretty.example.com/api",
+         body=request_callback)
+
+     response = requests.post('https://httpretty.example.com/api', headers={'Content-Type': 'application/json'}, data='{"nothing": "here"}')
+
+     expect(response.json()).to.equal({"hello": "world"})
 
 
 Motivation
