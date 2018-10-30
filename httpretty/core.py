@@ -1457,8 +1457,9 @@ class httpretty(HttpBaseClass):
         return cls._is_enabled
 
     @classmethod
-    def enable(cls):
+    def enable(cls, allow_net_connect=True):
         """Enables HTTPretty.
+        When ``allow_net_connect`` is ``False`` any connection to an unregistered uri will throw :py:class:`httpretty.errors.UnmockedError`.
 
         .. testcode::
 
@@ -1482,6 +1483,7 @@ class httpretty(HttpBaseClass):
 
         .. warning:: after calling this method the original :py:mod:`socket` is replaced with :py:class:`httpretty.core.fakesock`. Make sure to call :py:meth:`~httpretty.disable` after done with your tests or use the :py:class:`httpretty.enabled` as decorator or `context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_
         """
+        cls.allow_net_connect = allow_net_connect
         cls._is_enabled = True
         # Some versions of python internally shadowed the
         # SocketType variable incorrectly https://bugs.python.org/issue20386
@@ -1548,16 +1550,19 @@ class httprettized(object):
        assert httpretty.latest_requests[-1].url == 'https://httpbin.org/ip'
        assert response.json() == {'origin': '42.42.42.42'}
     """
+    def __init__(self, allow_net_connect=True):
+        self.allow_net_connect = allow_net_connect
+
     def __enter__(self):
         httpretty.reset()
-        httpretty.enable()
+        httpretty.enable(allow_net_connect=self.allow_net_connect)
 
     def __exit__(self, exc_type, exc_value, traceback):
         httpretty.disable()
         httpretty.reset()
 
 
-def httprettified(test):
+def httprettified(test=None, allow_net_connect=True):
     """decorator for test functions
 
     .. tip:: Also available under the alias :py:func:`httpretty.activate`
@@ -1615,7 +1620,7 @@ def httprettified(test):
 
         def new_setUp(self):
             httpretty.reset()
-            httpretty.enable()
+            httpretty.enable(allow_net_connect)
             if use_addCleanup:
                 self.addCleanup(httpretty.disable)
             if original_setUp:
@@ -1664,10 +1669,12 @@ def httprettified(test):
     def decorate_callable(test):
         @functools.wraps(test)
         def wrapper(*args, **kw):
-            with httprettized():
+            with httprettized(allow_net_connect):
                 return test(*args, **kw)
         return wrapper
 
     if isinstance(test, ClassTypes):
         return decorate_class(test)
-    return decorate_callable(test)
+    elif callable(test):
+        return decorate_callable(test)
+    return decorate_callable

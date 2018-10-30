@@ -43,6 +43,10 @@ from httpretty import core, HTTPretty
 
 
 def start_http_server(context):
+    if httpretty.httpretty._is_enabled:
+        allow_net_connect = httpretty.httpretty.allow_net_connect
+    else:
+        allow_net_connect = True
     httpretty.disable()
     context.http_port = get_free_tcp_port()
     context.server = TornadoServer(context.http_port)
@@ -60,7 +64,7 @@ def start_http_server(context):
             if time.time() - started_at >= timeout:
                 break
 
-    httpretty.enable()
+    httpretty.enable(allow_net_connect=allow_net_connect)
 
 
 def stop_http_server(context):
@@ -157,19 +161,7 @@ def test_using_httpretty_with_other_tcp_protocols(context):
     expect(context.client.send("foobar")).to.equal(b"RECEIVED: foobar")
 
 
-def disallow_net_connect(test):
-    @functools.wraps(test)
-    def wrapper(*args, **kwargs):
-        HTTPretty.allow_net_connect = False
-        try:
-            return test(*args, **kwargs)
-        finally:
-            HTTPretty.allow_net_connect = True
-    return wrapper
-
-
-@disallow_net_connect
-@httpretty.activate
+@httpretty.activate(allow_net_connect=False)
 @that_with_context(start_http_server, stop_http_server)
 def test_disallow_net_connect_1(context):
     """
@@ -190,8 +182,7 @@ def test_disallow_net_connect_1(context):
     foo.should.throw(httpretty.UnmockedError)
 
 
-@disallow_net_connect
-@httpretty.activate
+@httpretty.activate(allow_net_connect=False)
 def test_disallow_net_connect_2():
     """
     When allow_net_connect = False, a request that would have
@@ -209,8 +200,7 @@ def test_disallow_net_connect_2():
     foo.should.throw(httpretty.UnmockedError)
 
 
-@disallow_net_connect
-@httpretty.activate
+@httpretty.activate(allow_net_connect=False)
 def test_disallow_net_connect_3():
     "When allow_net_connect = False, mocked requests still work correctly."
 
