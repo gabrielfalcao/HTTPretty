@@ -88,6 +88,7 @@ old_sslsocket = None
 old_sslcontext_wrap_socket = None
 
 MULTILINE_ANY_REGEX = re.compile(r'.*', re.M)
+hostname_re = re.compile(r'\^?(?:https?://)?[^:/]*[:/]?')
 
 
 try:  # pragma: no cover
@@ -1099,9 +1100,13 @@ class httpretty(HttpBaseClass):
             if matcher.info is None:
                 pattern_with_port = "https://{0}:".format(hostname)
                 pattern_without_port = "https://{0}/".format(hostname)
+                hostname_pattern = (
+                    hostname_re
+                    .match(matcher.regex.pattern)
+                    .group(0)
+                )
                 for pattern in [pattern_with_port, pattern_without_port]:
-                    if matcher.regex.search(pattern) is not None \
-                            or matcher.regex.pattern.startswith(pattern):
+                    if re.match(hostname_pattern, pattern):
                         return matcher
 
             elif matcher.info.hostname == hostname:
@@ -1129,9 +1134,13 @@ class httpretty(HttpBaseClass):
 
                 pattern_without_port = "{0}{1}/".format(scheme, hostname)
                 pattern_with_port = "{0}{1}:{2}/".format(scheme, hostname, port)
+                hostname_pattern = (
+                    hostname_re
+                    .match(matcher.regex.pattern)
+                    .group(0)
+                )
                 for pattern in [pattern_with_port, pattern_without_port]:
-                    if matcher.regex.search(pattern_without_port) is not None \
-                            or matcher.regex.pattern.startswith(pattern):
+                    if re.match(hostname_pattern, pattern):
                         return matcher
 
             elif matcher.info.hostname == hostname \
