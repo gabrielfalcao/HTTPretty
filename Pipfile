@@ -5,9 +5,9 @@ name = "pypi"
 
 [packages]
 six = "*"
-ndg-httpsclient = "*"
 
 [dev-packages]
+ndg-httpsclient = "*"
 "flake8" = "*"
 "httplib2" = "*"
 ipdb = "*"
@@ -27,6 +27,7 @@ tox = "*"
 singledispatch = "*"
 pyopenssl = "==16.2.0"
 cryptography = "==2.3"
+"urllib3" = "*"
 
 [requires]
 python_version = "3.6"
