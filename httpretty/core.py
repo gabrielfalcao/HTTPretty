@@ -638,7 +638,8 @@ def fake_gethostname():
 def fake_getaddrinfo(
         host, port, family=None, socktype=None, proto=None, flags=None):
     """drop-in replacement for :py:func:`socket.getaddrinfo`"""
-    return [(2, 1, 6, '', (host, port))]
+    return [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP,
+             '', (host, port))]
 
 
 class Entry(BaseClass):
