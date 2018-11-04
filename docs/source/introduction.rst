@@ -102,6 +102,54 @@ making assertions in a callback that generates the response body
      expect(response.json()).to.equal({"hello": "world"})
 
 
+Link headers
+============
+
+
+ Tests link headers by using the `adding_headers` parameter.
+
+
+ .. code:: python
+
+    import requests
+    from sure import expect
+    import httpretty
+
+
+    @httpretty.activate
+    def test_link_response():
+        first_url = "http://foo-api.com/data"
+        second_url = "http://foo-api.com/data?page=2"
+        link_str = "<%s>; rel='next'" % second_url
+
+        httpretty.register_uri(
+            httpretty.GET,
+            first_url,
+            body='{"success": true}',
+            status=200,
+            content_type="text/json",
+            adding_headers={"Link": link_str},
+        )
+        httpretty.register_uri(
+            httpretty.GET,
+            second_url,
+            body='{"success": false}',
+            status=500,
+            content_type="text/json",
+        )
+        # Performs a request to `first_url` followed by some testing
+        response = requests.get(first_url)
+        expect(response.json()).to.equal({"success": True})
+        expect(response.status_code).to.equal(200)
+        next_url = response.links["next"]["url"]
+        expect(next_url).to.equal(second_url)
+
+        # Follow the next URL and perform some testing.
+        response2 = requests.get(next_url)
+        expect(response2.json()).to.equal({"success": False})
+        expect(response2.status_code).to.equal(500)
+
+
 Motivation
 ##########
 
