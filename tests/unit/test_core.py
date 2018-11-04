@@ -624,6 +624,14 @@ def test_URIMatcher_respects_querystring():
     info = URIInfo.from_uri('http://www.foo.com/?query=true', None)
     assert matcher.matches(info)
 
+    matcher = URIMatcher('http://www.foo.com/?query=true&unquery=false', None, match_querystring=True)
+    info = URIInfo.from_uri('http://www.foo.com/?unquery=false&query=true', None)
+    assert matcher.matches(info)
+
+    matcher = URIMatcher('http://www.foo.com/?unquery=false&query=true', None, match_querystring=True)
+    info = URIInfo.from_uri('http://www.foo.com/?query=true&unquery=false', None)
+    assert matcher.matches(info)
+
 
 def test_URIMatcher_equality_respects_querystring():
     ("URIMatcher equality check should check querystring")
@@ -642,3 +650,7 @@ def test_URIMatcher_equality_respects_querystring():
     matcher_a = URIMatcher('http://www.foo.com/?query=true', None, match_querystring=True)
     matcher_b = URIMatcher('http://www.foo.com/', None, match_querystring=True)
     assert not matcher_a == matcher_b
+
+    matcher_a = URIMatcher('http://www.foo.com/?query=true&unquery=false', None, match_querystring=True)
+    matcher_b = URIMatcher('http://www.foo.com/?unquery=false&query=true', None, match_querystring=True)
+    assert matcher_a == matcher_b

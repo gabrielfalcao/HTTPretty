@@ -50,6 +50,8 @@ from .compat import (
     BaseHTTPRequestHandler,
     quote,
     quote_plus,
+    urlencode,
+    encode_obj,
     urlunsplit,
     urlsplit,
     parse_qs,
@@ -884,7 +886,14 @@ class URIInfo(BaseClass):
 
         self.port = port or 80
         self.path = path or ''
-        self.query = query or ''
+        if query:
+            query_items = sorted(parse_qs(query).items())
+            self.query = urlencode(
+                encode_obj(query_items),
+                doseq=True,
+            )
+        else:
+            self.query = ''
         if scheme:
             self.scheme = scheme
         elif self.port in POTENTIAL_HTTPS_PORTS:

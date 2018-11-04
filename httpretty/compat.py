@@ -58,10 +58,14 @@ try:  # pragma: no cover
     from urllib.parse import quote
     from urllib.parse import quote_plus
     from urllib.parse import unquote
+    from urllib.parse import urlencode
     unquote_utf8 = unquote
+
+    def encode_obj(in_obj):
+        return in_obj
 except ImportError:  # pragma: no cover
     from urlparse import urlsplit, urlunsplit, parse_qs, unquote
-    from urllib import quote, quote_plus
+    from urllib import quote, quote_plus, urlencode
 
     def unquote_utf8(qs):
         if isinstance(qs, text_type):
@@ -71,6 +75,31 @@ except ImportError:  # pragma: no cover
             return s.decode('utf-8', errors='ignore')
         else:
             return s
+
+    def encode_obj(in_obj):
+
+        def encode_list(in_list):
+            out_list = []
+            for el in in_list:
+                out_list.append(encode_obj(el))
+            return out_list
+
+        def encode_dict(in_dict):
+            out_dict = {}
+            for k, v in in_dict.iteritems():
+                out_dict[k] = encode_obj(v)
+            return out_dict
+
+        if isinstance(in_obj, unicode):
+            return in_obj.encode('utf-8')
+        elif isinstance(in_obj, list):
+            return encode_list(in_obj)
+        elif isinstance(in_obj, tuple):
+            return tuple(encode_list(in_obj))
+        elif isinstance(in_obj, dict):
+            return encode_dict(in_obj)
+
+        return in_obj
 
 
 try:  # pragma: no cover
@@ -93,6 +122,7 @@ __all__ = [
     'BaseHTTPRequestHandler',
     'quote',
     'quote_plus',
+    'urlencode',
     'urlunsplit',
     'urlsplit',
     'parse_qs',
