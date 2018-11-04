@@ -15,7 +15,7 @@ mock = "*"
 nose = "*"
 nose-randomly = "*"
 rednose = "*"
-requests = "*"
+requests = {version = "*", extras = ["security"]}
 sure = "*"
 tornado = "*"
 coverage = "*"

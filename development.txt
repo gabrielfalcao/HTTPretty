@@ -14,12 +14,12 @@ coverage==4.5.1
 cryptography==2.3
 decorator==4.3.0
 docutils==0.14
-enum34==1.1.6 ; python_version < '3.4'
+enum34==1.1.6 ; python_version < '3'
 filelock==3.0.10
 flake8==3.6.0
 funcsigs==1.0.2 ; python_version < '3.3'
 httplib2==0.11.3
-idna==2.7
+idna==2.7 ; extra == 'security'
 imagesize==1.1.0
 ipaddress==1.0.22 ; python_version < '3'
 ipdb==0.11
@@ -53,7 +53,7 @@ pytz==2018.7
 readme-renderer==24.0
 rednose==1.3.0
 requests-toolbelt==0.8.0
-requests==2.20.0
+requests[security]==2.20.0
 scandir==1.9.0 ; python_version < '3.5'
 simplegeneric==0.8.1
 singledispatch==3.4.0.3
