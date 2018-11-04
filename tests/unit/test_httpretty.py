@@ -25,6 +25,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
+import re
 import json
 from sure import expect
 import httpretty
@@ -447,3 +448,27 @@ def test_socktype_good_python_version():
         HTTPretty.enable()
         expect(socket.SocketType).to.equal(socket.socket)
         HTTPretty.disable()
+
+
+def test_httpretty_should_allow_registering_regex_hostnames():
+    "HTTPretty should allow registering regexes with requests"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile(r'^http://\w+\.foo\.com/baz$'),
+        body="yay",
+    )
+
+    assert HTTPretty.match_http_address('www.foo.com', 80)
+
+
+def test_httpretty_should_allow_registering_regex_hostnames_ssl():
+    "HTTPretty should allow registering regexes with requests (ssl version)"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile(r'^https://\w+\.foo\.com/baz$'),
+        body="yay",
+    )
+
+    assert HTTPretty.match_https_hostname('www.foo.com')
