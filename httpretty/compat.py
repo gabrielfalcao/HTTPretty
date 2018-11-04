@@ -37,18 +37,18 @@ if PY3:  # pragma: no cover
 
 else:  # pragma: no cover
     import StringIO
+
     StringIO = StringIO.StringIO
     basestring = string_types
 
 
 class BaseClass(object):
-
     def __repr__(self):
         ret = self.__str__()
         if PY3:  # pragma: no cover
             return ret
         else:
-            return ret.encode('utf-8')
+            return ret.encode("utf-8")
 
 
 try:  # pragma: no cover
@@ -59,25 +59,27 @@ try:  # pragma: no cover
     from urllib.parse import quote_plus
     from urllib.parse import unquote
     from urllib.parse import urlencode
+
     unquote_utf8 = unquote
 
     def encode_obj(in_obj):
         return in_obj
+
+
 except ImportError:  # pragma: no cover
     from urlparse import urlsplit, urlunsplit, parse_qs, unquote
     from urllib import quote, quote_plus, urlencode
 
     def unquote_utf8(qs):
         if isinstance(qs, text_type):
-            qs = qs.encode('utf-8')
+            qs = qs.encode("utf-8")
         s = unquote(qs)
         if isinstance(s, binary_type):
-            return s.decode('utf-8', errors='ignore')
+            return s.decode("utf-8", errors="ignore")
         else:
             return s
 
     def encode_obj(in_obj):
-
         def encode_list(in_list):
             out_list = []
             for el in in_list:
@@ -91,7 +93,7 @@ except ImportError:  # pragma: no cover
             return out_dict
 
         if isinstance(in_obj, unicode):
-            return in_obj.encode('utf-8')
+            return in_obj.encode("utf-8")
         elif isinstance(in_obj, list):
             return encode_list(in_obj)
         elif isinstance(in_obj, tuple):
@@ -114,17 +116,17 @@ if not PY3:  # pragma: no cover
 
 
 __all__ = [
-    'PY3',
-    'StringIO',
-    'text_type',
-    'binary_type',
-    'BaseClass',
-    'BaseHTTPRequestHandler',
-    'quote',
-    'quote_plus',
-    'urlencode',
-    'urlunsplit',
-    'urlsplit',
-    'parse_qs',
-    'ClassTypes',
+    "PY3",
+    "StringIO",
+    "text_type",
+    "binary_type",
+    "BaseClass",
+    "BaseHTTPRequestHandler",
+    "quote",
+    "quote_plus",
+    "urlencode",
+    "urlunsplit",
+    "urlsplit",
+    "parse_qs",
+    "ClassTypes",
 ]

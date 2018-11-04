@@ -36,6 +36,7 @@ class FakeSocket(socket.socket):
     Just an editable socket factory
     It allows mock to patch readonly functions
     """
+
     connect = sendall = lambda *args, **kw: None
 
 
@@ -50,26 +51,24 @@ def recv(flag, size):
     the asked size passed in argument.
     Any further call will just raise RuntimeError
     """
-    if 'was_here' in flag:
-        raise RuntimeError('Already sent everything')
+    if "was_here" in flag:
+        raise RuntimeError("Already sent everything")
     else:
-        flag['was_here'] = None
-        return 'a' * (size - 1)
+        flag["was_here"] = None
+        return "a" * (size - 1)
 
 
 recv = functools.partial(recv, fake_socket_interupter_flag)
 
 
-@mock.patch('httpretty.old_socket', new=FakeSocket)
+@mock.patch("httpretty.old_socket", new=FakeSocket)
 def _test_shorten_response():
     u"HTTPretty shouldn't try to read from server when communication is over"
     from sure import expect
     import httpretty
 
-    fakesocket = httpretty.fakesock.socket(socket.AF_INET,
-                                           socket.SOCK_STREAM)
-    with mock.patch.object(fakesocket.truesock, 'recv', recv):
-        fakesocket.connect(('localhost', 80))
-        fakesocket._true_sendall('WHATEVER')
-        expect(fakesocket.fd.read()).to.equal(
-            'a' * (httpretty.socket_buffer_size - 1))
+    fakesocket = httpretty.fakesock.socket(socket.AF_INET, socket.SOCK_STREAM)
+    with mock.patch.object(fakesocket.truesock, "recv", recv):
+        fakesocket.connect(("localhost", 80))
+        fakesocket._true_sendall("WHATEVER")
+        expect(fakesocket.fd.read()).to.equal("a" * (httpretty.socket_buffer_size - 1))

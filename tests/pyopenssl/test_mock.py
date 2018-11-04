@@ -34,12 +34,13 @@ from sure import expect
 
 @httprettified
 def test_httpretty_overrides_when_pyopenssl_installed():
-    ('HTTPretty should remove PyOpenSSLs urllib3 mock if it is installed')
+    ("HTTPretty should remove PyOpenSSLs urllib3 mock if it is installed")
     # And HTTPretty works successfully
-    HTTPretty.register_uri(HTTPretty.GET, "https://yipit.com/",
-                           body="Find the best daily deals")
+    HTTPretty.register_uri(
+        HTTPretty.GET, "https://yipit.com/", body="Find the best daily deals"
+    )
 
-    response = requests.get('https://yipit.com')
-    expect(response.text).to.equal('Find the best daily deals')
-    expect(HTTPretty.last_request.method).to.equal('GET')
-    expect(HTTPretty.last_request.path).to.equal('/')
+    response = requests.get("https://yipit.com")
+    expect(response.text).to.equal("Find the best daily deals")
+    expect(HTTPretty.last_request.method).to.equal("GET")
+    expect(HTTPretty.last_request.path).to.equal("/")

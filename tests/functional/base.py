@@ -44,28 +44,33 @@ def get_free_tcp_port():
     """returns a TCP port that can be used for listen in the host.
     """
     tcp = old_socket(socket.AF_INET, socket.SOCK_STREAM)
-    tcp.bind(('', 0))
+    tcp.bind(("", 0))
     host, port = tcp.getsockname()
     tcp.close()
     return port
 
 
 LOCAL_FILE = lambda *path: join(abspath(dirname(__file__)), *path)
-FIXTURE_FILE = lambda name: LOCAL_FILE('fixtures', name)
+FIXTURE_FILE = lambda name: LOCAL_FILE("fixtures", name)
 
 
 class JSONEchoHandler(tornado.web.RequestHandler):
     def get(self, matched):
         payload = dict([(x, self.get_argument(x)) for x in self.request.arguments])
-        self.write(json.dumps({matched or 'index': payload}, indent=4))
+        self.write(json.dumps({matched or "index": payload}, indent=4))
 
     def post(self, matched):
         payload = dict(self.request.arguments)
-        self.write(json.dumps({
-            matched or 'index': payload,
-            'req_body': self.request.body.decode('utf-8'),
-            'req_headers': dict(self.request.headers.items()),
-        }, indent=4))
+        self.write(
+            json.dumps(
+                {
+                    matched or "index": payload,
+                    "req_body": self.request.body.decode("utf-8"),
+                    "req_headers": dict(self.request.headers.items()),
+                },
+                indent=4,
+            )
+        )
 
 
 class JSONEchoServer(threading.Thread):
@@ -83,9 +88,7 @@ class JSONEchoServer(threading.Thread):
         return self._stop.isSet()
 
     def setup_application(self):
-        return tornado.web.Application([
-            (r"/(.*)", JSONEchoHandler),
-        ])
+        return tornado.web.Application([(r"/(.*)", JSONEchoHandler)])
 
     def run(self):
         loop = tornado.ioloop.IOLoop()
@@ -102,9 +105,9 @@ def use_tornado_server(callback):
 
     @wraps(callback)
     def func(*args, **kw):
-        port = os.getenv('TEST_PORT', get_free_tcp_port())
+        port = os.getenv("TEST_PORT", get_free_tcp_port())
         POTENTIAL_HTTP_PORTS.add(port)
-        kw['port'] = port
+        kw["port"] = port
         server = JSONEchoServer(lock, port)
         server.start()
         try:
@@ -115,4 +118,5 @@ def use_tornado_server(callback):
             server.stop()
             if port in POTENTIAL_HTTP_PORTS:
                 POTENTIAL_HTTP_PORTS.remove(port)
+
     return func

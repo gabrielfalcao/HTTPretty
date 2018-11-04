@@ -33,16 +33,16 @@ from httpretty import HTTPretty
 
 @skip
 def test_http_passthrough():
-    url = 'http://httpbin.org/status/200'
+    url = "http://httpbin.org/status/200"
     response1 = requests.get(url)
 
     response1 = requests.get(url, stream=True)
 
     HTTPretty.enable()
-    HTTPretty.register_uri(HTTPretty.GET, 'http://google.com/', body="Not Google")
+    HTTPretty.register_uri(HTTPretty.GET, "http://google.com/", body="Not Google")
 
-    response2 = requests.get('http://google.com/')
-    expect(response2.content).to.equal(b'Not Google')
+    response2 = requests.get("http://google.com/")
+    expect(response2.content).to.equal(b"Not Google")
 
     response3 = requests.get(url, stream=True)
     (response3.content).should.equal(response1.content)
@@ -55,15 +55,15 @@ def test_http_passthrough():
 
 @skip
 def test_https_passthrough():
-    url = 'https://raw.githubusercontent.com/gabrielfalcao/HTTPretty/master/COPYING'
+    url = "https://raw.githubusercontent.com/gabrielfalcao/HTTPretty/master/COPYING"
 
     response1 = requests.get(url, stream=True)
 
     HTTPretty.enable()
-    HTTPretty.register_uri(HTTPretty.GET, 'https://google.com/', body="Not Google")
+    HTTPretty.register_uri(HTTPretty.GET, "https://google.com/", body="Not Google")
 
-    response2 = requests.get('https://google.com/')
-    expect(response2.content).to.equal(b'Not Google')
+    response2 = requests.get("https://google.com/")
+    expect(response2.content).to.equal(b"Not Google")
 
     response3 = requests.get(url, stream=True)
     (response3.content).should.equal(response1.content)

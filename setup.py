@@ -31,44 +31,44 @@ from setuptools import setup, find_packages
 
 def read_version():
     ctx = {}
-    exec(local_file('httpretty', 'version.py'), ctx)
-    return ctx['version']
+    exec(local_file("httpretty", "version.py"), ctx)
+    return ctx["version"]
 
 
-local_file = lambda *f: \
-    io.open(
-        os.path.join(os.path.dirname(__file__), *f), encoding='utf-8').read()
+local_file = lambda *f: io.open(
+    os.path.join(os.path.dirname(__file__), *f), encoding="utf-8"
+).read()
 
 
-install_requires = ['six']
-tests_requires = ['nose', 'sure', 'coverage', 'mock', 'rednose']
+install_requires = ["six"]
+tests_requires = ["nose", "sure", "coverage", "mock", "rednose"]
 
 
 setup(
-    name='httpretty',
+    name="httpretty",
     version=read_version(),
-    description='HTTP client mock for Python',
-    long_description=local_file('README.rst'),
-    author='Gabriel Falcao',
-    author_email='gabriel@nacaolivre.org',
-    url='https://httpretty.readthedocs.io',
+    description="HTTP client mock for Python",
+    long_description=local_file("README.rst"),
+    author="Gabriel Falcao",
+    author_email="gabriel@nacaolivre.org",
+    url="https://httpretty.readthedocs.io",
     zip_safe=False,
-    packages=find_packages(exclude=['*tests*']),
+    packages=find_packages(exclude=["*tests*"]),
     tests_require=tests_requires,
     install_requires=install_requires,
-    license='MIT',
-    test_suite='nose.collector',
+    license="MIT",
+    test_suite="nose.collector",
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python',
-        'Topic :: Internet :: WWW/HTTP',
-        'Topic :: Software Development :: Testing'
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python",
+        "Topic :: Internet :: WWW/HTTP",
+        "Topic :: Software Development :: Testing",
     ],
 )

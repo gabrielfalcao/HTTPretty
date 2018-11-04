@@ -25,4 +25,5 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 import warnings
-warnings.simplefilter('ignore')
+
+warnings.simplefilter("ignore")

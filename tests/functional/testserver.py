@@ -36,6 +36,7 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from httpretty import HTTPretty
 from httpretty.core import old_socket as true_socket
+
 # from httpretty.compat import PY3
 from httpretty.compat import binary_type
 from httpretty.compat import text_type
@@ -44,9 +45,10 @@ from multiprocessing import Process
 
 def utf8(s):
     if isinstance(s, text_type):
-        s = s.encode('utf-8')
+        s = s.encode("utf-8")
 
     return binary_type(s)
+
 
 # if not PY3:
 #     bytes = lambda s, *args: str(s)
@@ -71,14 +73,14 @@ class TornadoServer(object):
 
     @classmethod
     def get_handlers(cls):
-        return Application([
-            (r"/go-for-bubbles/?", BubblesHandler),
-            (r"/come-again/?", ComeHandler),
-        ])
+        return Application(
+            [(r"/go-for-bubbles/?", BubblesHandler), (r"/come-again/?", ComeHandler)]
+        )
 
     def start(self):
         def go(app, port, data={}):
             from httpretty import HTTPretty
+
             HTTPretty.disable()
 
             http = HTTPServer(app)
@@ -114,10 +116,12 @@ class TCPServer(object):
 
         def go(port):
             from httpretty import HTTPretty
+
             HTTPretty.disable()
             import socket
+
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind(('localhost', port))
+            s.bind(("localhost", port))
             s.listen(True)
             conn, addr = s.accept()
 
@@ -145,11 +149,11 @@ class TCPClient(object):
     def __init__(self, port):
         self.port = int(port)
         self.sock = true_socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect(('localhost', self.port))
+        self.sock.connect(("localhost", self.port))
 
     def send(self, data):
         if isinstance(data, text_type):
-            data = data.encode('utf-8')
+            data = data.encode("utf-8")
 
         self.sock.sendall(data)
         return self.sock.recv(len(data) + 11)

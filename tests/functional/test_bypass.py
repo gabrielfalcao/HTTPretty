@@ -27,6 +27,7 @@
 from __future__ import unicode_literals
 import time
 import requests
+
 try:
     import urllib.request as urllib2
 except ImportError:
@@ -58,7 +59,7 @@ def start_http_server(context):
         httpretty.disable()
         time.sleep(.1)
         try:
-            requests.get('http://localhost:{}/'.format(context.http_port))
+            requests.get("http://localhost:{}/".format(context.http_port))
             ready = True
         except (Exception, BaseException):
             if time.time() - started_at >= timeout:
@@ -92,31 +93,38 @@ def test_httpretty_bypasses_when_disabled(context):
     "httpretty should bypass all requests by disabling it"
 
     httpretty.register_uri(
-        httpretty.GET, "http://localhost:{}/go-for-bubbles/".format(context.http_port),
-        body="glub glub")
+        httpretty.GET,
+        "http://localhost:{}/go-for-bubbles/".format(context.http_port),
+        body="glub glub",
+    )
 
     httpretty.disable()
 
-    fd = urllib2.urlopen('http://localhost:{}/go-for-bubbles/'.format(context.http_port))
+    fd = urllib2.urlopen(
+        "http://localhost:{}/go-for-bubbles/".format(context.http_port)
+    )
     got1 = fd.read()
     fd.close()
 
     expect(got1).to.equal(
-        b'. o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o .')
+        b". o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o . o O 0 O o ."
+    )
 
-    fd = urllib2.urlopen('http://localhost:{}/come-again/'.format(context.http_port))
+    fd = urllib2.urlopen("http://localhost:{}/come-again/".format(context.http_port))
     got2 = fd.read()
     fd.close()
 
-    expect(got2).to.equal(b'<- HELLO WORLD ->')
+    expect(got2).to.equal(b"<- HELLO WORLD ->")
 
     httpretty.enable()
 
-    fd = urllib2.urlopen('http://localhost:{}/go-for-bubbles/'.format(context.http_port))
+    fd = urllib2.urlopen(
+        "http://localhost:{}/go-for-bubbles/".format(context.http_port)
+    )
     got3 = fd.read()
     fd.close()
 
-    expect(got3).to.equal(b'glub glub')
+    expect(got3).to.equal(b"glub glub")
     core.POTENTIAL_HTTP_PORTS.remove(context.http_port)
 
 
@@ -126,20 +134,24 @@ def test_httpretty_bypasses_a_unregistered_request(context):
     "httpretty should bypass a unregistered request by disabling it"
 
     httpretty.register_uri(
-        httpretty.GET, "http://localhost:{}/go-for-bubbles/".format(context.http_port),
-        body="glub glub")
+        httpretty.GET,
+        "http://localhost:{}/go-for-bubbles/".format(context.http_port),
+        body="glub glub",
+    )
 
-    fd = urllib2.urlopen('http://localhost:{}/go-for-bubbles/'.format(context.http_port))
+    fd = urllib2.urlopen(
+        "http://localhost:{}/go-for-bubbles/".format(context.http_port)
+    )
     got1 = fd.read()
     fd.close()
 
-    expect(got1).to.equal(b'glub glub')
+    expect(got1).to.equal(b"glub glub")
 
-    fd = urllib2.urlopen('http://localhost:{}/come-again/'.format(context.http_port))
+    fd = urllib2.urlopen("http://localhost:{}/come-again/".format(context.http_port))
     got2 = fd.read()
     fd.close()
 
-    expect(got2).to.equal(b'<- HELLO WORLD ->')
+    expect(got2).to.equal(b"<- HELLO WORLD ->")
     core.POTENTIAL_HTTP_PORTS.remove(context.http_port)
 
 
@@ -148,15 +160,13 @@ def test_httpretty_bypasses_a_unregistered_request(context):
 def test_using_httpretty_with_other_tcp_protocols(context):
     "httpretty should work even when testing code that also use other TCP-based protocols"
 
-    httpretty.register_uri(
-        httpretty.GET, "http://falcao.it/foo/",
-        body="BAR")
+    httpretty.register_uri(httpretty.GET, "http://falcao.it/foo/", body="BAR")
 
-    fd = urllib2.urlopen('http://falcao.it/foo/')
+    fd = urllib2.urlopen("http://falcao.it/foo/")
     got1 = fd.read()
     fd.close()
 
-    expect(got1).to.equal(b'BAR')
+    expect(got1).to.equal(b"BAR")
 
     expect(context.client.send("foobar")).to.equal(b"RECEIVED: foobar")
 
@@ -168,13 +178,14 @@ def test_disallow_net_connect_1(context):
     When allow_net_connect = False, a request that otherwise
     would have worked results in UnmockedError.
     """
-    httpretty.register_uri(httpretty.GET, "http://falcao.it/foo/",
-                           body="BAR")
+    httpretty.register_uri(httpretty.GET, "http://falcao.it/foo/", body="BAR")
 
     def foo():
         fd = None
         try:
-            fd = urllib2.urlopen('http://localhost:{}/go-for-bubbles/'.format(context.http_port))
+            fd = urllib2.urlopen(
+                "http://localhost:{}/go-for-bubbles/".format(context.http_port)
+            )
         finally:
             if fd:
                 fd.close()
@@ -192,7 +203,7 @@ def test_disallow_net_connect_2():
     def foo():
         fd = None
         try:
-            fd = urllib2.urlopen('http://example.com/nonsense')
+            fd = urllib2.urlopen("http://example.com/nonsense")
         finally:
             if fd:
                 fd.close()
@@ -204,9 +215,8 @@ def test_disallow_net_connect_2():
 def test_disallow_net_connect_3():
     "When allow_net_connect = False, mocked requests still work correctly."
 
-    httpretty.register_uri(httpretty.GET, "http://falcao.it/foo/",
-                           body="BAR")
-    fd = urllib2.urlopen('http://falcao.it/foo/')
+    httpretty.register_uri(httpretty.GET, "http://falcao.it/foo/", body="BAR")
+    fd = urllib2.urlopen("http://falcao.it/foo/")
     got1 = fd.read()
     fd.close()
-    expect(got1).to.equal(b'BAR')
+    expect(got1).to.equal(b"BAR")
