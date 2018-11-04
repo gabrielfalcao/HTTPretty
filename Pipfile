@@ -25,7 +25,7 @@ twine = "*"
 "pathlib2" = "*"
 tox = "*"
 singledispatch = "*"
-pyopenssl = "==16.2.0"
+pyopenssl = ">=17.5.0"
 cryptography = "==2.3"
 "urllib3" = "*"
 
