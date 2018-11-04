@@ -564,7 +564,7 @@ def test_httpretty_should_allow_registering_regexes_and_give_a_proper_match_to_t
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
+        re.compile(r"https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
         body=lambda method, uri, headers: [200, headers, uri]
     )
 
@@ -581,7 +581,7 @@ def test_httpretty_should_allow_registering_regexes():
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
+        re.compile(r"https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
         body="Found brand",
     )
 
@@ -598,7 +598,7 @@ def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile("https://api.yipit.com/v1/(?P<endpoint>\w+)/$"),
+        re.compile(r"https://api.yipit.com/v1/(?P<endpoint>\w+)/$"),
         body="Find the best daily deals"
     )
 
@@ -617,7 +617,7 @@ def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile("https://example.org/(?P<endpoint>\w+)/$"),
+        re.compile(r"https://example.org/(?P<endpoint>\w+)/$"),
         body="Nudge, nudge, wink, wink. Know what I mean?",
         match_querystring=True
     )
@@ -659,7 +659,7 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
 
     HTTPretty.register_uri(
         HTTPretty.POST,
-        re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
+        re.compile(r"https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
         body=my_callback,
     )
 
@@ -842,7 +842,7 @@ def test_httpretty_should_work_with_non_standard_ports():
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile("https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
+        re.compile(r"https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
         body=lambda method, uri, headers: [200, headers, uri]
     )
     HTTPretty.register_uri(
@@ -901,7 +901,7 @@ def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile("https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
+        re.compile(r"https://api.yipit.com:1234/v1/deal;brand=(?P<brand_name>\w+)"),
         body=lambda method, uri, headers: [200, headers, uri]
     )
 

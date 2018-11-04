@@ -295,7 +295,7 @@ def test_httpretty_should_allow_registering_regexes():
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile("https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
+        re.compile(r"https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
         body="Found brand",
     )
 
