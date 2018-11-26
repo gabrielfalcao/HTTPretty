@@ -64,6 +64,7 @@ docs:
 
 prepare:
 	@reset
+	pip install -r development.txt
 
 
 .PHONY: docs lint pypi prepare clean pyopenssl unit functional test dependencies all

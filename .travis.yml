@@ -15,8 +15,7 @@ env:
 
 install:
   - pip install -U pip --no-cache-dir
-  - pip install -U pipenv --no-cache-dir
-  - pipenv install --dev --skip-lock
+  - pip install -r development.txt
 
 script:
   - make $TEST_TYPE
