@@ -88,7 +88,7 @@ FakeSockFile
 .. _FakeSSLSocket:
 
 FakeSSLSocket
-------------
+-------------
 
 .. autoclass:: httpretty.core.FakeSSLSocket
    :members:

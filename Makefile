@@ -66,4 +66,4 @@ prepare:
 	@reset
 
 
-.PHONY: docs
+.PHONY: docs lint pypi prepare clean pyopenssl unit functional test dependencies all
