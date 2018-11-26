@@ -70,6 +70,11 @@ def last_request():
     return httpretty.last_request
 
 
+def latest_requests():
+    """returns the history of made requests"""
+    return httpretty.latest_requests
+
+
 def has_request():
     """
     :returns: bool - whether any request has been made
