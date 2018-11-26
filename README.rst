@@ -64,6 +64,24 @@ Simple Example
         response = requests.get('https://httpbin.org/ip')
         response.json().should.equal({'origin': '127.0.0.1'})
 
+        httpretty.latest_requests().should.have.length_of(1)
+        httpretty.last_request().should.equal(httpretty.latest_requests()[0])
+        httpretty.last_request().body.should.equal('{"origin": "127.0.0.1"}')
+
+
+checking multiple responses
+---------------------------
+ .. code:: python
+     @httpretty.activate
+    def test_post_bodies():
+        url = 'http://httpbin.org/post'
+        httpretty.register_uri(httpretty.POST, url, status=200)
+        httpretty.register_uri(httpretty.POST, url, status=400)
+         requests.post(url, data={'foo': 'bar'})
+        requests.post(url, data={'zoo': 'zoo'})
+         assert 'foo=bar' in httpretty.latest_requests()[0].body
+        assert 'zoo=bar' in httpretty.latest_requests()[1].body
+
 
 License
 =======

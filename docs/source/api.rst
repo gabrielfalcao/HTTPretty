@@ -30,6 +30,11 @@ last_request
 
 .. autofunction:: httpretty.last_request
 
+latest_requests
+---------------
+
+.. autofunction:: httpretty.latest_requests
+
 
 
 .. _activate:
