@@ -1331,7 +1331,7 @@ class httpretty(HttpBaseClass):
 
 
         :param method: one of ``httpretty.GET``, ``httpretty.PUT``, ``httpretty.POST``, ``httpretty.DELETE``, ``httpretty.HEAD``, ``httpretty.PATCH``, ``httpretty.OPTIONS``, ``httpretty.CONNECT``
-        :param uri: a string (e.g.: **"https://httpbin.org/ip"**)
+        :param uri: a string or regex pattern (e.g.: **"https://httpbin.org/ip"**)
         :param body: a string, defaults to ``{"message": "HTTPretty :)"}``
         :param adding_headers: dict - headers to be added to the response
         :param forcing_headers: dict - headers to be forcefully set in the response
