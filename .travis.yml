@@ -15,7 +15,8 @@ env:
 
 install:
   - pip install -U pip --no-cache-dir
-  - pip install -r development.txt
+  - pip install pipenv
+  - pipenv install --dev --pre
 
 script:
   - make $TEST_TYPE
