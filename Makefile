@@ -20,19 +20,19 @@ dependencies:
 
 test: lint unit functional pyopenssl
 
-lint: prepare
+lint:
 	@echo "Checking code style ..."
 	@pipenv run flake8 --show-source httpretty tests
 
-unit: prepare
+unit:
 	@echo "Running unit tests ..."
 	@pipenv run nosetests --cover-erase tests/$@
 
-functional: prepare
+functional:
 	@echo "Running functional tests ..."
-	@pipenv run nosetests --cover-erase tests/$@
+	@pipenv run nosetests tests/$@
 
-pyopenssl: prepare
+pyopenssl:
 	@echo "Running PyOpenSSL mocking tests ..."
 	@pipenv install --skip-lock ndg-httpsclient
 	@pipenv run nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/pyopenssl
@@ -62,9 +62,7 @@ docs:
 	@cd docs && make html
 	$(OPEN_COMMAND) docs/build/html/index.html
 
-prepare:
-	@reset
-	pip install -r development.txt
 
 
-.PHONY: docs lint pypi prepare clean pyopenssl unit functional test dependencies all
+
+.PHONY: docs lint pypi  clean pyopenssl unit functional test dependencies all
