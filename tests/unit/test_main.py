@@ -14,7 +14,7 @@ def test_last_request(original):
 
 
 @patch('httpretty.httpretty')
-def test_last_request(original):
+def test_latest_requests(original):
     ("httpretty.latest_requests() should return httpretty.core.latest_requests")
 
     httpretty.latest_requests().should.equal(original.latest_requests)
