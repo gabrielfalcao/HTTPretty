@@ -527,6 +527,8 @@ class fakesock(object):
                     httpretty.historify_request(headers, body, False)
                     return
 
+            if path[:2] == '//':
+                path = '//' + path
             # path might come with
             s = urlsplit(path)
             POTENTIAL_HTTP_PORTS.add(int(s.port or 80))
