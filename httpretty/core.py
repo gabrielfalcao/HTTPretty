@@ -609,7 +609,7 @@ def fake_wrap_socket(orig_wrap_socket_fn, *args, **kw):
     if server_hostname is not None:
         matcher = httpretty.match_https_hostname(server_hostname)
         if matcher is None:
-                return orig_wrap_socket_fn(*args, **kw)
+            return orig_wrap_socket_fn(*args, **kw)
     if 'sock' in kw:
         return kw['sock']
     else:
