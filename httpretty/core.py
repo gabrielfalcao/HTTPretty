@@ -445,7 +445,7 @@ class fakesock(object):
                 else:
                     timeout = self.timeout
                 t.join(timeout)
-                if t.isAlive():
+                if t.is_alive():
                     raise socket.timeout
 
             return self.fd
