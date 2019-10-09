@@ -71,8 +71,10 @@ Simple Example
 
 checking multiple responses
 ---------------------------
+
  .. code:: python
-     @httpretty.activate
+
+    @httpretty.activate
     def test_post_bodies():
         url = 'http://httpbin.org/post'
         httpretty.register_uri(httpretty.POST, url, status=200)
