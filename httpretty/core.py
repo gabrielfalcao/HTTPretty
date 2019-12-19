@@ -1567,6 +1567,8 @@ class httpretty(HttpBaseClass):
 class httprettized(object):
     """`context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_ for enabling HTTPretty.
 
+    .. tip:: Also available under the alias :py:func:`httpretty.enabled`
+
     .. testcode::
 
        import json

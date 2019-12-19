@@ -55,6 +55,15 @@ httprettified
    :members:
 
 
+.. _enabled:
+
+enabled
+-------
+
+.. autoclass:: httpretty.enabled
+   :members:
+
+
 .. _httprettized:
 
 httprettized
