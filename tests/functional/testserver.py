@@ -36,9 +36,6 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from httpretty import HTTPretty
 from httpretty.core import old_socket as true_socket
-# from httpretty.compat import PY3
-from httpretty.compat import bytes
-from httpretty.compat import str
 from multiprocessing import Process
 
 
@@ -47,9 +44,6 @@ def utf8(s):
         s = s.encode('utf-8')
 
     return bytes(s)
-
-# if not PY3:
-#     bytes = lambda s, *args: str(s)
 
 
 class BubblesHandler(RequestHandler):
