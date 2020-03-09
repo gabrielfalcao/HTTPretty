@@ -1,6 +1,26 @@
 Release Notes
 =============
 
+
+0.9.8
+-----
+
+- Merge pull request #364 from monitorius/master.
+- Merge pull request #371 from jokimina/patch-3.
+- Merge pull request #379 from RDProjekt/double.slashes.
+- Merge pull request #386 from gabrielfalcao/renovate/configure.
+- Merge pull request
+- Merge pull request #302 from iurisilvio (which also closes #289 from jrpope2014)
+- Merge pull request #373 from chewthemonkey/docs/uri-regex-pattern.
+- Merge pull request #383 from yyscamper/fileno_issue.
+- Merge pull request #385 from der-gabe/master.
+- Merge pull request #389 from ipetepete/master.
+- Merge pull request #391 from timgates42/bugfix/typo_neither.
+- Fix simple typo: neighter -> neither.
+- Updated documentation for register_uri concerning using ports.
+- Clarify relation between ``enabled`` and ``httprettized`` in API docs.
+- Clign signature with builtin socket.
+
 0.9.4
 -----
 
