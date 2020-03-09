@@ -39,8 +39,8 @@ jobs:
     - name: Functional Tests
       run: make functional
 
-    - name: Randomize All Tests
-      run: make tests
+    - name: PyOpenSSL tests
+      run: make pyopenssl
 
     - name: "Upload coverage results to codecov.io"
       uses: codecov/codecov-action@v1
