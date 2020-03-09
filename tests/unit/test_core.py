@@ -1,6 +1,4 @@
-# #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+import io
 import json
 import errno
 from datetime import datetime
@@ -8,7 +6,6 @@ from datetime import datetime
 from mock import Mock, patch, call
 from sure import expect
 
-from httpretty.compat import StringIO
 from httpretty.core import HTTPrettyRequest, FakeSSLSocket, fakesock, httpretty
 from httpretty.core import URIMatcher, URIInfo
 
@@ -44,12 +41,12 @@ def test_request_stubs_internals():
         'user-agent': 'Python-urllib/2.7'
     })
 
-    # And the `rfile` should be a StringIO
-    type_as_str = StringIO.__module__ + '.' + StringIO.__name__
+    # And the `rfile` should be a io.BytesIO
+    type_as_str = io.BytesIO.__module__ + '.' + io.BytesIO.__name__
 
     request.should.have.property('rfile').being.a(type_as_str)
 
-    # And the `wfile` should be a StringIO
+    # And the `wfile` should be a io.BytesIO
     request.should.have.property('wfile').being.a(type_as_str)
 
     # And the `method` should be available

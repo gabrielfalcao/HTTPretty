@@ -29,26 +29,13 @@ from __future__ import unicode_literals
 import io
 import types
 
-from six import PY3, text_type, string_types, binary_type
-
-if PY3:  # pragma: no cover
-    StringIO = io.BytesIO
-    basestring = string_types
-
-else:  # pragma: no cover
-    import StringIO
-    StringIO = StringIO.StringIO
-    basestring = string_types
+StringIO = io.BytesIO
 
 
 class BaseClass(object):
 
     def __repr__(self):
-        ret = self.__str__()
-        if PY3:  # pragma: no cover
-            return ret
-        else:
-            return ret.encode('utf-8')
+        return self.__str__()
 
 
 try:  # pragma: no cover
@@ -68,10 +55,10 @@ except ImportError:  # pragma: no cover
     from urllib import quote, quote_plus, urlencode
 
     def unquote_utf8(qs):
-        if isinstance(qs, text_type):
+        if isinstance(qs, str):
             qs = qs.encode('utf-8')
         s = unquote(qs)
-        if isinstance(s, binary_type):
+        if isinstance(s, bytes):
             return s.decode('utf-8', errors='ignore')
         else:
             return s
@@ -109,15 +96,11 @@ except ImportError:  # pragma: no cover
 
 
 ClassTypes = (type,)
-if not PY3:  # pragma: no cover
-    ClassTypes = (type, types.ClassType)
 
 
 __all__ = [
-    'PY3',
-    'StringIO',
-    'text_type',
-    'binary_type',
+    'str',
+    'bytes',
     'BaseClass',
     'BaseHTTPRequestHandler',
     'quote',

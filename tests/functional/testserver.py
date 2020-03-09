@@ -37,16 +37,16 @@ from tornado.ioloop import IOLoop
 from httpretty import HTTPretty
 from httpretty.core import old_socket as true_socket
 # from httpretty.compat import PY3
-from httpretty.compat import binary_type
-from httpretty.compat import text_type
+from httpretty.compat import bytes
+from httpretty.compat import str
 from multiprocessing import Process
 
 
 def utf8(s):
-    if isinstance(s, text_type):
+    if isinstance(s, str):
         s = s.encode('utf-8')
 
-    return binary_type(s)
+    return bytes(s)
 
 # if not PY3:
 #     bytes = lambda s, *args: str(s)
@@ -148,7 +148,7 @@ class TCPClient(object):
         self.sock.connect(('localhost', self.port))
 
     def send(self, data):
-        if isinstance(data, text_type):
+        if isinstance(data, str):
             data = data.encode('utf-8')
 
         self.sock.sendall(data)

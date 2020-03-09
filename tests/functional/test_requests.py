@@ -34,7 +34,6 @@ import requests
 from sure import within, microseconds, expect
 from tornado import version as tornado_version
 from httpretty import HTTPretty, httprettified
-from httpretty.compat import text_type, PY3
 from httpretty.core import decode_utf8
 
 
@@ -45,11 +44,6 @@ except ImportError:
 
 from tests.functional.base import FIXTURE_FILE, use_tornado_server
 
-
-if PY3:
-    xrange = range
-else:
-    pass
 
 try:
     advance_iterator = next
@@ -326,7 +320,7 @@ def test_streaming_responses(now):
     # test iterating by line
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever!'):
-        for i in xrange(len(twitter_response_lines)):
+        for i in range(len(twitter_response_lines)):
             expect(next(line_iter).strip()).to.equal(
                 twitter_response_lines[i].strip())
 
@@ -343,7 +337,7 @@ def test_streaming_responses(now):
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever the second time '
                        'around!'):
-        for i in xrange(len(twitter_response_lines)):
+        for i in range(len(twitter_response_lines)):
             expect(next(line_iter).strip()).to.equal(
                 twitter_response_lines[i].strip())
 
@@ -784,7 +778,7 @@ def test_recording_calls(port):
         ]
     })
     response['response'].should.have.key("status").being.equal(200)
-    response['response'].should.have.key("body").being.an(text_type)
+    response['response'].should.have.key("body").being.an(str)
     response['response'].should.have.key("headers").being.a(dict)
     # older urllib3 had a bug where header keys were lower-cased:
     # https://github.com/shazow/urllib3/issues/236

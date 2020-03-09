@@ -1,5 +1,3 @@
-# #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # <HTTPretty - HTTP client mock for Python>
 # Copyright (C) <2011-2020> Gabriel Falcão <gabriel@nacaolivre.org>
 #
@@ -23,8 +21,8 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-from __future__ import unicode_literals
 
+import io
 import codecs
 import contextlib
 import functools
@@ -42,10 +40,6 @@ import warnings
 from functools import partial
 
 from .compat import (
-    PY3,
-    StringIO,
-    text_type,
-    binary_type,
     BaseClass,
     BaseHTTPRequestHandler,
     quote,
@@ -57,7 +51,6 @@ from .compat import (
     parse_qs,
     unquote_utf8,
     ClassTypes,
-    basestring
 )
 from .http import (
     STATUSES,
@@ -106,8 +99,6 @@ try:  # pragma: no cover
         old_sslcontext_wrap_socket = ssl.SSLContext.wrap_socket
     except AttributeError:
         pass
-    if not PY3:
-        old_sslwrap_simple = ssl.sslwrap_simple
     old_sslsocket = ssl.SSLSocket
 except ImportError:  # pragma: no cover
     ssl = None
@@ -142,7 +133,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
     ``\r\n`` separated string with HTTP headers and parse them out using
     the internal `parse_request` method.
 
-    It also replaces the `rfile` and `wfile` attributes with StringIO
+    It also replaces the `rfile` and `wfile` attributes with :py:class:`io.BytesIO`
     instances so that we guarantee that it won't make any I/O, neither
     for writing nor reading.
 
@@ -179,11 +170,11 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
         # Now let's concatenate the headers with the body, and create
         # `rfile` based on it
-        self.rfile = StringIO(b'\r\n\r\n'.join([self.raw_headers, self.body]))
+        self.rfile = io.BytesIO(b'\r\n\r\n'.join([self.raw_headers, self.body]))
 
-        # Creating `wfile` as an empty StringIO, just to avoid any
+        # Creating `wfile` as an empty BytesIO, just to avoid any
         # real I/O calls
-        self.wfile = StringIO()
+        self.wfile = io.BytesIO()
 
         # parsing the request line preemptively
         self.raw_requestline = self.rfile.readline()
@@ -695,7 +686,7 @@ class Entry(BaseClass):
             self.callable_body = body
             self.body = None
             self.body_is_callable = True
-        elif isinstance(body, text_type):
+        elif isinstance(body, str):
             self.body = utf8(body)
         else:
             self.body = body
@@ -932,7 +923,7 @@ class URIInfo(BaseClass):
         return self.to_str(attrs)
 
     def __hash__(self):
-        return int(hashlib.sha1(binary_type(self, 'ascii')).hexdigest(), 16)
+        return int(hashlib.sha1(bytes(self, 'ascii')).hexdigest(), 16)
 
     def __eq__(self, other):
         self_tuple = (
@@ -1041,9 +1032,9 @@ class URIMatcher(object):
         wrap = 'URLMatcher({})'
         if self.info:
             if self._match_querystring:
-                return wrap.format(text_type(self.info.str_with_query()))
+                return wrap.format(str(self.info.str_with_query()))
             else:
-                return wrap.format(text_type(self.info))
+                return wrap.format(str(self.info))
         else:
             return wrap.format(self.regex.pattern)
 
@@ -1087,10 +1078,10 @@ class URIMatcher(object):
         return new_entry
 
     def __hash__(self):
-        return hash(text_type(self))
+        return hash(str(self))
 
     def __eq__(self, other):
-        return text_type(self) == text_type(other)
+        return str(self) == str(other)
 
 
 class httpretty(HttpBaseClass):
@@ -1368,7 +1359,7 @@ class httpretty(HttpBaseClass):
 
         .. warning:: When using a port in the request, add a trailing slash if no path is provided otherwise Httpretty will not catch the request.  Ex: ``httpretty.register_uri(httpretty.GET, 'http://fakeuri.com:8080/', body='{"hello":"world"}')``
         """
-        uri_is_string = isinstance(uri, basestring)
+        uri_is_string = isinstance(uri, str)
 
         if uri_is_string and re.search(r'^\w+://[^/]+[.]\w{2,}$', uri):
             uri += '/'
@@ -1484,10 +1475,6 @@ class httpretty(HttpBaseClass):
             ssl.__dict__['wrap_socket'] = old_ssl_wrap_socket
             ssl.__dict__['SSLSocket'] = old_sslsocket
 
-            if not PY3:
-                ssl.sslwrap_simple = old_sslwrap_simple
-                ssl.__dict__['sslwrap_simple'] = old_sslwrap_simple
-
         if requests_urllib3_connection is not None:
             requests_urllib3_connection.ssl_wrap_socket = \
                 old_requests_ssl_wrap_socket
@@ -1584,10 +1571,6 @@ class httpretty(HttpBaseClass):
 
             ssl.__dict__['wrap_socket'] = new_wrap
             ssl.__dict__['SSLSocket'] = FakeSSLSocket
-
-            if not PY3:
-                ssl.sslwrap_simple = new_wrap
-                ssl.__dict__['sslwrap_simple'] = new_wrap
 
         if requests_urllib3_connection is not None:
             new_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
