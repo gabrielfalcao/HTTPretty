@@ -112,6 +112,13 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     ssl = None
 
+# used to handle error caused by ndg-httpsclient
+try:
+    from requests.packages.urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
+    pyopenssl_override = True
+except:
+    pyopenssl_override = False
+
 
 try:
     import requests.packages.urllib3.connection as requests_urllib3_connection
@@ -1341,7 +1348,7 @@ class httpretty(HttpBaseClass):
         :param match_querystring: bool - whether to take the querystring into account when matching an URL
         :param headers: headers to be added to the response
 
-        .. warning:: When using a port in the request, add a trailing slash if no path is provided otherwise Httpretty will not catch the request.  Ex: ``httpretty.register_uri(httpretty.GET, 'http://fakeuri.com:8080/', body='{"hello":"world"}')``   
+        .. warning:: When using a port in the request, add a trailing slash if no path is provided otherwise Httpretty will not catch the request.  Ex: ``httpretty.register_uri(httpretty.GET, 'http://fakeuri.com:8080/', body='{"hello":"world"}')``
         """
         uri_is_string = isinstance(uri, basestring)
 
@@ -1463,11 +1470,16 @@ class httpretty(HttpBaseClass):
                 ssl.sslwrap_simple = old_sslwrap_simple
                 ssl.__dict__['sslwrap_simple'] = old_sslwrap_simple
 
+
         if requests_urllib3_connection is not None:
             requests_urllib3_connection.ssl_wrap_socket = \
                 old_requests_ssl_wrap_socket
             requests_urllib3_connection.__dict__['ssl_wrap_socket'] = \
                 old_requests_ssl_wrap_socket
+
+        if pyopenssl_override:
+            # Put the pyopenssl version back in place
+            inject_into_urllib3()
 
     @classmethod
     def is_enabled(cls):
@@ -1564,6 +1576,10 @@ class httpretty(HttpBaseClass):
             new_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
             requests_urllib3_connection.ssl_wrap_socket = new_wrap
             requests_urllib3_connection.__dict__['ssl_wrap_socket'] = new_wrap
+
+        if pyopenssl_override:
+            # Take out the pyopenssl version - use the default implementation
+            extract_from_urllib3()
 
 
 class httprettized(object):
