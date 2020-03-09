@@ -326,6 +326,8 @@ class FakeSockFile(object):
     def __getattr__(self, name):
         return getattr(self.file, name)
 
+    def __del__(self):
+        self.close()
 
 class FakeSSLSocket(object):
     """Shorthand for :py:class:`~httpretty.core.fakesock`
