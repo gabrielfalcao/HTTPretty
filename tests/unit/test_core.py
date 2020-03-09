@@ -610,6 +610,25 @@ def test_fakesock_socket_sendall_with_body_data_with_chunked_entry(POTENTIAL_HTT
     httpretty.last_request.body.should.equal(b'BLABLABLABLA')
 
 
+def test_fakesock_socket_sendall_with_path_starting_with_two_slashes():
+    ("fakesock.socket#sendall handles paths starting with // well")
+
+    httpretty.register_uri(httpretty.GET, 'http://example.com//foo')
+
+    class MySocket(fakesock.socket):
+        def real_sendall(self, data, *args, **kw):
+            raise AssertionError('should never call this...')
+
+    # Given an instance of that socket
+    socket = MySocket()
+
+    # And that is is considered http
+    socket.connect(('example.com', 80))
+
+    # When I try to send data
+    socket.sendall(b"GET //foo HTTP/1.1\r\nContent-Type: application/json\r\n\r\n")
+
+
 def test_URIMatcher_respects_querystring():
     ("URIMatcher response querystring")
     matcher = URIMatcher('http://www.foo.com/?query=true', None)

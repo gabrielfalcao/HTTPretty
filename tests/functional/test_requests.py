@@ -910,3 +910,18 @@ def test_httpretty_should_allow_registering_regexes_with_port_and_give_a_proper_
     expect(response.text).to.equal('https://api.yipit.com:1234/v1/deal;brand=gap?first_name=chuck&last_name=norris')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap?first_name=chuck&last_name=norris')
+
+
+@httprettified
+def test_httpretty_should_handle_paths_starting_with_two_slashes():
+    "HTTPretty should handle URLs with paths starting with //"
+
+    HTTPretty.register_uri(
+        HTTPretty.GET, "http://example.com//foo",
+        body="Find the best foo"
+    )
+
+    response = requests.get('http://example.com//foo')
+    expect(response.text).to.equal('Find the best foo')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('//foo')
