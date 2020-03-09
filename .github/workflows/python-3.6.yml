@@ -36,11 +36,11 @@ jobs:
     - name: Unit Tests
       run: make unit
 
-    - name: Functional Tests
-      run: make functional
-
     - name: PyOpenSSL tests
       run: make pyopenssl
+
+    - name: Functional Tests
+      run: make functional
 
     - name: "Upload coverage results to codecov.io"
       uses: codecov/codecov-action@v1
