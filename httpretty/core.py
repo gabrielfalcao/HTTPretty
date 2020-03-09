@@ -1340,6 +1340,8 @@ class httpretty(HttpBaseClass):
         :param priority: an integer, useful for setting higher priority over previously registered urls. defaults to zero
         :param match_querystring: bool - whether to take the querystring into account when matching an URL
         :param headers: headers to be added to the response
+
+        .. warning:: When using a port in the request, add a trailing slash if no path is provided otherwise Httpretty will not catch the request.  Ex: ``httpretty.register_uri(httpretty.GET, 'http://fakeuri.com:8080/', body='{"hello":"world"}')``   
         """
         uri_is_string = isinstance(uri, basestring)
 
