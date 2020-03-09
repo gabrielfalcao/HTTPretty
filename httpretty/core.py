@@ -116,7 +116,7 @@ except ImportError:  # pragma: no cover
 try:
     from requests.packages.urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
     pyopenssl_override = True
-except:
+except Exception:
     pyopenssl_override = False
 
 
@@ -1469,7 +1469,6 @@ class httpretty(HttpBaseClass):
             if not PY3:
                 ssl.sslwrap_simple = old_sslwrap_simple
                 ssl.__dict__['sslwrap_simple'] = old_sslwrap_simple
-
 
         if requests_urllib3_connection is not None:
             requests_urllib3_connection.ssl_wrap_socket = \
