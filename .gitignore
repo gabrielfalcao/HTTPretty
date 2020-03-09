@@ -18,3 +18,4 @@ venv
 .eggs
 
 README.html
+Pipfile.lock
