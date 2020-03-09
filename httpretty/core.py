@@ -342,16 +342,16 @@ class fakesock(object):
         _sent_data = []
 
         def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM,
-                     protocol=0, _sock=None):
-            self.truesock = (old_socket(family, type, protocol)
+                     proto=0, fileno=None):
+            self.truesock = (old_socket(family, type, proto)
                              if httpretty.allow_net_connect
                              else None)
             self._connected_truesock = False
             self._closed = True
             self.fd = FakeSockFile()
-            self.fd.socket = _sock or self
+            self.fd.socket = fileno or self
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
-            self._sock = _sock or self
+            self._sock = fileno or self
             self.is_http = False
             self._bufsize = 1024
 
