@@ -2,9 +2,10 @@ Release Notes
 =============
 
 
-0.9.8
------
+0.10.0
+-------
 
+- Drop Python 2 support.
 - Merge pull request #364 from monitorius/master.
 - Merge pull request #371 from jokimina/patch-3.
 - Merge pull request #379 from RDProjekt/double.slashes.
