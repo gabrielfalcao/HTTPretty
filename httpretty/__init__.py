@@ -25,7 +25,10 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 # flake8: noqa
 
+
 from . import core
+
+from .core import httpretty, httprettified, EmptyRequestHeaders
 from .errors import HTTPrettyError, UnmockedError
 from .version import version
 
