@@ -11,11 +11,17 @@ read -r newversion
 
 
 function find_files () {
-    find . -name 'README.rst' -or -name version.py -or -name conf.py
+    for name in $(find . -name 'README.rst' -or -name version.py -or -name conf.py | grep -v '\(\.venv\|build\)[/]'); do
+        echo "${name}"
+    done
+
 }
 
 function update_files (){
     find_files | xargs gsed -i "s,$current_version,$newversion,g"
+}
+function revert_files (){
+    find_files | xargs gsed -i "s,$newversion,$current_version,g"
 }
 
 echo -en "\033[A\033[A\rI will make a new commit named \033[1;33m'New release $newversion'\033[0m\n"
@@ -24,9 +30,40 @@ read -r sure
 
 
 if [ "${sure}" == "yes" ]; then
-    update_files
-    echo -en "New release: \033[1;32m$newversion\033[0m\n"
-    git add "$(find_files)"
-    git commit -am "New release: $newversion"
-    git tag "${newversion}"
-fi;
+    echo "updating relevant files with new version..."
+    if update_files; then
+        echo "committing and pushing changes..."
+        echo -en "New release: \033[1;32m$newversion\033[0m\n"
+        if git add -f $(find_files); then
+            if git commit $(find_files) -m "New release: $newversion"; then
+                if git push; then
+                    echo "creating tag ${newversion}..."
+                    if git tag "${newversion}"; then
+                        echo "pushing tag ${newversion}..."
+                        git push --tags
+                    else
+                        echo "failed to create tag ${newversion}"
+                        echo "you might want to revert the last commit and check what happened"
+                        exit 1
+                    fi
+                else
+                    echo "failed to push, skipping release and reverting changes"
+                    revert_files
+                    exit 1
+                fi
+            else
+                echo "failed to commit, skipping release and reverting changes"
+                revert_files
+                exit 1
+            fi
+        else
+            echo "no files to git add, skipping release"
+            exit 1
+        fi;
+    else
+        echo "no files were updated, skipping release"
+        exit 1
+    fi
+else
+    echo "kthankxbye"
+fi
