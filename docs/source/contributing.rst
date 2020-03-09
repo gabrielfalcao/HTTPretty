@@ -33,7 +33,7 @@ License
 ::
 
     <HTTPretty - HTTP client mock for Python>
-    Copyright (C) <2011-2018>  Gabriel Falcão <gabriel@nacaolivre.org>
+    Copyright (C) <2011-2020> Gabriel Falcão <gabriel@nacaolivre.org>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
