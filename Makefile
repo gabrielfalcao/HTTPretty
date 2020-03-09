@@ -1,68 +1,84 @@
-# Config
-OSNAME			:= $(shell uname)
+.PHONY: tests all unit functional clean dependencies tdd docs html purge dist
 
-ifeq ($(OSNAME), Linux)
-OPEN_COMMAND		:= gnome-open
-else
-OPEN_COMMAND		:= open
-endif
+GIT_ROOT		:= $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+DOCS_ROOT		:= $(GIT_ROOT)/docs
+HTML_ROOT		:= $(DOCS_ROOT)/build/html
+VENV_ROOT		:= $(GIT_ROOT)/.venv
+VENV			?= $(VENV_ROOT)
+BENTO_BIN		:= $(shell which bento)
+DOCS_INDEX		:= $(HTML_ROOT)/index.html
+BENTO_EMAIL		:= gabriel@nacaolivre.org
 
 
-all: lint unit functional docs
-
-export PYTHONPATH		:= ${PWD}
+export VENV
 export PYTHONASYNCIODEBUG	:=1
 
-dependencies:
-	@pip install -U pip
-	@pip install pipenv
-	@pipenv install --dev --skip-lock
 
-test: lint unit functional pyopenssl
+all: dependencies tests
 
-lint:
-	@echo "Checking code style ..."
-	@pipenv run flake8 --show-source httpretty tests
+$(VENV):  # creates $(VENV) folder if does not exist
+	python3 -mvenv $(VENV)
+	$(VENV)/bin/pip install -U pip setuptools
 
-unit:
-	@echo "Running unit tests ..."
-	@pipenv run nosetests --cover-erase tests/$@
+$(VENV)/bin/sphinx-build $(VENV)/bin/twine $(VENV)/bin/nosetests $(VENV)/bin/python $(VENV)/bin/pip: # installs latest pip
+	test -e $(VENV)/bin/pip || make $(VENV)
+	$(VENV)/bin/pip install -r development.txt
+	$(VENV)/bin/pip install -e .
 
-functional:
-	@echo "Running functional tests ..."
-	@pipenv run nosetests tests/$@
+# Runs the unit and functional tests
+tests: $(VENV)/bin/nosetests  # runs all tests
+	$(VENV)/bin/nosetests tests --with-random --cover-erase
 
-pyopenssl:
-	@echo "Running PyOpenSSL mocking tests ..."
-	@pipenv install --skip-lock ndg-httpsclient
-	@pipenv run nosetests --rednose -x --with-coverage --cover-package=httpretty -s tests/pyopenssl
+tdd: $(VENV)/bin/nosetests  # runs all tests
+	$(VENV)/bin/nosetests tests --with-watch --cover-erase
 
-clean:
-	@printf "Cleaning up files that are already in .gitignore... "
-	@for pattern in `cat .gitignore`; do rm -rf $$pattern; done
-	@echo "OK!"
-	@printf "Deleting built documentation"
-	@rm -rf docs/build
-	@printf "Deleting dist files"
-	@rm -rf dist
+# Install dependencies
+dependencies: | $(VENV)/bin/nosetests
+	$(VENV)/bin/pip install -r development.txt
 
-release: lint unit functional docs
+# runs unit tests
+unit: $(VENV)/bin/nosetests  # runs only unit tests
+	$(VENV)/bin/nosetests --cover-erase tests/unit
+
+
+pyopenssl: $(VENV)/bin/nosetests
+	$(VENV)/bin/pip install ndg-httpsclient
+	$(VENV)/bin/nosetests --cover-erase tests/pyopenssl
+
+
+# runs functional tests
+functional: $(VENV)/bin/nosetests  # runs functional tests
+	$(VENV)/bin/nosetests tests/functional
+
+
+$(DOCS_INDEX): | $(VENV)/bin/sphinx-build
+	cd docs && make html
+
+html: $(DOCS_INDEX)
+
+docs: $(DOCS_INDEX)
+	open $(DOCS_INDEX)
+
+release: | clean bento unit functional tests html
 	@rm -rf dist/*
-	@make rogue-release
-
-rogue-release:
 	@./.release
 	@make pypi
 
-pypi:
-	@pipenv run python setup.py build sdist
-	@pipenv run twine upload dist/*.tar.gz
+bento: | $(BENTO_BIN)
+	$(BENTO_BIN) --agree --email=$(BENTO_EMAIL) check --all
 
-docs:
-	@cd docs && make html
-	$(OPEN_COMMAND) docs/build/html/index.html
+dist: | clean
+	$(VENV)/bin/python setup.py build sdist
+
+pypi: dist | $(VENV)/bin/twine
+	$(VENV)/bin/twine upload dist/*.tar.gz
+
+# cleanup temp files
+clean:
+	rm -rf $(HTML_ROOT) build dist
 
 
-
-
-.PHONY: docs lint pypi  clean pyopenssl unit functional test dependencies all
+# purge all virtualenv and temp files, causes everything to be rebuilt
+# from scratch by other tasks
+purge: clean
+	rm -rf $(VENV)

@@ -40,7 +40,7 @@ local_file = lambda *f: \
         os.path.join(os.path.dirname(__file__), *f), encoding='utf-8').read()
 
 
-install_requires = ['six']
+install_requires = []
 tests_requires = ['nose', 'sure', 'coverage', 'mock', 'rednose']
 
 
@@ -54,7 +54,7 @@ setup(
     url='https://httpretty.readthedocs.io',
     zip_safe=False,
     packages=find_packages(exclude=['*tests*']),
-    tests_require=tests_requires,
+    tests_require=local_file('development.txt').splitlines(),
     install_requires=install_requires,
     license='MIT',
     test_suite='nose.collector',
