@@ -58,6 +58,7 @@ setup(
     install_requires=install_requires,
     license='MIT',
     test_suite='nose.collector',
+    python_requires='>=3',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
