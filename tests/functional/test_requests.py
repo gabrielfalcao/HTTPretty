@@ -610,7 +610,6 @@ def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
 
 
 @httprettified
-@skip
 def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
     "HTTPretty should provide a way to not match regexes that have a different querystring"
 
@@ -619,6 +618,12 @@ def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
         re.compile(r"https://example.org/(?P<endpoint>\w+)/$"),
         body="Nudge, nudge, wink, wink. Know what I mean?",
         match_querystring=True
+    )
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile(r"https://example.org/(?P<endpoint>\w+).*"),
+        body="Different",
+        match_querystring=False
     )
 
     response = requests.get('https://example.org/what/')
