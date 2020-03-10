@@ -48,8 +48,6 @@ class BaseClass(object):
         return self.__str__()
 
 
-ClassTypes = (type,)
-
 __all__ = [
     'BaseClass',
     'BaseHTTPRequestHandler',
@@ -59,5 +57,4 @@ __all__ = [
     'urlunsplit',
     'urlsplit',
     'parse_qs',
-    'ClassTypes',
 ]

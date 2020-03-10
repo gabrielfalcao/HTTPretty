@@ -30,6 +30,7 @@ import hashlib
 import inspect
 import itertools
 import json
+import types
 import re
 import socket
 import tempfile
@@ -50,7 +51,6 @@ from .compat import (
     urlsplit,
     parse_qs,
     unquote_utf8,
-    ClassTypes,
 )
 from .http import (
     STATUSES,
@@ -1370,10 +1370,10 @@ class httpretty(HttpBaseClass):
                 response.method = method
             entries_for_this_uri = responses
         else:
-            headers[str('body')] = body
-            headers[str('adding_headers')] = adding_headers
-            headers[str('forcing_headers')] = forcing_headers
-            headers[str('status')] = status
+            headers['body'] = body
+            headers['adding_headers'] = adding_headers
+            headers['forcing_headers'] = forcing_headers
+            headers['status'] = status
 
             entries_for_this_uri = [
                 cls.Response(method=method, uri=uri, **headers),
@@ -1722,7 +1722,7 @@ def httprettified(test=None, allow_net_connect=True):
                 return test(*args, **kw)
         return wrapper
 
-    if isinstance(test, ClassTypes):
+    if isinstance(test, type):
         return decorate_class(test)
     elif callable(test):
         return decorate_callable(test)

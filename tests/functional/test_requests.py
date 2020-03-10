@@ -273,7 +273,6 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
     expect(HTTPretty.last_request.path).to.equal('/?id=123')
 
 
-@skip('TODO: fix me')
 @httprettified
 @within(five=microseconds)
 def test_streaming_responses(now):
@@ -310,17 +309,21 @@ def test_streaming_responses(now):
                            streaming=True)
 
     # taken from the requests docs
+
+    # test iterating by line
     # Http://docs.python-requests.org/en/latest/user/advanced/# streaming-requests
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
                              auth=('username', 'password'), stream=True)
 
-    # test iterating by line
     line_iter = response.iter_lines()
     with in_time(0.01, 'Iterating by line is taking forever!'):
         for i in range(len(twitter_response_lines)):
             expect(next(line_iter).strip()).to.equal(
                 twitter_response_lines[i].strip())
 
+    HTTPretty.register_uri(HTTPretty.POST, TWITTER_STREAMING_URL,
+                           body=(l for l in twitter_response_lines),
+                           streaming=True)
     # test iterating by line after a second request
     response = requests.post(
         TWITTER_STREAMING_URL,
@@ -338,6 +341,9 @@ def test_streaming_responses(now):
             expect(next(line_iter).strip()).to.equal(
                 twitter_response_lines[i].strip())
 
+    HTTPretty.register_uri(HTTPretty.POST, TWITTER_STREAMING_URL,
+                           body=(l for l in twitter_response_lines),
+                           streaming=True)
     # test iterating by char
     response = requests.post(
         TWITTER_STREAMING_URL,
@@ -355,7 +361,9 @@ def test_streaming_responses(now):
     expect(twitter_body).to.equal(twitter_expected_response_body)
 
     # test iterating by chunks larger than the stream
-
+    HTTPretty.register_uri(HTTPretty.POST, TWITTER_STREAMING_URL,
+                           body=(l for l in twitter_response_lines),
+                           streaming=True)
     response = requests.post(TWITTER_STREAMING_URL, data={'track': 'requests'},
                              auth=('username', 'password'), stream=True)
 
