@@ -38,7 +38,7 @@ import threading
 import traceback
 import warnings
 
-from functools import partial
+from functools import partial, partialmethod
 
 from .compat import (
     BaseClass,
@@ -81,6 +81,7 @@ old_ssl_wrap_socket = None
 old_sslwrap_simple = None
 old_sslsocket = None
 old_sslcontext_wrap_socket = None
+old_sslcontext = None
 
 MULTILINE_ANY_REGEX = re.compile(r'.*', re.M)
 hostname_re = re.compile(r'\^?(?:https?://)?[^:/]*[:/]?')
@@ -94,7 +95,8 @@ except ImportError:
 
 try:  # pragma: no cover
     import ssl
-    old_ssl_wrap_socket = ssl.wrap_socket
+    old_sslcontext = ssl.create_default_context()
+    old_ssl_wrap_socket = old_sslcontext.wrap_socket
     try:
         old_sslcontext_wrap_socket = ssl.SSLContext.wrap_socket
     except AttributeError:
@@ -408,15 +410,27 @@ class fakesock(object):
 
             if not self.is_http:
                 if self.truesock and not self._connected_truesock:
-                    self.truesock.connect(self._address)
-                    self._connected_truesock = True
+                    self.connect_truesock()
                 else:
                     raise UnmockedError()
             elif self.truesock and not self._connected_truesock:
                 matcher = httpretty.match_http_address(self._host, self._port)
                 if matcher is None:
-                    self.truesock.connect(self._address)
-                    self._connected_truesock = True
+                    self.connect_truesock()
+
+        def connect_truesock(self):
+            if self._connected_truesock:
+                return self._connected_truesock
+            with restored_libs():
+                hostname, port = self._address
+                if port ==  443 and old_sslsocket:
+                    self.truesock = old_ssl_wrap_socket(self.truesock, server_hostname=hostname)
+
+                sock = self.truesock
+
+                sock.connect(self._address)
+                self._connected_truesock = sock
+                return sock
 
         def fileno(self):
             if self.truesock:
@@ -469,13 +483,7 @@ class fakesock(object):
             if not self.is_http:
                 return self.truesock.sendall(data, *args, **kw)
 
-            if self._address[1] == 443 and old_sslsocket:
-                sock = old_sslsocket(self.truesock)
-            else:
-                sock = self.truesock
-
-            if not self._connected_truesock:
-                sock.connect(self._address)
+            sock = self.connect_truesock()
 
             sock.setblocking(1)
             sock.sendall(data, *args, **kw)
@@ -1442,48 +1450,9 @@ class httpretty(HttpBaseClass):
 
         .. note:: This method does not call :py:meth:`httpretty.core.reset` automatically.
         """
+        undo_patch_socket()
         cls._is_enabled = False
-        socket.socket = old_socket
-        socket.SocketType = old_SocketType
-        socket._socketobject = old_socket
 
-        socket.create_connection = old_create_connection
-        socket.gethostname = old_gethostname
-        socket.gethostbyname = old_gethostbyname
-        socket.getaddrinfo = old_getaddrinfo
-
-        socket.__dict__['socket'] = old_socket
-        socket.__dict__['_socketobject'] = old_socket
-        socket.__dict__['SocketType'] = old_SocketType
-
-        socket.__dict__['create_connection'] = old_create_connection
-        socket.__dict__['gethostname'] = old_gethostname
-        socket.__dict__['gethostbyname'] = old_gethostbyname
-        socket.__dict__['getaddrinfo'] = old_getaddrinfo
-
-        if socks:
-            socks.socksocket = old_socksocket
-            socks.__dict__['socksocket'] = old_socksocket
-
-        if ssl:
-            ssl.wrap_socket = old_ssl_wrap_socket
-            ssl.SSLSocket = old_sslsocket
-            try:
-                ssl.SSLContext.wrap_socket = old_sslcontext_wrap_socket
-            except AttributeError:
-                pass
-            ssl.__dict__['wrap_socket'] = old_ssl_wrap_socket
-            ssl.__dict__['SSLSocket'] = old_sslsocket
-
-        if requests_urllib3_connection is not None:
-            requests_urllib3_connection.ssl_wrap_socket = \
-                old_requests_ssl_wrap_socket
-            requests_urllib3_connection.__dict__['ssl_wrap_socket'] = \
-                old_requests_ssl_wrap_socket
-
-        if pyopenssl_override:
-            # Put the pyopenssl version back in place
-            inject_into_urllib3()
 
     @classmethod
     def is_enabled(cls):
@@ -1531,55 +1500,110 @@ class httpretty(HttpBaseClass):
         .. warning:: after calling this method the original :py:mod:`socket` is replaced with :py:class:`httpretty.core.fakesock`. Make sure to call :py:meth:`~httpretty.disable` after done with your tests or use the :py:class:`httpretty.enabled` as decorator or `context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_
         """
         cls.allow_net_connect = allow_net_connect
+        apply_patch_socket()
         cls._is_enabled = True
-        # Some versions of python internally shadowed the
-        # SocketType variable incorrectly https://bugs.python.org/issue20386
-        bad_socket_shadow = (socket.socket != socket.SocketType)
 
-        socket.socket = fakesock.socket
-        socket._socketobject = fakesock.socket
-        if not bad_socket_shadow:
-            socket.SocketType = fakesock.socket
 
-        socket.create_connection = create_fake_connection
-        socket.gethostname = fake_gethostname
-        socket.gethostbyname = fake_gethostbyname
-        socket.getaddrinfo = fake_getaddrinfo
+def apply_patch_socket():
+    # Some versions of python internally shadowed the
+    # SocketType variable incorrectly https://bugs.python.org/issue20386
+    bad_socket_shadow = (socket.socket != socket.SocketType)
 
-        socket.__dict__['socket'] = fakesock.socket
-        socket.__dict__['_socketobject'] = fakesock.socket
-        if not bad_socket_shadow:
-            socket.__dict__['SocketType'] = fakesock.socket
+    socket.socket = fakesock.socket
+    socket._socketobject = fakesock.socket
+    if not bad_socket_shadow:
+        socket.SocketType = fakesock.socket
 
-        socket.__dict__['create_connection'] = create_fake_connection
-        socket.__dict__['gethostname'] = fake_gethostname
-        socket.__dict__['gethostbyname'] = fake_gethostbyname
-        socket.__dict__['getaddrinfo'] = fake_getaddrinfo
+    socket.create_connection = create_fake_connection
+    socket.gethostname = fake_gethostname
+    socket.gethostbyname = fake_gethostbyname
+    socket.getaddrinfo = fake_getaddrinfo
 
-        if socks:
-            socks.socksocket = fakesock.socket
-            socks.__dict__['socksocket'] = fakesock.socket
+    socket.__dict__['socket'] = fakesock.socket
+    socket.__dict__['_socketobject'] = fakesock.socket
+    if not bad_socket_shadow:
+        socket.__dict__['SocketType'] = fakesock.socket
 
-        if ssl:
-            new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
-            ssl.wrap_socket = new_wrap
-            ssl.SSLSocket = FakeSSLSocket
-            try:
-                ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_sslcontext_wrap_socket)
-            except AttributeError:
-                pass
+    socket.__dict__['create_connection'] = create_fake_connection
+    socket.__dict__['gethostname'] = fake_gethostname
+    socket.__dict__['gethostbyname'] = fake_gethostbyname
+    socket.__dict__['getaddrinfo'] = fake_getaddrinfo
 
-            ssl.__dict__['wrap_socket'] = new_wrap
-            ssl.__dict__['SSLSocket'] = FakeSSLSocket
+    if socks:
+        socks.socksocket = fakesock.socket
+        socks.__dict__['socksocket'] = fakesock.socket
 
-        if requests_urllib3_connection is not None:
-            new_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
-            requests_urllib3_connection.ssl_wrap_socket = new_wrap
-            requests_urllib3_connection.__dict__['ssl_wrap_socket'] = new_wrap
+    if ssl:
+        new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
+        ssl.wrap_socket = new_wrap
+        ssl.SSLSocket = FakeSSLSocket
+        try:
+            ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_sslcontext.wrap_socket)
+        except AttributeError:
+            pass
 
-        if pyopenssl_override:
-            # Take out the pyopenssl version - use the default implementation
-            extract_from_urllib3()
+        ssl.__dict__['wrap_socket'] = new_wrap
+        ssl.__dict__['SSLSocket'] = FakeSSLSocket
+
+    if requests_urllib3_connection is not None:
+        new_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
+        requests_urllib3_connection.ssl_wrap_socket = new_wrap
+        requests_urllib3_connection.__dict__['ssl_wrap_socket'] = new_wrap
+
+    if pyopenssl_override:
+        # Take out the pyopenssl version - use the default implementation
+        extract_from_urllib3()
+
+
+def undo_patch_socket():
+    socket.socket = old_socket
+    socket.SocketType = old_SocketType
+    socket._socketobject = old_socket
+
+    socket.create_connection = old_create_connection
+    socket.gethostname = old_gethostname
+    socket.gethostbyname = old_gethostbyname
+    socket.getaddrinfo = old_getaddrinfo
+
+    socket.__dict__['socket'] = old_socket
+    socket.__dict__['_socketobject'] = old_socket
+    socket.__dict__['SocketType'] = old_SocketType
+
+    socket.__dict__['create_connection'] = old_create_connection
+    socket.__dict__['gethostname'] = old_gethostname
+    socket.__dict__['gethostbyname'] = old_gethostbyname
+    socket.__dict__['getaddrinfo'] = old_getaddrinfo
+
+    if socks:
+        socks.socksocket = old_socksocket
+        socks.__dict__['socksocket'] = old_socksocket
+
+    if ssl:
+        ssl.wrap_socket = old_ssl_wrap_socket
+        ssl.SSLSocket = old_sslsocket
+        try:
+            ssl.SSLContext.wrap_socket = old_sslcontext_wrap_socket
+        except AttributeError:
+            pass
+        ssl.__dict__['wrap_socket'] = old_ssl_wrap_socket
+        ssl.__dict__['SSLSocket'] = old_sslsocket
+
+    if requests_urllib3_connection is not None:
+        requests_urllib3_connection.ssl_wrap_socket = \
+            old_requests_ssl_wrap_socket
+        requests_urllib3_connection.__dict__['ssl_wrap_socket'] = \
+            old_requests_ssl_wrap_socket
+
+    if pyopenssl_override:
+        # Put the pyopenssl version back in place
+        inject_into_urllib3()
+
+
+@contextlib.contextmanager
+def restored_libs():
+    undo_patch_socket()
+    yield
+    apply_patch_socket()
 
 
 class httprettized(object):
