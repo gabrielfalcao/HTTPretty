@@ -1,7 +1,4 @@
-# #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# <httpretty - HTTP client mock for Python>
+# <HTTPretty - HTTP client mock for Python>
 # Copyright (C) <2011-2020> Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
