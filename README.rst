@@ -111,9 +111,9 @@ checking multiple responses
         url = 'http://httpbin.org/post'
         httpretty.register_uri(httpretty.POST, url, status=200)
         httpretty.register_uri(httpretty.POST, url, status=400)
-         requests.post(url, data={'foo': 'bar'})
+        requests.post(url, data={'foo': 'bar'})
         requests.post(url, data={'zoo': 'zoo'})
-         assert 'foo=bar' in httpretty.latest_requests()[0].body
+        assert 'foo=bar' in httpretty.latest_requests()[0].body
         assert 'zoo=bar' in httpretty.latest_requests()[1].body
 
 
