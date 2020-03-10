@@ -359,7 +359,7 @@ class fakesock(object):
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
             self._sock = fileno or self
             self.is_http = False
-            self._bufsize = 1024
+            self._bufsize = 32 * 1024
 
         def getpeercert(self, *a, **kw):
             now = datetime.now()
