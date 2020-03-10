@@ -31,7 +31,10 @@ import os
 import re
 import json
 import requests
+import signal
+from mock import Mock
 from unittest import skip
+from contextlib import contextmanager
 from sure import within, microseconds, expect
 from tornado import version as tornado_version
 from httpretty import HTTPretty, httprettified
@@ -270,7 +273,6 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
     expect(HTTPretty.last_request.path).to.equal('/?id=123')
 
 
-@skip('TODO: FIXME')
 @httprettified
 @within(five=microseconds)
 def test_streaming_responses(now):
@@ -278,7 +280,6 @@ def test_streaming_responses(now):
     Mock a streaming HTTP response, like those returned by the Twitter streaming
     API.
     """
-    from contextlib import contextmanager
 
     @contextmanager
     def in_time(time, message):
@@ -287,8 +288,6 @@ def test_streaming_responses(now):
         (unlike the `@within` decorator, which only complains afterward), or
         raise an AssertionError.
         """
-        import signal
-
         def handler(signum, frame):
             raise AssertionError(message)
         signal.signal(signal.SIGALRM, handler)
@@ -641,7 +640,7 @@ def test_httpretty_should_allow_multiple_methods_for_the_same_uri():
 @httprettified
 def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
     "HTTPretty should allow registering regexes with streaming responses"
-    import os
+
     os.environ['DEBUG'] = 'true'
 
     def my_callback(request, url, headers):
@@ -806,8 +805,6 @@ def test_recording_calls(port):
 def test_py26_callback_response():
     ("HTTPretty should call a callback function *once* and set its return value"
      " as the body of the response requests")
-
-    from mock import Mock
 
     def _request_callback(request, uri, headers):
         return [200, headers, "The {} response from {}".format(decode_utf8(request.method), uri)]
