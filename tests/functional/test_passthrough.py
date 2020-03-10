@@ -1,7 +1,7 @@
 # #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# <HTTPretty - HTTP client mock for Python>
+# <httpretty - HTTP client mock for Python>
 # Copyright (C) <2011-2020> Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
@@ -25,50 +25,58 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 import requests
+import httpretty
+
 from unittest import skip
 from sure import expect
 
-from httpretty import HTTPretty
+
+def http():
+    sess = requests.Session()
+    adapter = requests.adapters.HTTPAdapter(pool_connections=1, pool_maxsize=1)
+    sess.mount('http://', adapter)
+    sess.mount('https://', adapter)
+    return sess
 
 
-@skip
 def test_http_passthrough():
     url = 'http://httpbin.org/status/200'
-    response1 = requests.get(url)
+    response1 = http().get(url)
 
-    response1 = requests.get(url, stream=True)
+    response1 = http().get(url)
 
-    HTTPretty.enable()
-    HTTPretty.register_uri(HTTPretty.GET, 'http://google.com/', body="Not Google")
+    httpretty.enable()
+    httpretty.register_uri(httpretty.GET, 'http://google.com/', body="Not Google")
+    httpretty.register_uri(httpretty.GET, url, body="")
 
-    response2 = requests.get('http://google.com/')
+    response2 = http().get('http://google.com/')
     expect(response2.content).to.equal(b'Not Google')
 
-    response3 = requests.get(url, stream=True)
+    response3 = http().get(url)
     (response3.content).should.equal(response1.content)
 
-    HTTPretty.disable()
+    httpretty.disable()
 
-    response4 = requests.get(url, stream=True)
+    response4 = http().get(url)
     (response4.content).should.equal(response1.content)
 
 
-@skip
 def test_https_passthrough():
-    url = 'https://raw.githubusercontent.com/gabrielfalcao/HTTPretty/master/COPYING'
+    url = 'https://raw.githubusercontent.com/gabrielfalcao/httpretty/master/COPYING'
 
-    response1 = requests.get(url, stream=True)
+    response1 = http().get(url)
 
-    HTTPretty.enable()
-    HTTPretty.register_uri(HTTPretty.GET, 'https://google.com/', body="Not Google")
+    httpretty.enable()
+    httpretty.register_uri(httpretty.GET, 'https://google.com/', body="Not Google")
+    httpretty.register_uri(httpretty.GET, url, body="mocked")
 
-    response2 = requests.get('https://google.com/')
+    response2 = http().get('https://google.com/')
     expect(response2.content).to.equal(b'Not Google')
 
-    response3 = requests.get(url, stream=True)
-    (response3.content).should.equal(response1.content)
+    response3 = http().get(url)
+    (response3.text).should.equal('mocked')
 
-    HTTPretty.disable()
+    httpretty.disable()
 
-    response4 = requests.get(url, stream=True)
+    response4 = http().get(url)
     (response4.content).should.equal(response1.content)
