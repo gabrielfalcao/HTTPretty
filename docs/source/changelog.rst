@@ -6,17 +6,17 @@ Release Notes
 -------
 
 - Drop Python 2 support.
-- Merge pull request #364 from monitorius/master.
-- Merge pull request #371 from jokimina/patch-3.
-- Merge pull request #379 from RDProjekt/double.slashes.
-- Merge pull request #386 from gabrielfalcao/renovate/configure.
-- Merge pull request
-- Merge pull request #302 from iurisilvio (which also closes #289 from jrpope2014)
-- Merge pull request #373 from chewthemonkey/docs/uri-regex-pattern.
-- Merge pull request #383 from yyscamper/fileno_issue.
-- Merge pull request #385 from der-gabe/master.
-- Merge pull request #389 from ipetepete/master.
-- Merge pull request #391 from timgates42/bugfix/typo_neither.
+- Fix TypeError: wrap_socket() missing 1 required positional argument: 'sock' (`#393 <https://github.com/gabrielfalcao/HTTPretty/pull/393>`_)
+- Merge pull request `#364 <https://github.com/gabrielfalcao/HTTPretty/pull/364>`_
+- Merge pull request `#371 <https://github.com/gabrielfalcao/HTTPretty/pull/371>`_
+- Merge pull request `#379 <https://github.com/gabrielfalcao/HTTPretty/pull/379>`_
+- Merge pull request `#386 <https://github.com/gabrielfalcao/HTTPretty/pull/386>`_
+- Merge pull request `#302 <https://github.com/gabrielfalcao/HTTPretty/pull/302>`_
+- Merge pull request `#373 <https://github.com/gabrielfalcao/HTTPretty/pull/373>`_
+- Merge pull request `#383 <https://github.com/gabrielfalcao/HTTPretty/pull/383>`_
+- Merge pull request `#385 <https://github.com/gabrielfalcao/HTTPretty/pull/385>`_
+- Merge pull request `#389 <https://github.com/gabrielfalcao/HTTPretty/pull/389>`_
+- Merge pull request `#391 <https://github.com/gabrielfalcao/HTTPretty/pull/391>`_
 - Fix simple typo: neighter -> neither.
 - Updated documentation for register_uri concerning using ports.
 - Clarify relation between ``enabled`` and ``httprettized`` in API docs.
