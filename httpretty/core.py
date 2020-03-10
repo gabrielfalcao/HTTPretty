@@ -422,7 +422,10 @@ class fakesock(object):
             if self._connected_truesock:
                 return self._connected_truesock
             with restored_libs():
-                hostname, port = self._address
+                hostname = self._address[0]
+                port = 80
+                if len(self._address) == 2:
+                    port = self._address[1]
                 if port ==  443 and old_sslsocket:
                     self.truesock = old_ssl_wrap_socket(self.truesock, server_hostname=hostname)
 

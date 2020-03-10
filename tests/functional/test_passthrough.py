@@ -1,6 +1,3 @@
-# #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 # <HTTPretty - HTTP client mock for Python>
 # Copyright (C) <2011-2020> Gabriel Falcão <gabriel@nacaolivre.org>
 #
@@ -26,6 +23,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 import requests
 import httpretty
+
 from unittest import skip
 from sure import expect
 
@@ -40,40 +38,42 @@ def http():
 
 def test_http_passthrough():
     url = 'http://httpbin.org/status/200'
+    response1 = http().get(url)
 
-    response1 = http().get(url, stream=True)
+    response1 = http().get(url)
 
     httpretty.enable()
     httpretty.register_uri(httpretty.GET, 'http://google.com/', body="Not Google")
     httpretty.register_uri(httpretty.GET, url, body="")
 
-    response2 = http().get('http://google.com/', stream=True)
+    response2 = http().get('http://google.com/')
     expect(response2.content).to.equal(b'Not Google')
 
-    response3 = http().get(url, stream=True)
+    response3 = http().get(url)
     (response3.content).should.equal(response1.content)
 
     httpretty.disable()
 
-    response4 = http().get(url, stream=True)
+    response4 = http().get(url)
     (response4.content).should.equal(response1.content)
 
 
 def test_https_passthrough():
     url = 'https://raw.githubusercontent.com/gabrielfalcao/httpretty/master/COPYING'
 
-    response1 = http().get(url, stream=True)
+    response1 = http().get(url)
 
     httpretty.enable()
     httpretty.register_uri(httpretty.GET, 'https://google.com/', body="Not Google")
+    httpretty.register_uri(httpretty.GET, url, body="mocked")
 
     response2 = http().get('https://google.com/')
     expect(response2.content).to.equal(b'Not Google')
 
-    response3 = http().get(url, stream=True)
-    (response3.content).should.equal(response1.content)
+    response3 = http().get(url)
+    (response3.text).should.equal('mocked')
 
     httpretty.disable()
 
-    response4 = http().get(url, stream=True)
+    response4 = http().get(url)
     (response4.content).should.equal(response1.content)
