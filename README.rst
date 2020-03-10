@@ -57,6 +57,8 @@ HTTP Client mocking tool for Python. Provides a full fake TCP socket module. Ins
 .. image:: https://img.shields.io/github/v/tag/gabrielfalcao/HTTPretty
    :target: https://github.com/gabrielfalcao/HTTPretty/releases
 
+.. |Join the chat at https://gitter.im/gabrielfalcao/HTTPretty| image:: https://badges.gitter.im/gabrielfalcao/HTTPretty.svg
+   :target: https://gitter.im/gabrielfalcao/HTTPretty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 Install
 -------
