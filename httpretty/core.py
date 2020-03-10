@@ -592,6 +592,9 @@ class fakesock(object):
 
         def settimeout(self, new_timeout):
             self.timeout = new_timeout
+            if not self.is_http:
+                if self.truesock:
+                    self.truesock.settimeout(new_timeout)
 
         def send(self, *args, **kwargs):
             return self.debug('send', *args, **kwargs)
