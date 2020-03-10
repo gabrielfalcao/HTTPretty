@@ -38,7 +38,7 @@ import threading
 import traceback
 import warnings
 
-from functools import partial, partialmethod
+from functools import partial
 
 from .compat import (
     BaseClass,
