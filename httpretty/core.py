@@ -1593,6 +1593,7 @@ def apply_patch_socket():
     # SocketType variable incorrectly https://bugs.python.org/issue20386
     bad_socket_shadow = (socket.socket != socket.SocketType)
 
+    new_wrap = None
     socket.socket = fakesock.socket
     socket._socketobject = fakesock.socket
     if not bad_socket_shadow:
@@ -1613,12 +1614,23 @@ def apply_patch_socket():
     socket.__dict__['gethostbyname'] = fake_gethostbyname
     socket.__dict__['getaddrinfo'] = fake_getaddrinfo
 
+
+    if pyopenssl_override:
+        # Take out the pyopenssl version - use the default implementation
+        extract_from_urllib3()
+
+    if requests_urllib3_connection is not None:
+        new_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
+        requests_urllib3_connection.ssl_wrap_socket = new_wrap
+        requests_urllib3_connection.__dict__['ssl_wrap_socket'] = new_wrap
+
     if socks:
         socks.socksocket = fakesock.socket
         socks.__dict__['socksocket'] = fakesock.socket
 
     if ssl:
-        new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
+        if not new_wrap:
+            new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
         ssl.wrap_socket = new_wrap
         ssl.SSLSocket = FakeSSLSocket
         try:
@@ -1628,15 +1640,6 @@ def apply_patch_socket():
 
         ssl.__dict__['wrap_socket'] = new_wrap
         ssl.__dict__['SSLSocket'] = FakeSSLSocket
-
-    if requests_urllib3_connection is not None:
-        new_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
-        requests_urllib3_connection.ssl_wrap_socket = new_wrap
-        requests_urllib3_connection.__dict__['ssl_wrap_socket'] = new_wrap
-
-    if pyopenssl_override:
-        # Take out the pyopenssl version - use the default implementation
-        extract_from_urllib3()
 
 
 def undo_patch_socket():
