@@ -70,6 +70,21 @@ def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
     expect(HTTPretty.last_request.path).to.equal('/')
 
 
+
+@httprettified
+@within(two=microseconds)
+def test_hostname_case_insensitive(now):
+    "HTTPretty should match the hostname case insensitive"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://yipit/",
+                           body="Find the best daily deals")
+
+    response = requests.get('http://YIPIT')
+    expect(response.text).to.equal('Find the best daily deals')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/')
+
+
 @httprettified
 @within(two=microseconds)
 def test_httpretty_provides_easy_access_to_querystrings(now):
