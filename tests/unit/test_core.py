@@ -330,6 +330,7 @@ def test_fakesock_socket_real_sendall_when_http(old_socket):
 
     # Given a fake socket
     socket = fakesock.socket()
+    socket._address = ('1.2.3.4', 42)
     socket.is_http = True
 
     # When I call real_sendall with data, some args and kwargs
@@ -365,6 +366,7 @@ def test_fakesock_socket_real_sendall_continue_eagain_when_http(socket, old_sock
 
     # Given a fake socket
     socket = fakesock.socket()
+    socket._address = ('1.2.3.4', 42)
     socket.is_http = True
 
     # When I call real_sendall with data, some args and kwargs
@@ -400,6 +402,7 @@ def test_fakesock_socket_real_sendall_socket_error_when_http(socket, old_socket)
 
     # Given a fake socket
     socket = fakesock.socket()
+    socket._address = ('1.2.3.4', 42)
     socket.is_http = True
 
     # When I call real_sendall with data, some args and kwargs

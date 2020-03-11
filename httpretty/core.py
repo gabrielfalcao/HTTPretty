@@ -430,10 +430,10 @@ class fakesock(object):
 
         def connect_truesock(self):
             if not self.truesock:
-                return
+                raise RuntimeError('socket was not created')
 
             if self.__truesock_is_connected__:
-                return self.__truesock_is_connected__
+                return self.truesock
             with restored_libs():
                 hostname = self._address[0]
                 port = 80
@@ -497,10 +497,12 @@ class fakesock(object):
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
+
             if not self.truesock:
                 raise UnmockedError()
 
-            if not self.is_http:
+            if not self.is_http or self.__truesock_is_connected__:
+                self.truesock.setblocking(1)
                 return self.truesock.sendall(data, *args, **kw)
 
             sock = self.connect_truesock()
