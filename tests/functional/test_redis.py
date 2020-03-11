@@ -14,15 +14,14 @@ def redis_available():
     conn = Redis(**params)
     try:
         conn.keys('*')
+        conn.close()
         return True
     except Exception:
-        return True
-    finally:
-        conn.close()
+        return False
 
 
 @skipUnless(redis_available, reason='no redis server available for test')
-@httpretty.activate
+@httpretty.activate()
 def test_work_in_parallel_to_redis():
     "HTTPretty should passthrough redis connections"
 

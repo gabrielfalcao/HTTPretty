@@ -67,47 +67,6 @@ def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
     )
 
 
-def test_httpretty_should_raise_on_socket_send_when_uri_registered():
-    ("HTTPretty should raise a RuntimeError when the fakesocket is "
-     "used in an invalid usage.")
-
-    import socket
-    HTTPretty.enable()
-
-    HTTPretty.register_uri(HTTPretty.GET,
-                           'http://127.0.0.1:5000')
-    expect(core.POTENTIAL_HTTP_PORTS).to.be.equal(set([80, 5000]))
-    expect(core.POTENTIAL_HTTPS_PORTS).to.be.equal(set([443]))
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('127.0.0.1', 5000))
-    expect(sock.send).when.called_with(b'whatever').to.throw(RuntimeError)
-    sock.close()
-
-    # restore the previous value
-    core.POTENTIAL_HTTP_PORTS.remove(5000)
-    HTTPretty.reset()
-    HTTPretty.disable()
-
-
-def test_httpretty_should_not_raise_on_socket_send_when_uri_not_registered():
-    ("HTTPretty should not raise a RuntimeError when the fakesocket "
-     "is used in an invalid usage.")
-
-    import socket
-    HTTPretty.enable()
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
-    sock.setblocking(0)
-    expect(sock.sendto).when.called_with(b'whatever',
-                                         ('127.0.0.1', 53)
-                                         ).should_not.throw(RuntimeError)
-
-    sock.close()
-    HTTPretty.reset()
-    HTTPretty.disable()
-
-
 def test_does_not_have_last_request_by_default():
     'HTTPretty.last_request is a dummy object by default'
     HTTPretty.reset()

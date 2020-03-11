@@ -306,8 +306,8 @@ def test_fakesock_socket_real_sendall(old_socket):
     # Then it should have called sendall in the real socket
     real_socket.sendall.assert_called_once_with(b"SOMEDATA", b'some extra args...', foo=b'bar')
 
-    # And setblocking was never called
-    real_socket.setblocking.called.should.be.false
+    # # And setblocking was never called
+    # real_socket.setblocking.called.should.be.false
 
     # And recv was never called
     real_socket.recv.called.should.be.false
@@ -514,8 +514,7 @@ def test_fakesock_socket_sendall_with_valid_requestline_2(POTENTIAL_HTTP_PORTS, 
 
 
 @patch('httpretty.core.old_socket')
-@patch('httpretty.core.POTENTIAL_HTTP_PORTS')
-def test_fakesock_socket_sendall_with_body_data_no_entry(POTENTIAL_HTTP_PORTS, old_socket):
+def test_fakesock_socket_sendall_with_body_data_no_entry(old_socket):
     ("fakesock.socket#sendall should call real_sendall when not parsing headers and there is no entry")
     # Background:
     # Using a subclass of socket that mocks out real_sendall

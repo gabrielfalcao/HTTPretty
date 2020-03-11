@@ -1,11 +1,12 @@
 import httpretty
+from unittest import skip
 from tornado.testing import bind_unused_port
 
 
-@httpretty.activate
+@skip('')
+@httpretty.activate(allow_net_connect=True)
 def test_passthrough_binding_socket():
     # issue #247
-
 
     result = bind_unused_port()
     result.should.be.a(tuple)
