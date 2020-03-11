@@ -1,6 +1,3 @@
-# #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 # <HTTPretty - HTTP client mock for Python>
 # Copyright (C) <2011-2020> Gabriel Falcão <gabriel@nacaolivre.org>
 #
@@ -25,13 +22,12 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-from __future__ import unicode_literals
-
 import os
 import re
 import json
 import requests
 import signal
+import httpretty
 from mock import Mock
 from unittest import skip
 from contextlib import contextmanager
@@ -630,21 +626,21 @@ def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile(r"https://example.org/(?P<endpoint>\w+)/$"),
+        re.compile(r"https://chuck.norris/(?P<endpoint>\w+)/$"),
         body="Nudge, nudge, wink, wink. Know what I mean?",
         match_querystring=True
     )
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile(r"https://example.org/(?P<endpoint>\w+).*"),
+        re.compile(r"https://chuck.norris/(?P<endpoint>\w+).*"),
         body="Different",
         match_querystring=False
     )
 
-    response = requests.get('https://example.org/what/')
+    response = requests.get('https://chuck.norris/what/')
     expect(response.text).to.equal('Nudge, nudge, wink, wink. Know what I mean?')
 
-    response = requests.get('https://example.org/what/?flying=coconuts')
+    response = requests.get('https://chuck.norris/what/?flying=coconuts')
     expect(response.text).to.not_be.equal('Nudge, nudge, wink, wink. Know what I mean?')
 
 

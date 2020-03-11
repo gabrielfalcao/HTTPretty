@@ -443,6 +443,19 @@ class fakesock(object):
                 if matcher is None:
                     self.connect_truesock()
 
+        def bind(self, address):
+            self._address = (self._host, self._port) = address
+            if self.truesock:
+                self.bind_truesock(address)
+
+        def bind_truesock(self, address):
+            if httpretty.allow_net_connect and not self.truesock:
+                self.truesock = self.create_socket()
+            elif not self.truesock:
+                raise UnmockedError()
+
+            return self.truesock.bind(address)
+
         def connect_truesock(self):
             if httpretty.allow_net_connect and not self.truesock:
                 self.truesock = self.create_socket()
@@ -550,6 +563,12 @@ class fakesock(object):
             self._sent_data.append(data)
             self.fd = FakeSockFile()
             self.fd.socket = self
+            if isinstance(data, str):
+                data = data.encode('utf-8')
+            elif not isinstance(data, bytes):
+                logger.debug('cannot sendall({data!r})')
+                data = bytes(data)
+
             try:
                 requestline, _ = data.split(b'\r\n', 1)
                 method, path, version = parse_requestline(
@@ -616,19 +635,23 @@ class fakesock(object):
 
         def forward_and_trace(self, function_name, *a, **kw):
             if self.truesock and not self.__truesock_is_connected__:
-                self.connect_truesock()
+                self.truesock = self.create_socket()
+                ### self.connect_truesock()
 
             if self.__truesock_is_connected__:
                 function = getattr(self.truesock, function_name)
 
             if self.is_http:
                 if self.truesock and not self.__truesock_is_connected__:
-                    self.connect_truesock()
+                    self.truesock = self.create_socket()
+                    ### self.connect_truesock()
 
             if not self.truesock:
                 raise UnmockedError()
-            return getattr(self.truesock, function_name)(*a, **kw
-)
+
+            callback = getattr(self.truesock, function_name)
+            return callback(*a, **kw)
+
         def settimeout(self, new_timeout):
             self.timeout = new_timeout
             if not self.is_http:
@@ -645,13 +668,20 @@ class fakesock(object):
             return self.forward_and_trace('recvfrom_into', *args, **kwargs)
 
         def recv_into(self, *args, **kwargs):
+            if self.truesock and not self.__truesock_is_connected__:
+                self.connect_truesock()
             return self.forward_and_trace('recv_into', *args, **kwargs)
 
         def recvfrom(self, *args, **kwargs):
+            if self.truesock and not self.__truesock_is_connected__:
+                self.connect_truesock()
             return self.forward_and_trace('recvfrom', *args, **kwargs)
 
-        def recv(self, *args, **kwargs):
-            return self.forward_and_trace('recv', *args, **kwargs)
+        def recv(self, buffersize=None, *args, **kwargs):
+            if self.truesock and not self.__truesock_is_connected__:
+                self.connect_truesock()
+            buffersize = buffersize or self._bufsize
+            return self.forward_and_trace('recv', buffersize, *args, **kwargs)
 
         def __getattr__(self, name):
             if httpretty.allow_net_connect and not self.truesock:
@@ -1078,7 +1108,7 @@ class URIMatcher(object):
 
         self.entries = entries
         self.priority = priority
-
+        self.uri = uri
         # hash of current_entry pointers, per method.
         self.current_entries = {}
 

@@ -295,11 +295,11 @@ def test_httpretty_should_allow_registering_regexes():
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile(r"https://api.yipit.com/v1/deal;brand=(?P<brand_name>\w+)"),
+        'http://api.yipit.com/v1/deal;brand=gap',
         body="Found brand",
     )
 
-    response, body = httplib2.Http().request('https://api.yipit.com/v1/deal;brand=gap', 'GET')
+    response, body = httplib2.Http().request('http://api.yipit.com/v1/deal;brand=gap', 'GET')
     expect(body).to.equal(b'Found brand')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/v1/deal;brand=gap')
