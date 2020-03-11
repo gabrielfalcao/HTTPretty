@@ -626,21 +626,24 @@ def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile(r"https://chuck.norris/(?P<endpoint>\w+)/$"),
+        "http://localhost:9090",
+    )
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile(r"http://localhost:9090/what/?$"),
         body="Nudge, nudge, wink, wink. Know what I mean?",
         match_querystring=True
     )
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile(r"https://chuck.norris/(?P<endpoint>\w+).*"),
+        re.compile(r"http://localhost:9090/when.*[?]?.*"),
         body="Different",
         match_querystring=False
     )
-
-    response = requests.get('https://chuck.norris/what/')
+    response = requests.get('http://localhost:9090/what/')
     expect(response.text).to.equal('Nudge, nudge, wink, wink. Know what I mean?')
 
-    response = requests.get('https://chuck.norris/what/?flying=coconuts')
+    response = requests.get('http://localhost:9090/when/', params={'flying': 'coconuts'})
     expect(response.text).to.not_be.equal('Nudge, nudge, wink, wink. Know what I mean?')
 
 
