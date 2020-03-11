@@ -336,6 +336,14 @@ class FakeSSLSocket(object):
         return getattr(self._httpretty_sock, attr)
 
 
+class FakeAddressTuple(object):
+    def __init__(self, fakesocket):
+        self.fakesocket = fakesocket
+
+    def __getitem__(self, *args, **kw):
+        raise AssertionError('socket {} is not connected'.format(self.fakesocket.truesock))
+
+
 class fakesock(object):
     """
     fake :py:mod:`socket`
@@ -359,6 +367,7 @@ class fakesock(object):
             else:
                 self.truesock = None
 
+            self._address = FakeAddressTuple(self)
             self.__truesock_is_connected__ = False
             self.fd = FakeSockFile()
             self.fd.socket = fileno or self
@@ -651,6 +660,10 @@ def create_fake_connection(
     s = fakesock.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
         s.settimeout(timeout)
+
+    if isinstance(source_address, tuple) and len(source_address) == 2:
+        source_address[1] = int(source_address[1])
+
     if source_address:
         s.bind(source_address)
     s.connect(address)

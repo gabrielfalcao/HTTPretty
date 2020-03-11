@@ -45,8 +45,8 @@ def test_httpretty_debugs_socket_send(context):
     "HTTPretty should forward_and_trace socket.send"
 
     expect(context.sock.send).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+        AssertionError,
+        "not connected"
     )
 
 
@@ -56,8 +56,8 @@ def test_httpretty_debugs_socket_sendto(context):
     "HTTPretty should forward_and_trace socket.sendto"
 
     expect(context.sock.sendto).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+        AssertionError,
+        "not connected"
     )
 
 
@@ -67,8 +67,8 @@ def test_httpretty_debugs_socket_recv(context):
     "HTTPretty should forward_and_trace socket.recv"
 
     expect(context.sock.recv).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+        AssertionError,
+        "not connected"
     )
 
 
@@ -78,8 +78,8 @@ def test_httpretty_debugs_socket_recvfrom(context):
     "HTTPretty should forward_and_trace socket.recvfrom"
 
     expect(context.sock.recvfrom).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+        AssertionError,
+        "not connected"
     )
 
 
@@ -89,8 +89,8 @@ def test_httpretty_debugs_socket_recv_into(context):
     "HTTPretty should forward_and_trace socket.recv_into"
 
     expect(context.sock.recv_into).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+        AssertionError,
+        "not connected"
     )
 
 
@@ -100,6 +100,6 @@ def test_httpretty_debugs_socket_recvfrom_into(context):
     "HTTPretty should forward_and_trace socket.recvfrom_into"
 
     expect(context.sock.recvfrom_into).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+        AssertionError,
+        "not connected"
     )
