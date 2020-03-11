@@ -37,6 +37,7 @@ def create_socket(context):
     context.sock.is_http = True
 
 
+@skip('flaky')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_send(context):
