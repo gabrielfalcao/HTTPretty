@@ -282,8 +282,8 @@ def test_fake_socket_passes_through_bind():
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.truesock = MagicMock()
-    expect(s.bind).called_with().should_not.throw(AttributeError)
-    s.truesock.bind.assert_called_with()
+    expect(s.bind).called_with(('127.0.0.1', 1000)).should_not.throw(AttributeError)
+    s.truesock.bind.assert_called_with(('127.0.0.1', 1000))
 
 
 def test_fake_socket_passes_through_connect_ex():
