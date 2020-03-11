@@ -347,13 +347,19 @@ class fakesock(object):
         debuglevel = 0
         _sent_data = []
 
-        def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM,
-                     proto=0, fileno=None):
-            self.truesock = (old_socket(family, type, proto)
-                             if httpretty.allow_net_connect
-                             else None)
-            self._connected_truesock = False
-            self._closed = True
+        def __init__(
+            self,
+            family=socket.AF_INET,
+            type=socket.SOCK_STREAM,
+            proto=0,
+            fileno=None
+        ):
+            if httpretty.allow_net_connect:
+                self.truesock = old_socket(family, type, proto)
+            else:
+                self.truesock = None
+
+            self.__truesock_is_connected__ = False
             self.fd = FakeSockFile()
             self.fd.socket = fileno or self
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
@@ -393,8 +399,6 @@ class fakesock(object):
                 self.truesock.setsockopt(level, optname, value)
 
         def connect(self, address):
-            self._closed = False
-
             try:
                 self._address = (self._host, self._port) = address
             except ValueError:
@@ -409,18 +413,18 @@ class fakesock(object):
                 self.is_http = self._port in ports_to_check
 
             if not self.is_http:
-                if self.truesock and not self._connected_truesock:
-                    self.connect_truesock()
-                else:
-                    raise UnmockedError()
-            elif self.truesock and not self._connected_truesock:
+                self.connect_truesock()
+            elif self.truesock and not self.__truesock_is_connected__:
                 matcher = httpretty.match_http_address(self._host, self._port)
                 if matcher is None:
                     self.connect_truesock()
 
         def connect_truesock(self):
-            if self._connected_truesock:
-                return self._connected_truesock
+            if not self.truesock:
+                return
+
+            if self.__truesock_is_connected__:
+                return self.__truesock_is_connected__
             with restored_libs():
                 hostname = self._address[0]
                 port = 80
@@ -432,8 +436,12 @@ class fakesock(object):
                 sock = self.truesock
 
                 sock.connect(self._address)
-                self._connected_truesock = sock
-                return sock
+                self.__truesock_is_connected__ = True
+                self.truesock = sock
+            return self.truesock
+
+        def real_socket_is_connected(self):
+            return self.__truesock_is_connected__
 
         def fileno(self):
             if self.truesock:
@@ -441,10 +449,10 @@ class fakesock(object):
             return self.fd.fileno()
 
         def close(self):
-            if self._connected_truesock:
+            if self.__truesock_is_connected__:
                 self.truesock.close()
-                self._connected_truesock = False
-            self._closed = True
+                self.__truesock_is_connected__ = False
+                self.truesock = None
 
         def makefile(self, mode='r', bufsize=-1):
             """Returns this fake socket's own tempfile buffer.
@@ -506,6 +514,9 @@ class fakesock(object):
             self.fd.seek(0)
 
         def sendall(self, data, *args, **kw):
+            if self.__truesock_is_connected__:
+                return self.truesock.sendall(data, *args, **kw)
+
             self._sent_data.append(data)
             self.fd = FakeSockFile()
             self.fd.socket = self
@@ -573,23 +584,21 @@ class fakesock(object):
 
             self._entry = matcher.get_next_entry(method, info, request)
 
-        def debug(self, truesock_func, *a, **kw):
-            if self.is_http:
-                frame = inspect.stack()[0][0]
-                lines = list(map(utf8, traceback.format_stack(frame)))
+        def forward_and_trace(self, function_name, *a, **kw):
+            if self.truesock and not self.__truesock_is_connected__:
+                self.connect_truesock()
 
-                message = [
-                    "HTTPretty intercepted and unexpected socket method call.",
-                    ("Please open an issue at "
-                     "'https://github.com/gabrielfalcao/HTTPretty/issues'"),
-                    "And paste the following traceback:\n",
-                    "".join(decode_utf8(lines)),
-                ]
-                raise RuntimeError("\n".join(message))
+            if self.__truesock_is_connected__:
+                function = getattr(self.truesock, function_name)
+
+            if self.is_http:
+                if self.truesock and not self.__truesock_is_connected__:
+                    self.connect_truesock()
+
             if not self.truesock:
                 raise UnmockedError()
-            return getattr(self.truesock, truesock_func)(*a, **kw)
-
+            return getattr(self.truesock, function_name)(*a, **kw
+)
         def settimeout(self, new_timeout):
             self.timeout = new_timeout
             if not self.is_http:
@@ -597,22 +606,22 @@ class fakesock(object):
                     self.truesock.settimeout(new_timeout)
 
         def send(self, *args, **kwargs):
-            return self.debug('send', *args, **kwargs)
+            return self.forward_and_trace('send', *args, **kwargs)
 
         def sendto(self, *args, **kwargs):
-            return self.debug('sendto', *args, **kwargs)
+            return self.forward_and_trace('sendto', *args, **kwargs)
 
         def recvfrom_into(self, *args, **kwargs):
-            return self.debug('recvfrom_into', *args, **kwargs)
+            return self.forward_and_trace('recvfrom_into', *args, **kwargs)
 
         def recv_into(self, *args, **kwargs):
-            return self.debug('recv_into', *args, **kwargs)
+            return self.forward_and_trace('recv_into', *args, **kwargs)
 
         def recvfrom(self, *args, **kwargs):
-            return self.debug('recvfrom', *args, **kwargs)
+            return self.forward_and_trace('recvfrom', *args, **kwargs)
 
         def recv(self, *args, **kwargs):
-            return self.debug('recv', *args, **kwargs)
+            return self.forward_and_trace('recv', *args, **kwargs)
 
         def __getattr__(self, name):
             if not self.truesock:
@@ -1636,7 +1645,7 @@ class httprettized(object):
         httpretty.reset()
         httpretty.enable(allow_net_connect=self.allow_net_connect)
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, db):
         httpretty.disable()
         httpretty.reset()
 

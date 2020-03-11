@@ -151,7 +151,7 @@ def test_request_parse_body_when_unrecognized():
 
 
 def test_request_string_representation():
-    ("HTTPrettyRequest should have a debug-friendly "
+    ("HTTPrettyRequest should have a forward_and_trace-friendly "
      "string representation")
 
     # Given a request string containing a unicode encoded querystring
@@ -248,27 +248,21 @@ def test_fakesock_socket_connect_fallback(POTENTIAL_HTTP_PORTS, old_socket):
     # Then it should have open a real connection in the background
     old_socket.return_value.connect.assert_called_once_with(('somewhere.com', 42))
 
-    # And _closed is set to False
-    socket._closed.should.be.false
-
 
 @patch('httpretty.core.old_socket')
 def test_fakesock_socket_close(old_socket):
     ("fakesock.socket#close should close the actual socket in case "
-     "it's not http and _closed is False")
+     "it's not http and __truesock_is_connected__ is True")
     # Given a fake socket instance that is synthetically open
     socket = fakesock.socket()
-    socket._closed = False
-    socket._connected_truesock = True
+    socket.__truesock_is_connected__ = True
 
     # When I close it
     socket.close()
 
     # Then its real socket should have been closed
     old_socket.return_value.close.assert_called_once_with()
-
-    # And _closed is set to True
-    socket._closed.should.be.true
+    socket.__truesock_is_connected__.should.be.false
 
 
 @patch('httpretty.core.old_socket')

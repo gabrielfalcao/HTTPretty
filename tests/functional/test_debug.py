@@ -42,7 +42,7 @@ def create_socket(context):
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_send(context):
-    "HTTPretty should debug socket.send"
+    "HTTPretty should forward_and_trace socket.send"
 
     expect(context.sock.send).when.called.to.throw(
         RuntimeError,
@@ -53,7 +53,7 @@ def test_httpretty_debugs_socket_send(context):
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_sendto(context):
-    "HTTPretty should debug socket.sendto"
+    "HTTPretty should forward_and_trace socket.sendto"
 
     expect(context.sock.sendto).when.called.to.throw(
         RuntimeError,
@@ -64,7 +64,7 @@ def test_httpretty_debugs_socket_sendto(context):
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recv(context):
-    "HTTPretty should debug socket.recv"
+    "HTTPretty should forward_and_trace socket.recv"
 
     expect(context.sock.recv).when.called.to.throw(
         RuntimeError,
@@ -75,7 +75,7 @@ def test_httpretty_debugs_socket_recv(context):
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recvfrom(context):
-    "HTTPretty should debug socket.recvfrom"
+    "HTTPretty should forward_and_trace socket.recvfrom"
 
     expect(context.sock.recvfrom).when.called.to.throw(
         RuntimeError,
@@ -86,7 +86,7 @@ def test_httpretty_debugs_socket_recvfrom(context):
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recv_into(context):
-    "HTTPretty should debug socket.recv_into"
+    "HTTPretty should forward_and_trace socket.recv_into"
 
     expect(context.sock.recv_into).when.called.to.throw(
         RuntimeError,
@@ -97,7 +97,7 @@ def test_httpretty_debugs_socket_recv_into(context):
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recvfrom_into(context):
-    "HTTPretty should debug socket.recvfrom_into"
+    "HTTPretty should forward_and_trace socket.recvfrom_into"
 
     expect(context.sock.recvfrom_into).when.called.to.throw(
         RuntimeError,

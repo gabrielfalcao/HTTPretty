@@ -48,7 +48,7 @@ pyopenssl: $(VENV)/bin/nosetests
 
 # runs functional tests
 functional: $(VENV)/bin/nosetests  # runs functional tests
-	$(VENV)/bin/nosetests tests/functional
+	$(VENV)/bin/nosetests tests/functional/test_redis.py
 
 
 $(DOCS_INDEX): | $(VENV)/bin/sphinx-build
