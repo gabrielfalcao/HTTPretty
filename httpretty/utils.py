@@ -26,8 +26,6 @@
 def utf8(s):
     if isinstance(s, str):
         s = s.encode('utf-8')
-    elif s is None:
-        return bytes()
 
     return bytes(s)
 
@@ -35,7 +33,5 @@ def utf8(s):
 def decode_utf8(s):
     if isinstance(s, bytes):
         s = s.decode("utf-8")
-    elif s is None:
-        return str()
 
     return str(s)
