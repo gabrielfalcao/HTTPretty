@@ -47,8 +47,6 @@ pyopenssl: $(VENV)/bin/nosetests
 
 # runs functional tests
 functional: $(VENV)/bin/nosetests  # runs functional tests
-	$(VENV)/bin/nosetests tests/functional/test_debug.py
-	$(VENV)/bin/nosetests tests/functional/test_passthrough.py
 	$(VENV)/bin/nosetests tests/functional/bugfixes
 	$(VENV)/bin/nosetests tests/functional
 

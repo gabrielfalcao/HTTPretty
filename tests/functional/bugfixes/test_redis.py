@@ -13,7 +13,7 @@ def redis_available():
     )
     conn = Redis(**params)
     try:
-        conn.keys('*')
+        list(conn.keys('*'))
         conn.close()
         return True
     except Exception:
