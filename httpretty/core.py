@@ -410,8 +410,7 @@ class fakesock(object):
             }
 
         def ssl(self, sock, *args, **kw):
-            raise UnmockedError()
-            # return sock
+            return sock
 
         def setsockopt(self, level, optname, value):
             if httpretty.allow_net_connect and not self.truesock:

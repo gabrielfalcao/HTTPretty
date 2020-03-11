@@ -12,5 +12,5 @@ def test_test_ssl_bad_handshake():
     httpretty.register_uri(httpretty.GET, url_http, body='insecure')
     httpretty.register_uri(httpretty.GET, url_https, body='encrypted')
 
-    requests.get(url_http).text.to.equal('insecure')
-    requests.get(url_https).text.to.equal('encrypted')
+    requests.get(url_http).text.should.equal('insecure')
+    requests.get(url_https).text.should.equal('encrypted')
