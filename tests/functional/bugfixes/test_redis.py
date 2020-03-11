@@ -34,5 +34,12 @@ def test_work_in_parallel_to_redis():
     redis.append('item1', 'value1')
     redis.append('item2', 'value2')
 
-
     sorted(redis.keys('*')).should.equal([b'item1', b'item2'])
+
+    httpretty.register_uri(
+        httpretty.GET,
+        "http://redis.io",
+        body="salvatore")
+
+    response = requests.get('http://redis.io')
+    response.text.should.equal('salvatore')

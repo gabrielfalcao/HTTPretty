@@ -66,7 +66,6 @@ def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
     expect(HTTPretty.last_request.path).to.equal('/')
 
 
-
 @httprettified
 @within(two=microseconds)
 def test_hostname_case_insensitive(now):
