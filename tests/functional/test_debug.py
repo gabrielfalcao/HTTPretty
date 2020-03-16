@@ -36,7 +36,7 @@ def create_socket(context):
     context.sock.is_http = True
 
 
-@skip('flaky')
+@skip('not currently supported')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_send(context):
@@ -47,7 +47,7 @@ def test_httpretty_debugs_socket_send(context):
     )
 
 
-@skip('not currently used')
+@skip('not currently supported')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_sendto(context):
@@ -68,7 +68,7 @@ def test_httpretty_debugs_socket_recv(context):
     )
 
 
-@skip('not currently used')
+@skip('not currently supported')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recvfrom(context):
@@ -79,7 +79,7 @@ def test_httpretty_debugs_socket_recvfrom(context):
     )
 
 
-@skip('not currently used')
+@skip('not currently supported')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recv_into(context):
@@ -90,7 +90,7 @@ def test_httpretty_debugs_socket_recv_into(context):
     )
 
 
-@skip('not currently used')
+@skip('not currently supported')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recvfrom_into(context):

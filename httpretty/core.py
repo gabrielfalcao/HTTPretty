@@ -121,6 +121,7 @@ try:
     old_requests_ssl_wrap_socket = requests_urllib3_connection.ssl_wrap_socket
 except ImportError:
     requests_urllib3_connection = None
+    old_requests_ssl_wrap_socket = None
 
 DEFAULT_HTTP_PORTS = frozenset([80])
 POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
@@ -1620,21 +1621,20 @@ def apply_patch_socket():
         extract_from_urllib3()
 
     if requests_urllib3_connection is not None:
-        new_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
-        requests_urllib3_connection.ssl_wrap_socket = new_wrap
-        requests_urllib3_connection.__dict__['ssl_wrap_socket'] = new_wrap
+        urllib3_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
+        requests_urllib3_connection.ssl_wrap_socket = urllib3_wrap
+        requests_urllib3_connection.__dict__['ssl_wrap_socket'] = urllib3_wrap
 
     if socks:
         socks.socksocket = fakesock.socket
         socks.__dict__['socksocket'] = fakesock.socket
 
     if ssl:
-        if not new_wrap:
-            new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
+        new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
         ssl.wrap_socket = new_wrap
         ssl.SSLSocket = FakeSSLSocket
         try:
-            ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_sslcontext.wrap_socket)
+            ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_ssl_wrap_socket)
         except AttributeError:
             pass
 
