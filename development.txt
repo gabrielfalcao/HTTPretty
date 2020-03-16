@@ -1,6 +1,7 @@
 coverage
 cryptography
 flake8
+freezegun
 httplib2
 ipdb
 mccabe
