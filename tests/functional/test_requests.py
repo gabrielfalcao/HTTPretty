@@ -33,7 +33,6 @@ import json
 import requests
 import signal
 from freezegun import freeze_time
-from mock import Mock
 from unittest import skip
 from contextlib import contextmanager
 from sure import within, microseconds, expect
@@ -41,8 +40,12 @@ from tornado import version as tornado_version
 from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
 
-
 from tests.functional.base import FIXTURE_FILE, use_tornado_server
+
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 
 
 try:

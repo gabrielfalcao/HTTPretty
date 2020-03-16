@@ -5,7 +5,7 @@ freezegun
 httplib2
 ipdb
 mccabe
-mock
+mock;python_version<"3.3"
 ndg-httpsclient
 nose-randomly
 nose

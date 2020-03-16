@@ -41,7 +41,8 @@ local_file = lambda *f: \
 
 
 install_requires = []
-tests_requires = ['nose', 'sure', 'coverage', 'mock', 'rednose']
+tests_requires = ['nose', 'sure', 'coverage', 'mock;python_version<"3.3"',
+                  'rednose']
 
 
 setup(

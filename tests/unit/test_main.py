@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from mock import patch
 import httpretty
 from httpretty.core import HTTPrettyRequest
+
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 
 @patch('httpretty.httpretty')
