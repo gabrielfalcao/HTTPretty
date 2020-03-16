@@ -3,11 +3,15 @@ import json
 import errno
 
 from freezegun import freeze_time
-from mock import Mock, patch, call
 from sure import expect
 
 from httpretty.core import HTTPrettyRequest, FakeSSLSocket, fakesock, httpretty
 from httpretty.core import URIMatcher, URIInfo
+
+try:
+    from unittest.mock import Mock, patch, call
+except ImportError:
+    from mock import Mock, patch, call
 
 
 class SocketErrorStub(Exception):
