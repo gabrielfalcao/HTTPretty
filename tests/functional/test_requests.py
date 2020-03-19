@@ -28,7 +28,8 @@ import json
 import requests
 import signal
 import httpretty
-from mock import Mock
+
+from freezegun import freeze_time
 from unittest import skip
 from contextlib import contextmanager
 from sure import within, microseconds, expect
@@ -36,8 +37,9 @@ from tornado import version as tornado_version
 from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
 
-
 from tests.functional.base import FIXTURE_FILE, use_tornado_server
+
+from tests.compat import Mock
 
 
 try:
@@ -96,8 +98,8 @@ def test_httpretty_provides_easy_access_to_querystrings(now):
 
 
 @httprettified
-@within(two=microseconds)
-def test_httpretty_should_mock_headers_requests(now):
+@freeze_time("2013-10-04 04:20:00")
+def test_httpretty_should_mock_headers_requests():
     "HTTPretty should mock basic headers with requests"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
@@ -113,13 +115,13 @@ def test_httpretty_should_mock_headers_requests(now):
         'content-length': '35',
         'status': '201',
         'server': 'Python/HTTPretty',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': 'Fri, 04 Oct 2013 04:20:00 GMT',
     })
 
 
 @httprettified
-@within(two=microseconds)
-def test_httpretty_should_allow_adding_and_overwritting_requests(now):
+@freeze_time("2013-10-04 04:20:00")
+def test_httpretty_should_allow_adding_and_overwritting_requests():
     "HTTPretty should allow adding and overwritting headers with requests"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
@@ -138,7 +140,7 @@ def test_httpretty_should_allow_adding_and_overwritting_requests(now):
         'content-length': '27',
         'status': '200',
         'server': 'Apache',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': 'Fri, 04 Oct 2013 04:20:00 GMT',
     })
 
 
@@ -163,8 +165,8 @@ def test_httpretty_should_allow_forcing_headers_requests(now):
 
 
 @httprettified
-@within(two=microseconds)
-def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
+@freeze_time("2013-10-04 04:20:00")
+def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2():
     "HTTPretty should allow adding and overwritting headers by keyword args " \
         "with requests"
 
@@ -182,7 +184,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
         'content-length': '27',
         'status': '200',
         'server': 'Apache',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': 'Fri, 04 Oct 2013 04:20:00 GMT',
     })
 
 

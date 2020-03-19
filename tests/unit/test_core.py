@@ -1,13 +1,14 @@
 import io
 import json
 import errno
-from datetime import datetime
 
-from mock import Mock, patch, call
+from freezegun import freeze_time
 from sure import expect
 
 from httpretty.core import HTTPrettyRequest, FakeSSLSocket, fakesock, httpretty
 from httpretty.core import URIMatcher, URIInfo
+
+from tests.compat import Mock, patch, call
 
 
 class SocketErrorStub(Exception):
@@ -186,12 +187,9 @@ def test_fake_ssl_socket_proxies_its_ow_socket():
     socket.send.assert_called_once_with("FOO")
 
 
-@patch('httpretty.core.datetime')
-def test_fakesock_socket_getpeercert(dt):
+@freeze_time("2013-10-04 04:20:00")
+def test_fakesock_socket_getpeercert():
     ("fakesock.socket#getpeercert should return a hardcoded fake certificate")
-    # Background:
-    dt.now.return_value = datetime(2013, 10, 4, 4, 20, 0)
-
     # Given a fake socket instance
     socket = fakesock.socket()
 

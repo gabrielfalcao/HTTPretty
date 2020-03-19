@@ -35,12 +35,8 @@ from httpretty import core
 from httpretty.core import URIInfo, BaseClass, Entry, FakeSockFile, HTTPrettyRequest
 from httpretty.http import STATUSES
 
-try:
-    from mock import MagicMock
-    from mock import patch
-except ImportError:
-    from unittest.mock import MagicMock
-    from unittest.mock import patch
+from tests.compat import MagicMock, patch
+
 
 TEST_HEADER = """
 GET /test/test.html HTTP/1.1

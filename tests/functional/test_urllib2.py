@@ -34,6 +34,7 @@ except ImportError:
     import urllib2
     urlopen = urllib2.urlopen
 
+from freezegun import freeze_time
 from sure import within, microseconds
 from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
@@ -73,8 +74,8 @@ def test_httpretty_provides_easy_access_to_querystrings(now):
 
 
 @httprettified
-@within(two=microseconds)
-def test_httpretty_should_mock_headers_urllib2(now):
+@freeze_time("2013-10-04 04:20:00")
+def test_httpretty_should_mock_headers_urllib2():
     "HTTPretty should mock basic headers with urllib2"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
@@ -93,13 +94,13 @@ def test_httpretty_should_mock_headers_urllib2(now):
         'content-length': '35',
         'status': '201',
         'server': 'Python/HTTPretty',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': 'Fri, 04 Oct 2013 04:20:00 GMT',
     })
 
 
 @httprettified
-@within(two=microseconds)
-def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
+@freeze_time("2013-10-04 04:20:00")
+def test_httpretty_should_allow_adding_and_overwritting_urllib2():
     "HTTPretty should allow adding and overwritting headers with urllib2"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/",
@@ -121,7 +122,7 @@ def test_httpretty_should_allow_adding_and_overwritting_urllib2(now):
         'content-length': '27',
         'status': '200',
         'server': 'Apache',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': 'Fri, 04 Oct 2013 04:20:00 GMT',
     })
 
 
@@ -148,8 +149,8 @@ def test_httpretty_should_allow_forcing_headers_urllib2():
 
 
 @httprettified
-@within(two=microseconds)
-def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
+@freeze_time("2013-10-04 04:20:00")
+def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2():
     ("HTTPretty should allow adding and overwritting headers by "
      "keyword args with urllib2")
 
@@ -171,7 +172,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2(now):
         'content-length': str(len(body)),
         'status': '200',
         'server': 'Apache',
-        'date': now.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        'date': 'Fri, 04 Oct 2013 04:20:00 GMT',
     })
 
 
