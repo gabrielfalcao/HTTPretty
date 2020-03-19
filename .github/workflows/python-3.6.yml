@@ -33,6 +33,9 @@ jobs:
       with:
         acceptTermsWithEmail: gabriel@nacaolivre.org
 
+    - name: Python Version
+      run: python3 --version
+
     - name: Unit Tests
       run: make unit
 
