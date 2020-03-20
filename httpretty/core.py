@@ -98,6 +98,7 @@ except ImportError:
 
 try:  # pragma: no cover
     import ssl
+    old_sslcontext_class = ssl.SSLContext
     old_sslcontext = ssl.create_default_context()
     old_ssl_wrap_socket = old_sslcontext.wrap_socket
     try:
@@ -108,6 +109,10 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     ssl = None
 
+try:
+    import _ssl
+except ImportError:
+    _ssl = None
 # used to handle error caused by ndg-httpsclient
 try:
     from requests.packages.urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
@@ -122,6 +127,12 @@ try:
 except ImportError:
     requests_urllib3_connection = None
     old_requests_ssl_wrap_socket = None
+
+try:
+    import eventlet
+    import eventlet.green
+except ImportError:
+    eventlet = None
 
 DEFAULT_HTTP_PORTS = frozenset([80])
 POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
@@ -1625,6 +1636,12 @@ def apply_patch_socket():
         requests_urllib3_connection.ssl_wrap_socket = urllib3_wrap
         requests_urllib3_connection.__dict__['ssl_wrap_socket'] = urllib3_wrap
 
+    if eventlet:
+        eventlet.green.ssl.GreenSSLContext = old_sslcontext_class
+        eventlet.green.ssl.__dict__['GreenSSLContext'] = old_sslcontext_class
+        eventlet.green.ssl.SSLContext = old_sslcontext_class
+        eventlet.green.ssl.__dict__['SSLContext'] = old_sslcontext_class
+
     if socks:
         socks.socksocket = fakesock.socket
         socks.__dict__['socksocket'] = fakesock.socket
@@ -1633,6 +1650,7 @@ def apply_patch_socket():
         new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
         ssl.wrap_socket = new_wrap
         ssl.SSLSocket = FakeSSLSocket
+        ssl.SSLContext = old_sslcontext_class
         try:
             ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_ssl_wrap_socket)
         except AttributeError:
@@ -1640,6 +1658,7 @@ def apply_patch_socket():
 
         ssl.__dict__['wrap_socket'] = new_wrap
         ssl.__dict__['SSLSocket'] = FakeSSLSocket
+        ssl.__dict__['SSLContext'] = old_sslcontext_class
 
 
 def undo_patch_socket():
