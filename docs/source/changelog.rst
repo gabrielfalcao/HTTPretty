@@ -6,6 +6,7 @@ Release Notes
 -------
 
 - Drop Python 2 support.
+- Fix usage with redis and improve overall real-socket passthrough. `#271 <https://github.com/gabrielfalcao/HTTPretty/issues/271>`_.
 - Fix TypeError: wrap_socket() missing 1 required positional argument: 'sock' (`#393 <https://github.com/gabrielfalcao/HTTPretty/pull/393>`_)
 - Merge pull request `#364 <https://github.com/gabrielfalcao/HTTPretty/pull/364>`_
 - Merge pull request `#371 <https://github.com/gabrielfalcao/HTTPretty/pull/371>`_

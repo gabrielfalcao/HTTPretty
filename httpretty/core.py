@@ -28,6 +28,7 @@ import contextlib
 import functools
 import hashlib
 import inspect
+import logging
 import itertools
 import json
 import types
@@ -87,6 +88,8 @@ MULTILINE_ANY_REGEX = re.compile(r'.*', re.M)
 hostname_re = re.compile(r'\^?(?:https?://)?[^:/]*[:/]?')
 
 
+logger = logging.getLogger(__name__)
+
 try:  # pragma: no cover
     import socks
     old_socksocket = socks.socksocket
@@ -95,6 +98,7 @@ except ImportError:
 
 try:  # pragma: no cover
     import ssl
+    old_sslcontext_class = ssl.SSLContext
     old_sslcontext = ssl.create_default_context()
     old_ssl_wrap_socket = old_sslcontext.wrap_socket
     try:
@@ -105,6 +109,10 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     ssl = None
 
+try:
+    import _ssl
+except ImportError:
+    _ssl = None
 # used to handle error caused by ndg-httpsclient
 try:
     from requests.packages.urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
@@ -118,6 +126,13 @@ try:
     old_requests_ssl_wrap_socket = requests_urllib3_connection.ssl_wrap_socket
 except ImportError:
     requests_urllib3_connection = None
+    old_requests_ssl_wrap_socket = None
+
+try:
+    import eventlet
+    import eventlet.green
+except ImportError:
+    eventlet = None
 
 DEFAULT_HTTP_PORTS = frozenset([80])
 POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
@@ -336,6 +351,14 @@ class FakeSSLSocket(object):
         return getattr(self._httpretty_sock, attr)
 
 
+class FakeAddressTuple(object):
+    def __init__(self, fakesocket):
+        self.fakesocket = fakesocket
+
+    def __getitem__(self, *args, **kw):
+        raise AssertionError('socket {} is not connected'.format(self.fakesocket.truesock))
+
+
 class fakesock(object):
     """
     fake :py:mod:`socket`
@@ -347,19 +370,32 @@ class fakesock(object):
         debuglevel = 0
         _sent_data = []
 
-        def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM,
-                     proto=0, fileno=None):
-            self.truesock = (old_socket(family, type, proto)
-                             if httpretty.allow_net_connect
-                             else None)
-            self._connected_truesock = False
-            self._closed = True
+        def __init__(
+            self,
+            family=socket.AF_INET,
+            type=socket.SOCK_STREAM,
+            proto=0,
+            fileno=None
+        ):
+            self.socket_family = family
+            self.socket_type = type
+            self.socket_proto = proto
+            if httpretty.allow_net_connect:
+                self.truesock = self.create_socket()
+            else:
+                self.truesock = None
+
+            self._address = FakeAddressTuple(self)
+            self.__truesock_is_connected__ = False
             self.fd = FakeSockFile()
             self.fd.socket = fileno or self
             self.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
             self._sock = fileno or self
             self.is_http = False
             self._bufsize = 32 * 1024
+
+        def create_socket(self):
+            return old_socket(self.socket_family, self.socket_type, self.socket_proto)
 
         def getpeercert(self, *a, **kw):
             now = datetime.now()
@@ -389,12 +425,15 @@ class fakesock(object):
             return sock
 
         def setsockopt(self, level, optname, value):
-            if self.truesock:
-                self.truesock.setsockopt(level, optname, value)
+            if httpretty.allow_net_connect and not self.truesock:
+                self.truesock = self.create_socket()
+            elif not self.truesock:
+                logger.debug('setsockopt(%s, %s, %s) failed', level, optname, value)
+                return
+
+            return self.truesock.setsockopt(level, optname, value)
 
         def connect(self, address):
-            self._closed = False
-
             try:
                 self._address = (self._host, self._port) = address
             except ValueError:
@@ -409,18 +448,34 @@ class fakesock(object):
                 self.is_http = self._port in ports_to_check
 
             if not self.is_http:
-                if self.truesock and not self._connected_truesock:
-                    self.connect_truesock()
-                else:
-                    raise UnmockedError()
-            elif self.truesock and not self._connected_truesock:
+                self.connect_truesock()
+            elif self.truesock and not self.__truesock_is_connected__:
+                # TODO: remove nested if
                 matcher = httpretty.match_http_address(self._host, self._port)
                 if matcher is None:
                     self.connect_truesock()
 
+        def bind(self, address):
+            self._address = (self._host, self._port) = address
+            if self.truesock:
+                self.bind_truesock(address)
+
+        def bind_truesock(self, address):
+            if httpretty.allow_net_connect and not self.truesock:
+                self.truesock = self.create_socket()
+            elif not self.truesock:
+                raise UnmockedError()
+
+            return self.truesock.bind(address)
+
         def connect_truesock(self):
-            if self._connected_truesock:
-                return self._connected_truesock
+            if httpretty.allow_net_connect and not self.truesock:
+                self.truesock = self.create_socket()
+            elif not self.truesock:
+                raise UnmockedError()
+
+            if self.__truesock_is_connected__:
+                return self.truesock
             with restored_libs():
                 hostname = self._address[0]
                 port = 80
@@ -432,8 +487,12 @@ class fakesock(object):
                 sock = self.truesock
 
                 sock.connect(self._address)
-                self._connected_truesock = sock
-                return sock
+                self.__truesock_is_connected__ = True
+                self.truesock = sock
+            return self.truesock
+
+        def real_socket_is_connected(self):
+            return self.__truesock_is_connected__
 
         def fileno(self):
             if self.truesock:
@@ -441,10 +500,10 @@ class fakesock(object):
             return self.fd.fileno()
 
         def close(self):
-            if self._connected_truesock:
+            if self.truesock:
                 self.truesock.close()
-                self._connected_truesock = False
-            self._closed = True
+                self.truesock = None
+                self.__truesock_is_connected__ = False
 
         def makefile(self, mode='r', bufsize=-1):
             """Returns this fake socket's own tempfile buffer.
@@ -480,10 +539,14 @@ class fakesock(object):
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
-            if not self.truesock:
+
+            if httpretty.allow_net_connect and not self.truesock:
+                self.connect_truesock()
+            elif not self.truesock:
                 raise UnmockedError()
 
             if not self.is_http:
+                self.truesock.setblocking(1)
                 return self.truesock.sendall(data, *args, **kw)
 
             sock = self.connect_truesock()
@@ -506,9 +569,18 @@ class fakesock(object):
             self.fd.seek(0)
 
         def sendall(self, data, *args, **kw):
+            # if self.__truesock_is_connected__:
+            #     return self.truesock.sendall(data, *args, **kw)
+
             self._sent_data.append(data)
             self.fd = FakeSockFile()
             self.fd.socket = self
+            if isinstance(data, str):
+                data = data.encode('utf-8')
+            elif not isinstance(data, bytes):
+                logger.debug('cannot sendall({data!r})')
+                data = bytes(data)
+
             try:
                 requestline, _ = data.split(b'\r\n', 1)
                 method, path, version = parse_requestline(
@@ -573,22 +645,24 @@ class fakesock(object):
 
             self._entry = matcher.get_next_entry(method, info, request)
 
-        def debug(self, truesock_func, *a, **kw):
-            if self.is_http:
-                frame = inspect.stack()[0][0]
-                lines = list(map(utf8, traceback.format_stack(frame)))
+        def forward_and_trace(self, function_name, *a, **kw):
+            if self.truesock and not self.__truesock_is_connected__:
+                self.truesock = self.create_socket()
+                ### self.connect_truesock()
 
-                message = [
-                    "HTTPretty intercepted and unexpected socket method call.",
-                    ("Please open an issue at "
-                     "'https://github.com/gabrielfalcao/HTTPretty/issues'"),
-                    "And paste the following traceback:\n",
-                    "".join(decode_utf8(lines)),
-                ]
-                raise RuntimeError("\n".join(message))
+            if self.__truesock_is_connected__:
+                function = getattr(self.truesock, function_name)
+
+            if self.is_http:
+                if self.truesock and not self.__truesock_is_connected__:
+                    self.truesock = self.create_socket()
+                    ### self.connect_truesock()
+
             if not self.truesock:
                 raise UnmockedError()
-            return getattr(self.truesock, truesock_func)(*a, **kw)
+
+            callback = getattr(self.truesock, function_name)
+            return callback(*a, **kw)
 
         def settimeout(self, new_timeout):
             self.timeout = new_timeout
@@ -597,25 +671,37 @@ class fakesock(object):
                     self.truesock.settimeout(new_timeout)
 
         def send(self, *args, **kwargs):
-            return self.debug('send', *args, **kwargs)
+            return self.forward_and_trace('send', *args, **kwargs)
 
         def sendto(self, *args, **kwargs):
-            return self.debug('sendto', *args, **kwargs)
+            return self.forward_and_trace('sendto', *args, **kwargs)
 
         def recvfrom_into(self, *args, **kwargs):
-            return self.debug('recvfrom_into', *args, **kwargs)
+            return self.forward_and_trace('recvfrom_into', *args, **kwargs)
 
         def recv_into(self, *args, **kwargs):
-            return self.debug('recv_into', *args, **kwargs)
+            if self.truesock and not self.__truesock_is_connected__:
+                self.connect_truesock()
+            return self.forward_and_trace('recv_into', *args, **kwargs)
 
         def recvfrom(self, *args, **kwargs):
-            return self.debug('recvfrom', *args, **kwargs)
+            if self.truesock and not self.__truesock_is_connected__:
+                self.connect_truesock()
+            return self.forward_and_trace('recvfrom', *args, **kwargs)
 
-        def recv(self, *args, **kwargs):
-            return self.debug('recv', *args, **kwargs)
+        def recv(self, buffersize=None, *args, **kwargs):
+            if self.truesock and not self.__truesock_is_connected__:
+                self.connect_truesock()
+            buffersize = buffersize or self._bufsize
+            return self.forward_and_trace('recv', buffersize, *args, **kwargs)
 
         def __getattr__(self, name):
-            if not self.truesock:
+            if httpretty.allow_net_connect and not self.truesock:
+                # can't call self.connect_truesock() here because we
+                # don't know if user wants to execute server of client
+                # calls (or can they?)
+                self.truesock = self.create_socket()
+            elif not self.truesock:
                 raise UnmockedError()
             return getattr(self.truesock, name)
 
@@ -642,6 +728,10 @@ def create_fake_connection(
     s = fakesock.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
         s.settimeout(timeout)
+
+    if isinstance(source_address, tuple) and len(source_address) == 2:
+        source_address[1] = int(source_address[1])
+
     if source_address:
         s.bind(source_address)
     s.connect(address)
@@ -1030,7 +1120,7 @@ class URIMatcher(object):
 
         self.entries = entries
         self.priority = priority
-
+        self.uri = uri
         # hash of current_entry pointers, per method.
         self.current_entries = {}
 
@@ -1515,6 +1605,7 @@ def apply_patch_socket():
     # SocketType variable incorrectly https://bugs.python.org/issue20386
     bad_socket_shadow = (socket.socket != socket.SocketType)
 
+    new_wrap = None
     socket.socket = fakesock.socket
     socket._socketobject = fakesock.socket
     if not bad_socket_shadow:
@@ -1535,6 +1626,22 @@ def apply_patch_socket():
     socket.__dict__['gethostbyname'] = fake_gethostbyname
     socket.__dict__['getaddrinfo'] = fake_getaddrinfo
 
+
+    if pyopenssl_override:
+        # Take out the pyopenssl version - use the default implementation
+        extract_from_urllib3()
+
+    if requests_urllib3_connection is not None:
+        urllib3_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
+        requests_urllib3_connection.ssl_wrap_socket = urllib3_wrap
+        requests_urllib3_connection.__dict__['ssl_wrap_socket'] = urllib3_wrap
+
+    if eventlet:
+        eventlet.green.ssl.GreenSSLContext = old_sslcontext_class
+        eventlet.green.ssl.__dict__['GreenSSLContext'] = old_sslcontext_class
+        eventlet.green.ssl.SSLContext = old_sslcontext_class
+        eventlet.green.ssl.__dict__['SSLContext'] = old_sslcontext_class
+
     if socks:
         socks.socksocket = fakesock.socket
         socks.__dict__['socksocket'] = fakesock.socket
@@ -1543,22 +1650,15 @@ def apply_patch_socket():
         new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
         ssl.wrap_socket = new_wrap
         ssl.SSLSocket = FakeSSLSocket
+        ssl.SSLContext = old_sslcontext_class
         try:
-            ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_sslcontext.wrap_socket)
+            ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_ssl_wrap_socket)
         except AttributeError:
             pass
 
         ssl.__dict__['wrap_socket'] = new_wrap
         ssl.__dict__['SSLSocket'] = FakeSSLSocket
-
-    if requests_urllib3_connection is not None:
-        new_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
-        requests_urllib3_connection.ssl_wrap_socket = new_wrap
-        requests_urllib3_connection.__dict__['ssl_wrap_socket'] = new_wrap
-
-    if pyopenssl_override:
-        # Take out the pyopenssl version - use the default implementation
-        extract_from_urllib3()
+        ssl.__dict__['SSLContext'] = old_sslcontext_class
 
 
 def undo_patch_socket():
@@ -1636,7 +1736,7 @@ class httprettized(object):
         httpretty.reset()
         httpretty.enable(allow_net_connect=self.allow_net_connect)
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, db):
         httpretty.disable()
         httpretty.reset()
 

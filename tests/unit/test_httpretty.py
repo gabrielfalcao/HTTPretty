@@ -35,10 +35,7 @@ from httpretty import core
 from httpretty.core import URIInfo, BaseClass, Entry, FakeSockFile, HTTPrettyRequest
 from httpretty.http import STATUSES
 
-try:
-    from unittest.mock import MagicMock, patch
-except ImportError:
-    from mock import MagicMock, patch
+from tests.compat import MagicMock, patch
 
 
 TEST_HEADER = """
@@ -64,47 +61,6 @@ def test_httpretty_should_raise_proper_exception_on_inconsistent_length():
         'HTTPretty got inconsistent parameters. The header Content-Length you registered expects size "999" '
         'but the body you registered for that has actually length "10".'
     )
-
-
-def test_httpretty_should_raise_on_socket_send_when_uri_registered():
-    ("HTTPretty should raise a RuntimeError when the fakesocket is "
-     "used in an invalid usage.")
-
-    import socket
-    HTTPretty.enable()
-
-    HTTPretty.register_uri(HTTPretty.GET,
-                           'http://127.0.0.1:5000')
-    expect(core.POTENTIAL_HTTP_PORTS).to.be.equal(set([80, 5000]))
-    expect(core.POTENTIAL_HTTPS_PORTS).to.be.equal(set([443]))
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('127.0.0.1', 5000))
-    expect(sock.send).when.called_with(b'whatever').to.throw(RuntimeError)
-    sock.close()
-
-    # restore the previous value
-    core.POTENTIAL_HTTP_PORTS.remove(5000)
-    HTTPretty.reset()
-    HTTPretty.disable()
-
-
-def test_httpretty_should_not_raise_on_socket_send_when_uri_not_registered():
-    ("HTTPretty should not raise a RuntimeError when the fakesocket "
-     "is used in an invalid usage.")
-
-    import socket
-    HTTPretty.enable()
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
-    sock.setblocking(0)
-    expect(sock.sendto).when.called_with(b'whatever',
-                                         ('127.0.0.1', 53)
-                                         ).should_not.throw(RuntimeError)
-
-    sock.close()
-    HTTPretty.reset()
-    HTTPretty.disable()
 
 
 def test_does_not_have_last_request_by_default():
@@ -322,8 +278,8 @@ def test_fake_socket_passes_through_bind():
     HTTPretty.enable()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.truesock = MagicMock()
-    expect(s.bind).called_with().should_not.throw(AttributeError)
-    s.truesock.bind.assert_called_with()
+    expect(s.bind).called_with(('127.0.0.1', 1000)).should_not.throw(AttributeError)
+    s.truesock.bind.assert_called_with(('127.0.0.1', 1000))
 
 
 def test_fake_socket_passes_through_connect_ex():

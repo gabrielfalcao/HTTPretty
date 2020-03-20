@@ -1,6 +1,3 @@
-# #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 # <HTTPretty - HTTP client mock for Python>
 # Copyright (C) <2011-2020> Gabriel Falcão <gabriel@nacaolivre.org>
 #
@@ -24,8 +21,8 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-from __future__ import unicode_literals
 import socket
+from unittest import skip
 from sure import scenario, expect
 from httpretty import httprettified
 
@@ -39,67 +36,66 @@ def create_socket(context):
     context.sock.is_http = True
 
 
+@skip('not currently supported')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_send(context):
-    "HTTPretty should debug socket.send"
+    "HTTPretty should forward_and_trace socket.send"
 
-    expect(context.sock.send).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+    expect(context.sock.send).when.called_with(b'data').to.throw(
+        "not connected"
     )
 
 
+@skip('not currently supported')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_sendto(context):
-    "HTTPretty should debug socket.sendto"
+    "HTTPretty should forward_and_trace socket.sendto"
 
     expect(context.sock.sendto).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+        "not connected"
     )
 
 
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recv(context):
-    "HTTPretty should debug socket.recv"
+    "HTTPretty should forward_and_trace socket.recv"
 
     expect(context.sock.recv).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+        "not connected"
     )
 
 
+@skip('not currently supported')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recvfrom(context):
-    "HTTPretty should debug socket.recvfrom"
+    "HTTPretty should forward_and_trace socket.recvfrom"
 
     expect(context.sock.recvfrom).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+        "not connected"
     )
 
 
+@skip('not currently supported')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recv_into(context):
-    "HTTPretty should debug socket.recv_into"
-
-    expect(context.sock.recv_into).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+    "HTTPretty should forward_and_trace socket.recv_into"
+    buf = bytearray()
+    expect(context.sock.recv_into).when.called_with(buf).to.throw(
+        "not connected"
     )
 
 
+@skip('not currently supported')
 @httprettified
 @scenario(create_socket)
 def test_httpretty_debugs_socket_recvfrom_into(context):
-    "HTTPretty should debug socket.recvfrom_into"
+    "HTTPretty should forward_and_trace socket.recvfrom_into"
 
     expect(context.sock.recvfrom_into).when.called.to.throw(
-        RuntimeError,
-        "HTTPretty intercepted and unexpected socket method call."
+        "not connected"
     )

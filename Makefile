@@ -9,7 +9,6 @@ BENTO_BIN		:= $(shell which bento)
 DOCS_INDEX		:= $(HTML_ROOT)/index.html
 BENTO_EMAIL		:= gabriel@nacaolivre.org
 
-
 export VENV
 export PYTHONASYNCIODEBUG	:=1
 
@@ -48,7 +47,9 @@ pyopenssl: $(VENV)/bin/nosetests
 
 # runs functional tests
 functional: $(VENV)/bin/nosetests  # runs functional tests
+	$(VENV)/bin/nosetests tests/functional/bugfixes
 	$(VENV)/bin/nosetests tests/functional
+
 
 
 $(DOCS_INDEX): | $(VENV)/bin/sphinx-build

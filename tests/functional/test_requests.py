@@ -1,6 +1,3 @@
-# #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 # <HTTPretty - HTTP client mock for Python>
 # Copyright (C) <2011-2020> Gabriel Falcão <gabriel@nacaolivre.org>
 #
@@ -25,13 +22,13 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-from __future__ import unicode_literals
-
 import os
 import re
 import json
 import requests
 import signal
+import httpretty
+
 from freezegun import freeze_time
 from unittest import skip
 from contextlib import contextmanager
@@ -42,10 +39,7 @@ from httpretty.core import decode_utf8
 
 from tests.functional.base import FIXTURE_FILE, use_tornado_server
 
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock
+from tests.compat import Mock
 
 
 try:
@@ -69,6 +63,20 @@ def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
                            body="Find the best daily deals")
 
     response = requests.get('http://yipit.com')
+    expect(response.text).to.equal('Find the best daily deals')
+    expect(HTTPretty.last_request.method).to.equal('GET')
+    expect(HTTPretty.last_request.path).to.equal('/')
+
+
+@httprettified
+@within(two=microseconds)
+def test_hostname_case_insensitive(now):
+    "HTTPretty should match the hostname case insensitive"
+
+    HTTPretty.register_uri(HTTPretty.GET, "http://yipit/",
+                           body="Find the best daily deals")
+
+    response = requests.get('http://YIPIT')
     expect(response.text).to.equal('Find the best daily deals')
     expect(HTTPretty.last_request.method).to.equal('GET')
     expect(HTTPretty.last_request.path).to.equal('/')
@@ -613,27 +621,31 @@ def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
     })
 
 
+@skip('TODO: refactor this flaky test')
 @httprettified
 def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
     "HTTPretty should provide a way to not match regexes that have a different querystring"
 
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile(r"https://example.org/(?P<endpoint>\w+)/$"),
+        "http://localhost:9090",
+    )
+    HTTPretty.register_uri(
+        HTTPretty.GET,
+        re.compile(r"http://localhost:9090/what/?$"),
         body="Nudge, nudge, wink, wink. Know what I mean?",
         match_querystring=True
     )
     HTTPretty.register_uri(
         HTTPretty.GET,
-        re.compile(r"https://example.org/(?P<endpoint>\w+).*"),
+        re.compile(r"http://localhost:9090/what.*[?]?.*"),
         body="Different",
         match_querystring=False
     )
-
-    response = requests.get('https://example.org/what/')
+    response = requests.get('http://localhost:9090/what/')
     expect(response.text).to.equal('Nudge, nudge, wink, wink. Know what I mean?')
 
-    response = requests.get('https://example.org/what/?flying=coconuts')
+    response = requests.get('http://localhost:9090/what/', params={'flying': 'coconuts'})
     expect(response.text).to.not_be.equal('Nudge, nudge, wink, wink. Know what I mean?')
 
 
