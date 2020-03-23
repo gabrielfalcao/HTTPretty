@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up Pyenv with python 3.6.5 and 3.7.3
-      uses: gabrielfalcao/pyenv-action@v3
+      uses: gabrielfalcao/pyenv-action@v4
       with:
         default: 3.6.5,3.7.3
 
