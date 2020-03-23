@@ -1,4 +1,4 @@
-name: Pyenv Build
+name: python version support
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  python:
+    name: "Continuous Integration"
     runs-on: ubuntu-latest
     strategy:
       matrix:
