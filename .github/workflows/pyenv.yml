@@ -1,0 +1,43 @@
+name: Pyenv Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Pyenv with python 3.6.5 and 3.7.3
+      uses: gabrielfalcao/pyenv-action@v3
+      with:
+        default: 3.6.5,3.7.3
+
+
+    - name: Set python version to 3.6.5
+      run: pyenv local 3.6.5
+
+    - name: Unit Tests (python 3.6.5)
+      run: make unit
+
+    - name: PyOpenSSL tests (python 3.6.5)
+      run: make pyopenssl
+
+    - name: Functional Tests (python 3.6.5)
+      run: make functional
+
+    - name: Set python version to 3.7.3
+      run: pyenv local 3.7.3
+
+    - name: Unit Tests (python 3.7.3)
+      run: make unit
+
+    - name: PyOpenSSL tests (python 3.7.3)
+      run: make pyopenssl
+
+    - name: Functional Tests (python 3.7.3)
+      run: make functional
