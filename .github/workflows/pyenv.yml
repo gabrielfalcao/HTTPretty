@@ -8,7 +8,7 @@ on:
 
 jobs:
   python:
-    name: "Continuous Integration"
+    name: "Python"
     runs-on: ubuntu-latest
     strategy:
       matrix:
