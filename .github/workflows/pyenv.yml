@@ -1,4 +1,4 @@
-name: python version support
+name: HTTPretty Tests
 
 on:
   push:
