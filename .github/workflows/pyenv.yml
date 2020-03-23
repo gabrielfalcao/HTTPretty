@@ -9,35 +9,24 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - 3.6.5
+          - 3.7.3
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Pyenv with python 3.6.5 and 3.7.3
+    - name: Install python version
       uses: gabrielfalcao/pyenv-action@v4
       with:
-        default: 3.6.5,3.7.3
+        default: "${{ matrix.python }}"
 
-
-    - name: Set python version to 3.6.5
-      run: pyenv local 3.6.5
-
-    - name: Unit Tests (python 3.6.5)
+    - name: Unit Tests
       run: make unit
 
-    - name: PyOpenSSL tests (python 3.6.5)
+    - name: PyOpenSSL tests
       run: make pyopenssl
 
-    - name: Functional Tests (python 3.6.5)
-      run: make functional
-
-    - name: Set python version to 3.7.3
-      run: pyenv local 3.7.3
-
-    - name: Unit Tests (python 3.7.3)
-      run: make unit
-
-    - name: PyOpenSSL tests (python 3.7.3)
-      run: make pyopenssl
-
-    - name: Functional Tests (python 3.7.3)
+    - name: Functional Tests
       run: make functional
