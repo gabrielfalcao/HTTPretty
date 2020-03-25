@@ -60,7 +60,7 @@ def start_http_server(context):
         try:
             requests.get('http://localhost:{}/'.format(context.http_port))
             ready = True
-        except (Exception, BaseException):
+        except Exception:
             if time.time() - started_at >= timeout:
                 break
 

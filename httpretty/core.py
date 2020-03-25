@@ -289,7 +289,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         try:
             body = decode_utf8(body)
             return do_parse(body)
-        except (Exception, BaseException):
+        except Exception:
             return body
 
 

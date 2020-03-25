@@ -5,6 +5,7 @@ formatter:
 tools:
   bandit:
     ignore:
+    - exec-used
     - any-other-function-with-shell-equals-true
     - assert-used
     - hardcoded-bind-all-interfaces
@@ -34,6 +35,7 @@ tools:
     run: true
   flake8:
     ignore:
+    - unreliable-hasattr-call
     - bad-wildcard-import
     - bare-except-bugbear
     - no-getattr
