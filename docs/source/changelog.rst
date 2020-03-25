@@ -2,8 +2,8 @@ Release Notes
 =============
 
 
-0.10.0
--------
+1.0.0
+-----
 
 - Drop Python 2 support.
 - Fix usage with redis and improve overall real-socket passthrough. `#271 <https://github.com/gabrielfalcao/HTTPretty/issues/271>`_.
@@ -21,7 +21,7 @@ Release Notes
 - Fix simple typo: neighter -> neither.
 - Updated documentation for register_uri concerning using ports.
 - Clarify relation between ``enabled`` and ``httprettized`` in API docs.
-- Clign signature with builtin socket.
+- Align signature with builtin socket.
 
 0.9.4
 -----
