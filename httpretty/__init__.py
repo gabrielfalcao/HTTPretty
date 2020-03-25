@@ -57,13 +57,21 @@ reset = httpretty.reset
 Response = httpretty.Response
 
 GET = httpretty.GET
+"""Match requests of GET method"""
 PUT = httpretty.PUT
+"""Match requests of PUT method"""
 POST = httpretty.POST
+"""Match requests of POST method"""
 DELETE = httpretty.DELETE
+"""Match requests of DELETE method"""
 HEAD = httpretty.HEAD
+"""Match requests of HEAD method"""
 PATCH = httpretty.PATCH
+"""Match requests of OPTIONS method"""
 OPTIONS = httpretty.OPTIONS
+"""Match requests of OPTIONS method"""
 CONNECT = httpretty.CONNECT
+"""Match requests of CONNECT method"""
 
 
 def last_request():

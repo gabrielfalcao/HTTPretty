@@ -36,6 +36,7 @@ latest_requests
 .. autofunction:: httpretty.latest_requests
 
 
+.. automodule:: httpretty
 
 .. _activate:
 

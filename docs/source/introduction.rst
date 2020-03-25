@@ -18,8 +18,9 @@ Don't worry, HTTPretty is here for you:
 ::
 
   import requests
-  from sure import expect
   import httpretty
+
+  from sure import expect
 
 
   @httpretty.activate
