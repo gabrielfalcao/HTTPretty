@@ -15,7 +15,7 @@ from httpretty.version import version # noqa
 
 
 project = 'HTTPretty'
-copyright = '2018, Gabriel Falcao'
+copyright = '2020, Gabriel Falcao'
 author = 'Gabriel Falcao'
 
 # The short X.Y version
@@ -25,6 +25,7 @@ release = version
 
 
 extensions = [
+    'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
@@ -79,6 +80,6 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
 
     'httplib2': ('https://httplib2.readthedocs.io/en/latest/', None),
-    'requests': ('http://docs.python-requests.org/en/master/', None),
+    'requests': ('https://requests.readthedocs.io/en/master/', None),
     'urllib3': ('https://urllib3.readthedocs.io/en/latest/', None),
 }

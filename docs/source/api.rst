@@ -51,8 +51,7 @@ activate
 httprettified
 -------------
 
-.. autoclass:: httpretty.core.httprettified
-   :members:
+.. autofunction:: httpretty.core.httprettified
 
 
 .. _enabled:

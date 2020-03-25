@@ -40,6 +40,7 @@ import traceback
 import warnings
 
 from functools import partial
+from typing import Callable
 
 from .compat import (
     BaseClass,
@@ -762,16 +763,20 @@ class Entry(BaseClass):
     stored in memory as internal representation of a HTTP
     request/response definition.
 
-    :param method: string
-    :param uri: string
-    :param body: string
-    :param adding_headers: dict - headers to be added to the response
-    :param forcing_headers: dict - headers to be forcefully set in the response
-    :param status: an integer (e.g.: ``status=200``)
-    :param streaming: bool - whether to stream the response
-    :param headers: keyword-args with headers to be added to the response
+    Args:
+        method (str): One of ``httpretty.GET``, ``httpretty.PUT``, ``httpretty.POST``, ``httpretty.DELETE``, ``httpretty.HEAD``, ``httpretty.PATCH``, ``httpretty.OPTIONS``, ``httpretty.CONNECT``.
+        uri (str|re.Pattern): The URL to match
+        adding_headers (dict): Extra headers to be added to the response
+        forcing_headers (dict): Overwrite response headers.
+        status (int): The status code for the response, defaults to ``200``.
+        streaming (bool): Whether should stream the response into chunks via generator.
+        headers: Headers to inject in the faked response.
 
-    .. warning:: When using the ``forcing_headers`` option make sure to add the header ``Content-Length`` otherwise calls using :py:mod:`requests` will try to load the response endlessly.
+    Returns:
+        httpretty.Entry: containing the request-matching metadata.
+
+
+    .. warning:: When using the ``forcing_headers`` option make sure to add the header ``Content-Length`` to match at most the total body length, otherwise some HTTP clients can hang indefinitely.
     """
     def __init__(self, method, uri, body,
                  adding_headers=None,
@@ -1449,7 +1454,6 @@ class httpretty(HttpBaseClass):
 
            assert httpretty.latest_requests[-1].url == 'https://httpbin.org/ip'
 
-
         :param method: one of ``httpretty.GET``, ``httpretty.PUT``, ``httpretty.POST``, ``httpretty.DELETE``, ``httpretty.HEAD``, ``httpretty.PATCH``, ``httpretty.OPTIONS``, ``httpretty.CONNECT``
         :param uri: a string or regex pattern (e.g.: **"https://httpbin.org/ip"**)
         :param body: a string, defaults to ``{"message": "HTTPretty :)"}``
@@ -1504,19 +1508,24 @@ class httpretty(HttpBaseClass):
             status=200,
             streaming=False,
             **kw):
-        """
-        shortcut to create an :py:class:`~httpretty.core.Entry` that takes the body as first positional argument
+        """Shortcut to create an :py:class:`~httpretty.core.Entry` that takes
+        the body as first positional argument.
 
-        .. seealso:: the parameters of this function match those of the :py:class:`~httpretty.core.Entry` constructor
-        :param body:
-        :param method: one of ``httpretty.GET``, ``httpretty.PUT``, ``httpretty.POST``, ``httpretty.DELETE``, ``httpretty.HEAD``, ``httpretty.PATCH``, ``httpretty.OPTIONS``, ``httpretty.CONNECT``
-        :param uri:
-        :param adding_headers:
-        :param forcing_headers:
-        :param status: defaults to **200**
-        :param streaming: defaults to **False**
-        :param kw: keyword-arguments passed onto the :py:class:`~httpretty.core.Entry`
-        :returns: an :py:class:`~httpretty.core.Entry`
+        .. seealso:: the parameters of this function match those of
+                     the :py:class:`~httpretty.core.Entry` constructor.
+
+        Args:
+            body (str): The body to return as response..
+            method (str): One of ``httpretty.GET``, ``httpretty.PUT``, ``httpretty.POST``, ``httpretty.DELETE``, ``httpretty.HEAD``, ``httpretty.PATCH``, ``httpretty.OPTIONS``, ``httpretty.CONNECT``.
+            uri (str|re.Pattern): The URL to match
+            adding_headers (dict): Extra headers to be added to the response
+            forcing_headers (dict): Overwrite **any** response headers, even "Content-Length".
+            status (int): The status code for the response, defaults to ``200``.
+            streaming (bool): Whether should stream the response into chunks via generator.
+            kwargs: Keyword-arguments are forwarded to :py:class:`~httpretty.core.Entry`
+
+        Returns:
+            httpretty.Entry: containing the request-matching metadata.
         """
         kw['body'] = body
         kw['adding_headers'] = adding_headers
