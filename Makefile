@@ -33,7 +33,6 @@ tdd: $(VENV)/bin/nosetests  # runs all tests
 
 # Install dependencies
 dependencies: | $(VENV)/bin/nosetests
-	$(VENV)/bin/pip install -r development.txt
 
 # runs unit tests
 unit: $(VENV)/bin/nosetests  # runs only unit tests

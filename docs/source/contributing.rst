@@ -4,14 +4,15 @@ Hacking on HTTPretty
 install development dependencies
 --------------------------------
 
-.. tip:: Make sure to have `pipenv <https://docs.pipenv.org/>`_
-         installed before working on HTTPretty.
-         This works with Python **2.7.13** and **3.6.5**.
+
+.. note:: HTTPretty uses `GNU Make
+          <https://www.gnu.org/software/make/>`_ as default build
+          tool.
 
 
 .. code:: bash
 
-    pipenv install --dev
+    make dependencies
 
 
 next steps
@@ -21,11 +22,12 @@ next steps
 
 .. code:: bash
 
-   make lint unit functional
+   make tests
 
 2. hack at will
 3. commit, push etc
 4. send a pull request
+
 
 License
 =======
