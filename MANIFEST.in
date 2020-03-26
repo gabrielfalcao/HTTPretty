@@ -6,3 +6,4 @@ include tests/functional/fixtures/playback-*.json
 include tox.ini
 recursive-include docs *.*
 recursive-include tests *.py
+*.txt
