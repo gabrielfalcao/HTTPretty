@@ -1,6 +1,7 @@
 include COPYING
 include Makefile
 include README.rst
+include development.txt
 include requirements.txt
 include tests/functional/fixtures/playback-*.json
 include tox.ini
