@@ -395,6 +395,13 @@ class fakesock(object):
             self.is_http = False
             self._bufsize = 32 * 1024
 
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            if not self._closed:
+                self.close()
+
         def create_socket(self):
             return old_socket(self.socket_family, self.socket_type, self.socket_proto)
 
