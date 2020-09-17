@@ -1,3 +1,4 @@
+check-manifest==0.41
 coverage>=5.0.3
 cryptography>=2.8
 eventlet==0.25.1  # issue #254

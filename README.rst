@@ -3,6 +3,7 @@ HTTPretty 1.0.2
 
 HTTP Client mocking tool for Python. Provides a full fake TCP socket module. Inspired by `FakeWeb <https://github.com/chrisk/fakeweb>`_
 
+
 - `Github Repository <https://github.com/gabrielfalcao/HTTPretty>`_
 - `Documentation <https://httpretty.readthedocs.io/en/latest/>`_
 - `PyPI Package <https://pypi.org/project/httpretty/>`_
