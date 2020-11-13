@@ -703,6 +703,10 @@ class fakesock(object):
                 # calls (or can they?)
                 self.truesock = self.create_socket()
             elif not self.truesock:
+                # Special case for
+                # `hasattr(sock, "version")` call added in urllib3>=1.26.
+                if name == 'version':
+                    raise AttributeError()
                 raise UnmockedError()
             return getattr(self.truesock, name)
 
