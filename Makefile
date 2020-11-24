@@ -5,9 +5,7 @@ DOCS_ROOT		:= $(GIT_ROOT)/docs
 HTML_ROOT		:= $(DOCS_ROOT)/build/html
 VENV_ROOT		:= $(GIT_ROOT)/.venv
 VENV			?= $(VENV_ROOT)
-BENTO_BIN		:= $(shell which bento)
 DOCS_INDEX		:= $(HTML_ROOT)/index.html
-BENTO_EMAIL		:= gabriel@nacaolivre.org
 
 export VENV
 export PYTHONASYNCIODEBUG	:=1
@@ -59,13 +57,10 @@ html: $(DOCS_INDEX)
 docs: $(DOCS_INDEX)
 	open $(DOCS_INDEX)
 
-release: | clean bento unit functional tests html
+release: | clean unit functional tests html
 	@rm -rf dist/*
 	@./.release
 	@make pypi
-
-bento: | $(BENTO_BIN)
-	$(BENTO_BIN) --agree --email=$(BENTO_EMAIL) check --all
 
 dist: | clean
 	$(VENV)/bin/python setup.py build sdist
