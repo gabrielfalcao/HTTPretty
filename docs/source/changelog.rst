@@ -1,6 +1,10 @@
 Release Notes
 =============
 
+1.0.3
+-----
+
+- Fix compatibility with urllib3>=1.26. `#410 <https://github.com/gabrielfalcao/HTTPretty/pull/410>`_
 
 1.0.0
 -----
