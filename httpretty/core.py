@@ -703,6 +703,14 @@ class fakesock(object):
                 # calls (or can they?)
                 self.truesock = self.create_socket()
             elif not self.truesock:
+                # Special case for
+                # `hasattr(sock, "version")` call added in urllib3>=1.26.
+                if name == 'version':
+                    raise AttributeError(
+                        "HTTPretty synthesized this error to fix urllib3 compatibility "
+                        "(see issue https://github.com/gabrielfalcao/HTTPretty/issues/409). "
+                        "Please open an issue if this error causes further unexpected issues."
+                    )
                 raise UnmockedError()
             return getattr(self.truesock, name)
 
