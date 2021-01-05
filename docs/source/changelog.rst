@@ -5,7 +5,7 @@ Release Notes
 1.0.4
 -----
 
-- Python 3.8 and 3.9 support.
+- Python 3.8 and 3.9 support. `#407 <https://github.com/gabrielfalcao/HTTPretty/issues/407>`_
 
 1.0.3
 -----
