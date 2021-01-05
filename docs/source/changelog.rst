@@ -1,6 +1,12 @@
 Release Notes
 =============
 
+
+1.0.4
+-----
+
+- Python 3.8 and 3.9 support.
+
 1.0.3
 -----
 

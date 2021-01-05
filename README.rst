@@ -13,6 +13,8 @@ HTTP Client mocking tool for Python. Provides a full fake TCP socket module. Ins
 
 - **3.6**
 - **3.7**
+- **3.8**
+- **3.9**
 
 .. image:: https://github.com/gabrielfalcao/HTTPretty/raw/master/docs/source/_static/logo.svg?sanitize=true
 
@@ -22,10 +24,7 @@ HTTP Client mocking tool for Python. Provides a full fake TCP socket module. Ins
 .. image:: https://img.shields.io/codecov/c/github/gabrielfalcao/HTTPretty
    :target: https://codecov.io/gh/gabrielfalcao/HTTPretty
 
-.. image:: https://img.shields.io/github/workflow/status/gabrielfalcao/HTTPretty/python-3.6?label=python%203.6
-   :target: https://github.com/gabrielfalcao/HTTPretty/actions
-
-.. image:: https://img.shields.io/github/workflow/status/gabrielfalcao/HTTPretty/python-3.7?label=python%203.7
+.. image:: https://img.shields.io/github/workflow/status/gabrielfalcao/HTTPretty/HTTPretty%20Tests
    :target: https://github.com/gabrielfalcao/HTTPretty/actions
 
 .. image:: https://img.shields.io/readthedocs/httpretty
