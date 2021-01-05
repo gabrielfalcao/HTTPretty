@@ -95,7 +95,7 @@ making assertions in a callback that generates the response body
          return [200, response_headers, json.dumps({"hello": "world"})]
 
      httpretty.register_uri(
-         HTTPretty.POST, "https://httpretty.example.com/api",
+         httpretty.POST, "https://httpretty.example.com/api",
          body=request_callback)
 
      response = requests.post('https://httpretty.example.com/api', headers={'Content-Type': 'application/json'}, data='{"nothing": "here"}')
