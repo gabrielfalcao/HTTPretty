@@ -265,7 +265,7 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
 @httprettified
 @within(two=microseconds)
 def test_callback_response(now):
-    ("HTTPretty should all a callback function to be set as the body with"
+    ("HTTPretty should call a callback function to be set as the body with"
      " httplib2")
 
     def request_callback(request, uri, headers):
