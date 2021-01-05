@@ -56,6 +56,17 @@ class ComeHandler(RequestHandler):
         self.write("<- HELLO WORLD ->")
 
 
+def subprocess_server_tornado(app, port, data={}):
+    from httpretty import HTTPretty
+    HTTPretty.disable()
+
+    http = HTTPServer(app)
+    HTTPretty.disable()
+
+    http.listen(int(port))
+    IOLoop.instance().start()
+
+
 class TornadoServer(object):
     is_running = False
 
@@ -71,22 +82,13 @@ class TornadoServer(object):
         ])
 
     def start(self):
-        def go(app, port, data={}):
-            from httpretty import HTTPretty
-            HTTPretty.disable()
-
-            http = HTTPServer(app)
-            HTTPretty.disable()
-
-            http.listen(int(port))
-            IOLoop.instance().start()
 
         app = self.get_handlers()
 
         data = {}
         args = (app, self.port, data)
         HTTPretty.disable()
-        self.process = Process(target=go, args=args)
+        self.process = Process(target=subprocess_server_tornado, args=args)
         self.process.start()
         time.sleep(1)
 
@@ -99,6 +101,22 @@ class TornadoServer(object):
             self.is_running = False
 
 
+def subprocess_server_tcp(port):
+    from httpretty import HTTPretty
+    HTTPretty.disable()
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('localhost', port))
+    s.listen(True)
+    conn, addr = s.accept()
+
+    while True:
+        data = conn.recv(1024)
+        conn.send(b"RECEIVED: " + bytes(data))
+
+    conn.close()
+
+
 class TCPServer(object):
     def __init__(self, port):
         self.port = int(port)
@@ -106,23 +124,9 @@ class TCPServer(object):
     def start(self):
         HTTPretty.disable()
 
-        def go(port):
-            from httpretty import HTTPretty
-            HTTPretty.disable()
-            import socket
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind(('localhost', port))
-            s.listen(True)
-            conn, addr = s.accept()
-
-            while True:
-                data = conn.recv(1024)
-                conn.send(b"RECEIVED: " + bytes(data))
-
-            conn.close()
 
         args = [self.port]
-        self.process = Process(target=go, args=args)
+        self.process = Process(target=subprocess_server_tcp, args=args)
         self.process.start()
         time.sleep(1)
 
