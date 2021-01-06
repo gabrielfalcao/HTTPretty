@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+1.0.5
+-----
+
+- Support `socket.socketpair() <https://docs.python.org/3/library/socket.html#socket.socketpair>`_ . `#402 <https://github.com/gabrielfalcao/HTTPretty/issues/402>`_
+
 
 1.0.4
 -----
