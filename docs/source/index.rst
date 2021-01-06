@@ -14,6 +14,8 @@ Looking for the `Github Repository <https://github.com/gabrielfalcao/HTTPretty>`
 
 - **3.6**
 - **3.7**
+- **3.8**
+- **3.9**
 
 .. image:: https://github.com/gabrielfalcao/HTTPretty/raw/master/docs/source/_static/logo.svg?sanitize=true
 
