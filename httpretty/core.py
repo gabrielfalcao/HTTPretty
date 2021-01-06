@@ -73,6 +73,7 @@ from datetime import timedelta
 from errno import EAGAIN
 
 old_socket = socket.socket
+old_socketpair = getattr(socket, 'socketpair', None)
 old_SocketType = socket.SocketType
 old_create_connection = socket.create_connection
 old_gethostbyname = socket.gethostbyname
@@ -360,6 +361,10 @@ class FakeAddressTuple(object):
         raise AssertionError('socket {} is not connected'.format(self.fakesocket.truesock))
 
 
+def fake_socketpair(*args, **kw):
+    with restored_libs():
+        return old_socketpair(*args, **kw)
+
 class fakesock(object):
     """
     fake :py:mod:`socket`
@@ -450,7 +455,7 @@ class fakesock(object):
 
             if not self.is_http:
                 self.connect_truesock()
-            elif self.truesock and not self.__truesock_is_connected__:
+            elif self.truesock and not self.real_socket_is_connected():
                 # TODO: remove nested if
                 matcher = httpretty.match_http_address(self._host, self._port)
                 if matcher is None:
@@ -470,13 +475,13 @@ class fakesock(object):
             return self.truesock.bind(address)
 
         def connect_truesock(self):
+            if self.__truesock_is_connected__:
+                return self.truesock
+
             if httpretty.allow_net_connect and not self.truesock:
                 self.truesock = self.create_socket()
             elif not self.truesock:
                 raise UnmockedError()
-
-            if self.__truesock_is_connected__:
-                return self.truesock
             with restored_libs():
                 hostname = self._address[0]
                 port = 80
@@ -647,18 +652,6 @@ class fakesock(object):
             self._entry = matcher.get_next_entry(method, info, request)
 
         def forward_and_trace(self, function_name, *a, **kw):
-            if self.truesock and not self.__truesock_is_connected__:
-                self.truesock = self.create_socket()
-                ### self.connect_truesock()
-
-            if self.__truesock_is_connected__:
-                function = getattr(self.truesock, function_name)
-
-            if self.is_http:
-                if self.truesock and not self.__truesock_is_connected__:
-                    self.truesock = self.create_socket()
-                    ### self.connect_truesock()
-
             if not self.truesock:
                 raise UnmockedError()
 
@@ -681,18 +674,12 @@ class fakesock(object):
             return self.forward_and_trace('recvfrom_into', *args, **kwargs)
 
         def recv_into(self, *args, **kwargs):
-            if self.truesock and not self.__truesock_is_connected__:
-                self.connect_truesock()
             return self.forward_and_trace('recv_into', *args, **kwargs)
 
         def recvfrom(self, *args, **kwargs):
-            if self.truesock and not self.__truesock_is_connected__:
-                self.connect_truesock()
             return self.forward_and_trace('recvfrom', *args, **kwargs)
 
         def recv(self, buffersize=None, *args, **kwargs):
-            if self.truesock and not self.__truesock_is_connected__:
-                self.connect_truesock()
             buffersize = buffersize or self._bufsize
             return self.forward_and_trace('recv', buffersize, *args, **kwargs)
 
@@ -1624,6 +1611,7 @@ def apply_patch_socket():
 
     new_wrap = None
     socket.socket = fakesock.socket
+    socket.socketpair = fake_socketpair
     socket._socketobject = fakesock.socket
     if not bad_socket_shadow:
         socket.SocketType = fakesock.socket
@@ -1634,6 +1622,7 @@ def apply_patch_socket():
     socket.getaddrinfo = fake_getaddrinfo
 
     socket.__dict__['socket'] = fakesock.socket
+    socket.__dict__['socketpair'] = fake_socketpair
     socket.__dict__['_socketobject'] = fakesock.socket
     if not bad_socket_shadow:
         socket.__dict__['SocketType'] = fakesock.socket
@@ -1680,6 +1669,7 @@ def apply_patch_socket():
 
 def undo_patch_socket():
     socket.socket = old_socket
+    socket.socketpair = old_socketpair
     socket.SocketType = old_SocketType
     socket._socketobject = old_socket
 
@@ -1689,6 +1679,7 @@ def undo_patch_socket():
     socket.getaddrinfo = old_getaddrinfo
 
     socket.__dict__['socket'] = old_socket
+    socket.__dict__['socketpair'] = old_socketpair
     socket.__dict__['_socketobject'] = old_socket
     socket.__dict__['SocketType'] = old_SocketType
 
