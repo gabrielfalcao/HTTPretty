@@ -482,7 +482,8 @@ class fakesock(object):
                 self.truesock = self.create_socket()
             elif not self.truesock:
                 raise UnmockedError()
-            with restored_libs():
+            undo_patch_socket()
+            try:
                 hostname = self._address[0]
                 port = 80
                 if len(self._address) == 2:
@@ -495,6 +496,9 @@ class fakesock(object):
                 sock.connect(self._address)
                 self.__truesock_is_connected__ = True
                 self.truesock = sock
+            finally:
+                apply_patch_socket()
+
             return self.truesock
 
         def real_socket_is_connected(self):
