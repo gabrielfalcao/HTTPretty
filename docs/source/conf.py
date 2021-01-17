@@ -15,7 +15,7 @@ from httpretty.version import version # noqa
 
 
 project = 'HTTPretty'
-copyright = '2020, Gabriel Falcao'
+copyright = '2011-2021, Gabriel Falcao'
 author = 'Gabriel Falcao'
 
 # The short X.Y version
