@@ -6,6 +6,8 @@
 HTTPretty's - HTTP Client Mocking for Python
 ============================================
 
+.. image:: https://github.com/gabrielfalcao/HTTPretty/raw/master/docs/source/_static/logo.svg?sanitize=true
+
 HTTP Client mocking tool for Python created by `Gabriel Falcão <https://github.com/gabrielfalcao>`_ . It provides a full fake TCP socket module. Inspired by `FakeWeb <https://github.com/chrisk/fakeweb>`_
 
 Looking for the `Github Repository <https://github.com/gabrielfalcao/HTTPretty>`_ ?
@@ -16,8 +18,6 @@ Looking for the `Github Repository <https://github.com/gabrielfalcao/HTTPretty>`
 - **3.7**
 - **3.8**
 - **3.9**
-
-.. image:: https://github.com/gabrielfalcao/HTTPretty/raw/master/docs/source/_static/logo.svg?sanitize=true
 
 .. image:: https://img.shields.io/pypi/dm/HTTPretty
    :target: https://pypi.org/project/HTTPretty
