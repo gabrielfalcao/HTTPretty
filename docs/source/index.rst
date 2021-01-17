@@ -25,10 +25,7 @@ Looking for the `Github Repository <https://github.com/gabrielfalcao/HTTPretty>`
 .. image:: https://img.shields.io/codecov/c/github/gabrielfalcao/HTTPretty
    :target: https://codecov.io/gh/gabrielfalcao/HTTPretty
 
-.. image:: https://img.shields.io/github/workflow/status/gabrielfalcao/HTTPretty/python-3.6?label=python%203.6
-   :target: https://github.com/gabrielfalcao/HTTPretty/actions
-
-.. image:: https://img.shields.io/github/workflow/status/gabrielfalcao/HTTPretty/python-3.7?label=python%203.7
+.. image:: https://img.shields.io/github/workflow/status/gabrielfalcao/HTTPretty/HTTPretty%20Tests?label=Python%203.6%20-%203.9
    :target: https://github.com/gabrielfalcao/HTTPretty/actions
 
 .. image:: https://img.shields.io/readthedocs/httpretty

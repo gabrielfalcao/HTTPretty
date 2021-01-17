@@ -24,7 +24,7 @@ HTTP Client mocking tool for Python created by `Gabriel Falcão <https://github.
 .. image:: https://img.shields.io/codecov/c/github/gabrielfalcao/HTTPretty
    :target: https://codecov.io/gh/gabrielfalcao/HTTPretty
 
-.. image:: https://img.shields.io/github/workflow/status/gabrielfalcao/HTTPretty/HTTPretty%20Tests
+.. image:: https://img.shields.io/github/workflow/status/gabrielfalcao/HTTPretty/HTTPretty%20Tests?label=Python%203.6%20-%203.9
    :target: https://github.com/gabrielfalcao/HTTPretty/actions
 
 .. image:: https://img.shields.io/readthedocs/httpretty
