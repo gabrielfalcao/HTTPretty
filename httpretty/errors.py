@@ -32,8 +32,17 @@ class HTTPrettyError(Exception):
 
 
 class UnmockedError(HTTPrettyError):
-    def __init__(self):
-        super(UnmockedError, self).__init__(
-            'No mocking was registered, and real connections are '
-            'not allowed (httpretty.allow_net_connect = False).'
-        )
+    def __init__(self, message='Failed to handle network request', request=None, address=None):
+        hint = 'hint: set httpretty.allow_net_connect = True to allow unknown requests through a real TCP connection.'
+        if request:
+            headers = dict(request.headers)
+            message = 'Intercepted unregistered request {request.method} {request.url} with headers {headers}: {message}'.format(**locals())
+
+        if isinstance(address, (tuple, list)):
+            address = ":".join(map(str, address))
+
+        if address:
+            hint = 'address: {address} | {hint}'.format(**locals())
+
+        self.request = request
+        super(UnmockedError, self).__init__('{message} ({hint})'.format(**locals()))

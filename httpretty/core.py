@@ -161,6 +161,10 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
     ``headers`` -> a mimetype object that can be cast into a dictionary,
     contains all the request headers
 
+    ``url`` -> the full url from this request
+
+    ``path`` -> the path of the request
+
     ``method`` -> the HTTP method used in this request
 
     ``querystring`` -> a dictionary containing lists with the
@@ -180,13 +184,13 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
 
 
     """
-    def __init__(self, headers, body=''):
+    def __init__(self, headers, body='', sock=None, path_encoding = 'iso-8859-1'):
         # first of all, lets make sure that if headers or body are
         # unicode strings, it must be converted into a utf-8 encoded
         # byte string
         self.raw_headers = utf8(headers.strip())
         self._body = utf8(body)
-
+        self.connection = sock
         # Now let's concatenate the headers with the body, and create
         # `rfile` based on it
         self.rfile = io.BytesIO(b'\r\n\r\n'.join([self.raw_headers, self.body]))
@@ -206,14 +210,13 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         if not self.parse_request():
             return
 
-        # making the HTTP method string available as the command
-        self.method = self.command
-
         # Now 2 convenient attributes for the HTTPretty API:
 
-        # `querystring` holds a dictionary with the parsed query string
+        # - `path`
+        # - `querystring` holds a dictionary with the parsed query string
+        # - `parsed_body` a string
         try:
-            self.path = self.path.encode('iso-8859-1')
+            self.path = self.path.encode(path_encoding)
         except UnicodeDecodeError:
             pass
 
@@ -233,6 +236,25 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         self.parsed_body = self.parse_request_body(self._body)
 
     @property
+    def method(self):
+        """the HTTP method used in this request"""
+        return self.command
+
+    @property
+    def protocol(self):
+        """the protocol used in this request"""
+        proto = ''
+        if not self.connection:
+            return ''
+        elif self.connection.is_http:
+            proto = 'http'
+
+        if self.connection.is_secure:
+            proto = 'https'
+
+        return proto
+
+    @property
     def body(self):
         return self._body
 
@@ -247,11 +269,21 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
     def __nonzero__(self):
         return bool(self.body) or bool(self.raw_headers)
 
+    @property
+    def url(self):
+        """the full url of this recorded request"""
+        return "{}://{}{}".format(self.protocol, self.host, self.path)
+
+    @property
+    def host(self):
+        return self.headers.get('Host') or '<unknown>'
+
     def __str__(self):
-        tmpl = '<HTTPrettyRequest("{}", total_headers={}, body_length={})>'
+        tmpl = '<HTTPrettyRequest("{}", "{}", headers={}, body={})>'
         return tmpl.format(
-            self.headers.get('content-type', ''),
-            len(self.headers),
+            self.method,
+            self.url,
+            dict(self.headers),
             len(self.body),
         )
 
@@ -452,14 +484,15 @@ class fakesock(object):
                 ports_to_check = (
                     POTENTIAL_HTTP_PORTS.union(POTENTIAL_HTTPS_PORTS))
                 self.is_http = self._port in ports_to_check
+                self.is_secure = self._port in POTENTIAL_HTTPS_PORTS
 
             if not self.is_http:
-                self.connect_truesock()
+                self.connect_truesock(address=address)
             elif self.truesock and not self.real_socket_is_connected():
                 # TODO: remove nested if
                 matcher = httpretty.match_http_address(self._host, self._port)
                 if matcher is None:
-                    self.connect_truesock()
+                    self.connect_truesock(address=address)
 
         def bind(self, address):
             self._address = (self._host, self._port) = address
@@ -470,18 +503,27 @@ class fakesock(object):
             if httpretty.allow_net_connect and not self.truesock:
                 self.truesock = self.create_socket()
             elif not self.truesock:
-                raise UnmockedError()
+                raise UnmockedError('Failed to socket.bind() because because a real socket was never created.', address=address)
 
             return self.truesock.bind(address)
 
-        def connect_truesock(self):
+        def connect_truesock(self, request=None, address=None):
+            address = address or self._address
+            if request:
+                logger.debug('real call to socket.connect() for {request}'.format(**locals()))
+            elif address:
+                logger.debug('real call to socket.connect() for {address}'.format(**locals()))
+            else:
+                logger.debug('real call to socket.connect()')
+
             if self.__truesock_is_connected__:
                 return self.truesock
 
             if httpretty.allow_net_connect and not self.truesock:
                 self.truesock = self.create_socket()
             elif not self.truesock:
-                raise UnmockedError()
+                raise UnmockedError('Failed to socket.connect() because because a real socket was never created.', request=request, address=address)
+
             undo_patch_socket()
             try:
                 hostname = self._address[0]
@@ -540,7 +582,7 @@ class fakesock(object):
 
             return self.fd
 
-        def real_sendall(self, data, *args, **kw):
+        def real_sendall(self, data, request=None, *args, **kw):
             """Sends data to the remote server. This method is called
             when HTTPretty identifies that someone is trying to send
             non-http data.
@@ -549,17 +591,20 @@ class fakesock(object):
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
+            if request:
+                logger.warning('{}.real_sendall({} bytes) to {}'.format(self, len(data), request))
 
             if httpretty.allow_net_connect and not self.truesock:
-                self.connect_truesock()
+
+                self.connect_truesock(request=request)
             elif not self.truesock:
-                raise UnmockedError()
+                raise UnmockedError(request=request)
 
             if not self.is_http:
                 self.truesock.setblocking(1)
                 return self.truesock.sendall(data, *args, **kw)
 
-            sock = self.connect_truesock()
+            sock = self.connect_truesock(request=request)
 
             sock.setblocking(1)
             sock.sendall(data, *args, **kw)
@@ -621,7 +666,7 @@ class fakesock(object):
                     else:
                         self._entry.request.body += body
 
-                    httpretty.historify_request(headers, body, False)
+                    httpretty.historify_request(headers, body, False, sock=self)
                     return
 
             if path[:2] == '//':
@@ -636,7 +681,7 @@ class fakesock(object):
                 headers = ''
                 body = data
 
-            request = httpretty.historify_request(headers, body)
+            request = httpretty.historify_request(headers, body, sock=self)
 
             info = URIInfo(
                 hostname=self._host,
@@ -650,14 +695,14 @@ class fakesock(object):
 
             if not entries:
                 self._entry = None
-                self.real_sendall(data)
+                self.real_sendall(data, request=request)
                 return
 
             self._entry = matcher.get_next_entry(method, info, request)
 
         def forward_and_trace(self, function_name, *a, **kw):
             if not self.truesock:
-                raise UnmockedError()
+                raise UnmockedError('Failed to socket.{}() because because a real socket was never created.'.format(function_name))
 
             callback = getattr(self.truesock, function_name)
             return callback(*a, **kw)
@@ -702,9 +747,13 @@ class fakesock(object):
                         "(see issue https://github.com/gabrielfalcao/HTTPretty/issues/409). "
                         "Please open an issue if this error causes further unexpected issues."
                     )
-                raise UnmockedError()
+                raise UnmockedError('Failed to socket.{} because because a real socket was never created.'.format(name))
+
             return getattr(self.truesock, name)
 
+def with_socket_is_secure(sock):
+    sock.is_secure = True
+    return sock
 
 def fake_wrap_socket(orig_wrap_socket_fn, *args, **kw):
     """drop-in replacement for py:func:`ssl.wrap_socket`
@@ -713,11 +762,11 @@ def fake_wrap_socket(orig_wrap_socket_fn, *args, **kw):
     if server_hostname is not None:
         matcher = httpretty.match_https_hostname(server_hostname)
         if matcher is None:
-            return orig_wrap_socket_fn(*args, **kw)
+            return with_socket_is_secure(orig_wrap_socket_fn(*args, **kw))
     if 'sock' in kw:
-        return kw['sock']
+        return with_socket_is_secure(kw['sock'])
     else:
-        return args[0]
+        return with_socket_is_secure(args[0])
 
 
 def create_fake_connection(
@@ -1285,7 +1334,7 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     @contextlib.contextmanager
-    def record(cls, filename, indentation=4, encoding='utf-8'):
+    def record(cls, filename, indentation=4, encoding='utf-8', verbose=False, allow_net_connect=True, pool_manager_params=None):
         """
         .. testcode::
 
@@ -1315,9 +1364,9 @@ class httpretty(HttpBaseClass):
             )
             raise RuntimeError(msg)
 
-        http = urllib3.PoolManager()
+        http = urllib3.PoolManager(**pool_manager_params or {})
 
-        cls.enable()
+        cls.enable(allow_net_connect, verbose=verbose)
         calls = []
 
         def record_request(request, uri, headers):
@@ -1346,7 +1395,7 @@ class httpretty(HttpBaseClass):
                     'headers': dict(response.headers.items())
                 }
             })
-            cls.enable()
+            cls.enable(allow_net_connect, verbose=verbose)
             return response.status, response.headers, response.data
 
         for method in cls.METHODS:
@@ -1359,7 +1408,7 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     @contextlib.contextmanager
-    def playback(cls, filename):
+    def playback(cls, filename, allow_net_connect=True, verbose=False):
         """
         .. testcode::
 
@@ -1377,7 +1426,7 @@ class httpretty(HttpBaseClass):
         :param filename: a string
         :returns: a `context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_
         """
-        cls.enable()
+        cls.enable(allow_net_connect, verbose=verbose)
 
         data = json.loads(open(filename).read())
         for item in data:
@@ -1401,7 +1450,7 @@ class httpretty(HttpBaseClass):
         cls.last_request = HTTPrettyRequestEmpty()
 
     @classmethod
-    def historify_request(cls, headers, body='', append=True):
+    def historify_request(cls, headers, body='', append=True, sock=None):
         """appends request to a list for later retrieval
 
         .. testcode::
@@ -1414,12 +1463,15 @@ class httpretty(HttpBaseClass):
 
            assert httpretty.latest_requests[-1].url == 'https://httpbin.org/ip'
         """
-        request = HTTPrettyRequest(headers, body)
+        request = HTTPrettyRequest(headers, body, sock=sock)
         cls.last_request = request
+
         if append or not cls.latest_requests:
             cls.latest_requests.append(request)
         else:
             cls.latest_requests[-1] = request
+
+        logger.warning("captured: {}".format(request))
         return request
 
     @classmethod
@@ -1577,16 +1629,18 @@ class httpretty(HttpBaseClass):
         return cls._is_enabled
 
     @classmethod
-    def enable(cls, allow_net_connect=True):
+    def enable(cls, allow_net_connect=True, verbose=False):
         """Enables HTTPretty.
-        When ``allow_net_connect`` is ``False`` any connection to an unregistered uri will throw :py:class:`httpretty.errors.UnmockedError`.
+
+        :param allow_net_connect: boolean to determine if unmatched requests are forwarded to a real network connection OR throw :py:class:`httpretty.errors.UnmockedError`.
+        :param verbose: boolean to set HTTPretty's logging level to DEBUG
 
         .. testcode::
 
            import re, json
            import httpretty
 
-           httpretty.enable()
+           httpretty.enable(allow_net_connect=True, verbose=True)
 
            httpretty.register_uri(
                httpretty.GET,
@@ -1606,6 +1660,10 @@ class httpretty(HttpBaseClass):
         cls.allow_net_connect = allow_net_connect
         apply_patch_socket()
         cls._is_enabled = True
+        if verbose:
+            logger.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(logging.getLogger().level)
 
 
 def apply_patch_socket():
@@ -1741,19 +1799,20 @@ class httprettized(object):
        assert httpretty.latest_requests[-1].url == 'https://httpbin.org/ip'
        assert response.json() == {'origin': '42.42.42.42'}
     """
-    def __init__(self, allow_net_connect=True):
+    def __init__(self, allow_net_connect=True, verbose=False):
         self.allow_net_connect = allow_net_connect
+        self.verbose = verbose
 
     def __enter__(self):
         httpretty.reset()
-        httpretty.enable(allow_net_connect=self.allow_net_connect)
+        httpretty.enable(allow_net_connect=self.allow_net_connect, verbose=self.verbose)
 
     def __exit__(self, exc_type, exc_value, db):
         httpretty.disable()
         httpretty.reset()
 
 
-def httprettified(test=None, allow_net_connect=True):
+def httprettified(test=None, allow_net_connect=True, verbose=False):
     """decorator for test functions
 
     .. tip:: Also available under the alias :py:func:`httpretty.activate`
@@ -1811,7 +1870,7 @@ def httprettified(test=None, allow_net_connect=True):
 
         def new_setUp(self):
             httpretty.reset()
-            httpretty.enable(allow_net_connect)
+            httpretty.enable(allow_net_connect, verbose=verbose)
             if use_addCleanup:
                 self.addCleanup(httpretty.disable)
             if original_setUp:
@@ -1851,7 +1910,6 @@ def httprettified(test=None, allow_net_connect=True):
         except ImportError:
             return False
 
-    "A decorator for tests that use HTTPretty"
     def decorate_class(klass):
         if is_unittest_TestCase(klass):
             return decorate_unittest_TestCase_setUp(klass)
