@@ -23,6 +23,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 import io
+import time
 import codecs
 import contextlib
 import functools
@@ -188,7 +189,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         # first of all, lets make sure that if headers or body are
         # unicode strings, it must be converted into a utf-8 encoded
         # byte string
-        self.created_at = datetime.now().isoformat()
+        self.created_at = time.time()
         self.raw_headers = utf8(headers.strip())
         self._body = utf8(body)
         self.connection = sock
@@ -408,7 +409,7 @@ class fakesock(object):
         _entry = None
         debuglevel = 0
         _sent_data = []
-
+        is_secure = False
         def __init__(
             self,
             family=socket.AF_INET,
@@ -433,7 +434,14 @@ class fakesock(object):
             self.is_http = False
             self._bufsize = 32 * 1024
 
-        def create_socket(self):
+        def __repr__(self):
+            return '{self.__class__.__module__}.{self.__class__.__name__}("{self.host}")'.format(**locals())
+
+        @property
+        def host(self):
+            return ":".join(map(str, self._address))
+
+        def create_socket(self, address=None):
             return old_socket(self.socket_family, self.socket_type, self.socket_proto)
 
         def getpeercert(self, *a, **kw):
@@ -510,18 +518,19 @@ class fakesock(object):
 
         def connect_truesock(self, request=None, address=None):
             address = address or self._address
-            if request:
-                logger.debug('real call to socket.connect() for {request}'.format(**locals()))
-            elif address:
-                logger.debug('real call to socket.connect() for {address}'.format(**locals()))
-            else:
-                logger.debug('real call to socket.connect()')
 
             if self.__truesock_is_connected__:
                 return self.truesock
 
+            if request:
+                logger.warning('real call to socket.connect() for {request}'.format(**locals()))
+            elif address:
+                logger.warning('real call to socket.connect() for {address}'.format(**locals()))
+            else:
+                logger.warning('real call to socket.connect()')
+
             if httpretty.allow_net_connect and not self.truesock:
-                self.truesock = self.create_socket()
+                self.truesock = self.create_socket(address)
             elif not self.truesock:
                 raise UnmockedError('Failed to socket.connect() because because a real socket was never created.', request=request, address=address)
 
@@ -594,7 +603,8 @@ class fakesock(object):
             """
             request = kw.pop('request', None)
             if request:
-                logger.warning('{}.real_sendall({} bytes) to {}'.format(self, len(data), request))
+                bytecount = len(data)
+                logger.warning('{self}.real_sendall({bytecount} bytes) to {request.url} via {request.method} at {request.created_at}'.format(**locals()))
 
             if httpretty.allow_net_connect and not self.truesock:
 
@@ -735,7 +745,9 @@ class fakesock(object):
             return self.forward_and_trace('recv', buffersize, *args, **kwargs)
 
         def __getattr__(self, name):
-            if httpretty.allow_net_connect and not self.truesock:
+            if name in ('getsockopt', ) and not self.truesock:
+                self.truesock = self.create_socket()
+            elif httpretty.allow_net_connect and not self.truesock:
                 # can't call self.connect_truesock() here because we
                 # don't know if user wants to execute server of client
                 # calls (or can they?)
@@ -749,12 +761,16 @@ class fakesock(object):
                         "(see issue https://github.com/gabrielfalcao/HTTPretty/issues/409). "
                         "Please open an issue if this error causes further unexpected issues."
                     )
-                raise UnmockedError('Failed to socket.{} because because a real socket was never created.'.format(name))
+
+                raise UnmockedError('Failed to socket.{} because because a real socket does not exist'.format(name))
 
             return getattr(self.truesock, name)
 
-def with_socket_is_secure(sock):
+def with_socket_is_secure(sock, kw):
     sock.is_secure = True
+    sock.kwargs = kw
+    for k, v in kw.items():
+        setattr(sock, k, v)
     return sock
 
 def fake_wrap_socket(orig_wrap_socket_fn, *args, **kw):
@@ -764,11 +780,18 @@ def fake_wrap_socket(orig_wrap_socket_fn, *args, **kw):
     if server_hostname is not None:
         matcher = httpretty.match_https_hostname(server_hostname)
         if matcher is None:
-            return with_socket_is_secure(orig_wrap_socket_fn(*args, **kw))
+            undo_patch_socket()
+            try:
+                sock = orig_wrap_socket_fn(*args, **kw)
+            finally:
+                apply_patch_socket()
+
+            return sock
+
     if 'sock' in kw:
-        return with_socket_is_secure(kw['sock'])
+        return with_socket_is_secure(kw['sock'], kw)
     else:
-        return with_socket_is_secure(args[0])
+        return with_socket_is_secure(args[0], kw)
 
 
 def create_fake_connection(
@@ -1468,7 +1491,11 @@ class httpretty(HttpBaseClass):
         request = HTTPrettyRequest(headers, body, sock=sock)
         cls.last_request = request
 
-        cls.latest_requests.append(request)
+        if request not in cls.latest_requests:
+            cls.latest_requests.append(request)
+        else:
+            pos = cls.latest_requests.index(request)
+            cls.latest_requests[pos] = request
 
         logger.info("captured: {}".format(request))
         return request
@@ -1656,7 +1683,7 @@ class httpretty(HttpBaseClass):
 
         .. warning:: after calling this method the original :py:mod:`socket` is replaced with :py:class:`httpretty.core.fakesock`. Make sure to call :py:meth:`~httpretty.disable` after done with your tests or use the :py:class:`httpretty.enabled` as decorator or `context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_
         """
-        cls.allow_net_connect = allow_net_connect
+        httpretty.allow_net_connect = allow_net_connect
         apply_patch_socket()
         cls._is_enabled = True
         if verbose:

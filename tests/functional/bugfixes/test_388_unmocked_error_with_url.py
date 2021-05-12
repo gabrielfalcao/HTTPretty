@@ -1,5 +1,5 @@
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2020> Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2021> Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -24,6 +24,7 @@
 import requests
 import httpretty
 
+from unittest import skip
 from sure import expect
 
 
@@ -34,45 +35,12 @@ def http():
     sess.mount('https://', adapter)
     return sess
 
-
-def test_http_passthrough():
-    url = 'http://httpbin.org/status/200'
-    response1 = http().get(url)
-
-    response1 = http().get(url)
-
-    httpretty.enable(allow_net_connect=False, verbose=True)
+@skip('TODO')
+@httpretty.activate(allow_net_connect=False)
+def test_https_forwarding():
     httpretty.register_uri(httpretty.GET, 'http://google.com/', body="Not Google")
-    httpretty.register_uri(httpretty.GET, url, body="mocked")
-
     response2 = http().get('http://google.com/')
-    expect(response2.content).to.equal(b'Not Google')
 
-    response3 = http().get(url)
-    response3.content.should.equal(b"mocked")
+    response3 = http().get("https://github.com/gabrielfalcao/HTTPretty")
 
-    httpretty.disable()
-
-    response4 = http().get(url)
-    (response4.content).should.equal(response1.content)
-
-
-def test_https_passthrough():
-    url = 'https://raw.githubusercontent.com/gabrielfalcao/httpretty/master/COPYING'
-
-    response1 = http().get(url)
-
-    httpretty.enable(allow_net_connect=True, verbose=True)
-    httpretty.register_uri(httpretty.GET, 'https://google.com/', body="Not Google")
-    httpretty.register_uri(httpretty.GET, url, body="mocked")
-
-    response2 = http().get('https://google.com/')
-    expect(response2.content).to.equal(b'Not Google')
-
-    response3 = http().get(url)
-    (response3.text).should.equal('mocked')
-
-    httpretty.disable()
-
-    response4 = http().get(url)
-    (response4.content).should.equal(response1.content)
+    httpretty.latest_requests.should.equal([])
