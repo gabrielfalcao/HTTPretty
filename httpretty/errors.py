@@ -25,7 +25,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 from __future__ import unicode_literals
-
+import json
 
 class HTTPrettyError(Exception):
     pass
@@ -33,10 +33,10 @@ class HTTPrettyError(Exception):
 
 class UnmockedError(HTTPrettyError):
     def __init__(self, message='Failed to handle network request', request=None, address=None):
-        hint = 'hint: set httpretty.allow_net_connect = True to allow unknown requests through a real TCP connection.'
+        hint = 'Tip: You could try setting (allow_net_connect=True) to allow unregistered requests through a real TCP connection in addition to (verbose=True) to debug the issue.'
         if request:
-            headers = dict(request.headers)
-            message = 'Intercepted unregistered request {request.method} {request.url} with headers {headers}: {message}'.format(**locals())
+            headers = json.dumps(dict(request.headers), indent=2)
+            message = '{message}.\n\nIntercepted unknown {request.method} request {request.url}\n\nWith headers {headers}'.format(**locals())
 
         if isinstance(address, (tuple, list)):
             address = ":".join(map(str, address))
@@ -45,4 +45,4 @@ class UnmockedError(HTTPrettyError):
             hint = 'address: {address} | {hint}'.format(**locals())
 
         self.request = request
-        super(UnmockedError, self).__init__('{message} ({hint})'.format(**locals()))
+        super(UnmockedError, self).__init__('{message}\n\n{hint}'.format(**locals()))

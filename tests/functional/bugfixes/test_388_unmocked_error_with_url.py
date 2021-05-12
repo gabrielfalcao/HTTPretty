@@ -23,6 +23,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 import requests
 import httpretty
+from httpretty.errors import UnmockedError
 
 from unittest import skip
 from sure import expect
@@ -35,12 +36,21 @@ def http():
     sess.mount('https://', adapter)
     return sess
 
-@skip('TODO')
 @httpretty.activate(allow_net_connect=False)
 def test_https_forwarding():
+    "UnmockedError is raised with details about the mismatched request"
     httpretty.register_uri(httpretty.GET, 'http://google.com/', body="Not Google")
-    response2 = http().get('http://google.com/')
+    httpretty.register_uri(httpretty.GET, 'https://google.com/', body="Not Google")
+    response1 = http().get('http://google.com/')
+    response2 = http().get('https://google.com/')
 
-    response3 = http().get("https://github.com/gabrielfalcao/HTTPretty")
+    http().get.when.called_with("https://github.com/gabrielfalcao/HTTPretty").should.have.raised(UnmockedError, 'https://github.com/gabrielfalcao/HTTPretty')
 
-    httpretty.latest_requests.should.equal([])
+    response1.text.should.equal(response2.text)
+    try:
+        http().get("https://github.com/gabrielfalcao/HTTPretty")
+    except UnmockedError as exc:
+        expect(exc).to.have.property('request')
+        expect(exc.request).to.have.property('host').being.equal('github.com')
+        expect(exc.request).to.have.property('protocol').being.equal('https')
+        expect(exc.request).to.have.property('url').being.equal('https://github.com/gabrielfalcao/HTTPretty')

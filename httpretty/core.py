@@ -778,22 +778,19 @@ def with_socket_is_secure(sock, kw):
 def fake_wrap_socket(orig_wrap_socket_fn, *args, **kw):
     """drop-in replacement for py:func:`ssl.wrap_socket`
     """
+    if 'sock' in kw:
+        sock = kw['sock']
+    else:
+        sock = args[0]
+
     server_hostname = kw.get('server_hostname')
     if server_hostname is not None:
         matcher = httpretty.match_https_hostname(server_hostname)
         if matcher is None:
-            undo_patch_socket()
-            try:
-                sock = orig_wrap_socket_fn(*args, **kw)
-            finally:
-                apply_patch_socket()
+            logger.debug('no requests registered for hostname: "{}"'.format(server_hostname))
+            return with_socket_is_secure(sock, kw)
 
-            return sock
-
-    if 'sock' in kw:
-        return with_socket_is_secure(kw['sock'], kw)
-    else:
-        return with_socket_is_secure(args[0], kw)
+    return with_socket_is_secure(sock, kw)
 
 
 def create_fake_connection(
