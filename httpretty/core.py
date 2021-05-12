@@ -280,13 +280,12 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         return self.headers.get('Host') or '<unknown>'
 
     def __str__(self):
-        tmpl = '<HTTPrettyRequest("{}", "{}", headers={}, body={}, created_at={!r})>'
+        tmpl = '<HTTPrettyRequest("{}", "{}", headers={}, body={})>'
         return tmpl.format(
             self.method,
             self.url,
             dict(self.headers),
             len(self.body),
-            self.created_at
         )
 
     def parse_querystring(self, qs):
@@ -584,7 +583,7 @@ class fakesock(object):
 
             return self.fd
 
-        def real_sendall(self, data, request=None, *args, **kw):
+        def real_sendall(self, data, *args, **kw):
             """Sends data to the remote server. This method is called
             when HTTPretty identifies that someone is trying to send
             non-http data.
@@ -593,6 +592,7 @@ class fakesock(object):
             buffer so that HTTPretty can return it accordingly when
             necessary.
             """
+            request = kw.pop('request', None)
             if request:
                 logger.warning('{}.real_sendall({} bytes) to {}'.format(self, len(data), request))
 

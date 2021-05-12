@@ -167,7 +167,7 @@ def test_request_string_representation():
     request = HTTPrettyRequest(headers, body)
 
     # Then its string representation should show the headers and the body
-    str(request).should.equal('<HTTPrettyRequest("JPEG-baby", total_headers=1, body_length=14)>')
+    str(request).should.equal('<HTTPrettyRequest("POST", "://<unknown>/create", headers={\'Content-Type\': \'JPEG-baby\'}, body=14)>')
 
 
 def test_fake_ssl_socket_proxies_its_ow_socket():
@@ -297,6 +297,7 @@ def test_fakesock_socket_real_sendall(old_socket):
 
     # Given a fake socket
     socket = fakesock.socket()
+    socket._address = ('1.2.3.4', 42)
 
     # When I call real_sendall with data, some args and kwargs
     socket.real_sendall(b"SOMEDATA", b'some extra args...', foo=b'bar')
