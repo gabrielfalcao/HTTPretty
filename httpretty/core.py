@@ -188,6 +188,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         # first of all, lets make sure that if headers or body are
         # unicode strings, it must be converted into a utf-8 encoded
         # byte string
+        self.created_at = datetime.now().isoformat()
         self.raw_headers = utf8(headers.strip())
         self._body = utf8(body)
         self.connection = sock
@@ -279,12 +280,13 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         return self.headers.get('Host') or '<unknown>'
 
     def __str__(self):
-        tmpl = '<HTTPrettyRequest("{}", "{}", headers={}, body={})>'
+        tmpl = '<HTTPrettyRequest("{}", "{}", headers={}, body={}, created_at={!r})>'
         return tmpl.format(
             self.method,
             self.url,
             dict(self.headers),
             len(self.body),
+            self.created_at
         )
 
     def parse_querystring(self, qs):
@@ -666,7 +668,7 @@ class fakesock(object):
                     else:
                         self._entry.request.body += body
 
-                    httpretty.historify_request(headers, body, False, sock=self)
+                    httpretty.historify_request(headers, body, sock=self)
                     return
 
             if path[:2] == '//':
@@ -1450,7 +1452,7 @@ class httpretty(HttpBaseClass):
         cls.last_request = HTTPrettyRequestEmpty()
 
     @classmethod
-    def historify_request(cls, headers, body='', append=True, sock=None):
+    def historify_request(cls, headers, body='', sock=None):
         """appends request to a list for later retrieval
 
         .. testcode::
@@ -1466,12 +1468,9 @@ class httpretty(HttpBaseClass):
         request = HTTPrettyRequest(headers, body, sock=sock)
         cls.last_request = request
 
-        if append or not cls.latest_requests:
-            cls.latest_requests.append(request)
-        else:
-            cls.latest_requests[-1] = request
+        cls.latest_requests.append(request)
 
-        logger.warning("captured: {}".format(request))
+        logger.info("captured: {}".format(request))
         return request
 
     @classmethod
