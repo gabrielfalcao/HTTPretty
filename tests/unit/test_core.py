@@ -159,15 +159,16 @@ def test_request_string_representation():
     headers = "\r\n".join([
         'POST /create HTTP/1.1',
         'Content-Type: JPEG-baby',
+        'Host: blog.falcao.it'
     ])
     # And a valid urlencoded body
     body = "foobar:\nlalala"
 
     # When I create a HTTPrettyRequest with that data
-    request = HTTPrettyRequest(headers, body)
+    request = HTTPrettyRequest(headers, body, sock=Mock(is_https=True))
 
     # Then its string representation should show the headers and the body
-    str(request).should.equal('<HTTPrettyRequest("POST", "://<unknown>/create", headers={\'Content-Type\': \'JPEG-baby\'}, body=14)>')
+    str(request).should.equal('<HTTPrettyRequest("POST", "https://blog.falcao.it/create", headers={\'Content-Type\': \'JPEG-baby\', \'Host\': \'blog.falcao.it\'}, body=14)>')
 
 
 def test_fake_ssl_socket_proxies_its_ow_socket():
