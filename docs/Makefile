@@ -1,9 +1,12 @@
 # Minimal makefile for Sphinx documentation
 #
+GIT_ROOT	:= $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST)))/..)
+VENV_ROOT	:= $(GIT_ROOT)/.venv
+VENV		?= $(VENV_ROOT)
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
+SPHINXBUILD   = $(VENV)/bin/sphinx-build
 SPHINXPROJ    = HTTPretty
 SOURCEDIR     = source
 BUILDDIR      = build

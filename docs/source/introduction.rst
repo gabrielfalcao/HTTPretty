@@ -17,13 +17,15 @@ Don't worry, HTTPretty is here for you:
 
 ::
 
+  import logging
   import requests
   import httpretty
 
   from sure import expect
 
+  logging.getLogger('httpretty.core').setLevel(logging.DEBUG)
 
-  @httpretty.activate
+  @httpretty.activate(allow_net_connect=False)
   def test_yipit_api_returning_deals():
       httpretty.register_uri(httpretty.GET, "http://api.yipit.com/v1/deals/",
                              body='[{"title": "Test Deal"}]',
@@ -65,7 +67,7 @@ expecting a simple response body
    import httpretty
 
    def test_one():
-       httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
+       httpretty.enable(verbose=True, allow_net_connect=False)  # enable HTTPretty so that it will monkey patch the socket module
        httpretty.register_uri(httpretty.GET, "http://yipit.com/",
                               body="Find the best daily deals")
 

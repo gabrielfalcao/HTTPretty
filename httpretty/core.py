@@ -148,8 +148,7 @@ def FALLBACK_FUNCTION(x):
 
 
 class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
-    r"""
-    Represents a HTTP request. It takes a valid multi-line,
+    r"""Represents a HTTP request. It takes a valid multi-line,
     ``\r\n`` separated string with HTTP headers and parse them out using
     the internal `parse_request` method.
 
@@ -162,27 +161,30 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
     ``headers`` -> a mimetype object that can be cast into a dictionary,
     contains all the request headers
 
-    ``url`` -> the full url from this request
+    ``protocol`` -> the protocol of this host, inferred from the port
+    of the underlying fake TCP socket.
 
-    ``path`` -> the path of the request
+    ``host`` -> the hostname of this request.
 
-    ``method`` -> the HTTP method used in this request
+    ``url`` -> the full url of this request.
+
+    ``path`` -> the path of the request.
+
+    ``method`` -> the HTTP method used in this request.
 
     ``querystring`` -> a dictionary containing lists with the
     attributes. Please notice that if you need a single value from a
     query string you will need to get it manually like:
 
-    ``body`` -> the request body as a string
+    ``body`` -> the request body as a string.
 
-    ``parsed_body`` -> the request body parsed by ``parse_request_body``
+    ``parsed_body`` -> the request body parsed by ``parse_request_body``.
 
     .. testcode::
 
       >>> request.querystring
       {'name': ['Gabriel Falcao']}
       >>> print request.querystring['name'][0]
-
-
 
     """
     def __init__(self, headers, body='', sock=None, path_encoding = 'iso-8859-1'):
