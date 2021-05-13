@@ -14,3 +14,12 @@ def test_test_ssl_bad_handshake():
 
     requests.get(url_http).text.should.equal('insecure')
     requests.get(url_https).text.should.equal('encrypted')
+
+    httpretty.latest_requests().should.have.length_of(2)
+    insecure_request, secure_request = httpretty.latest_requests()[:2]
+
+    insecure_request.protocol.should.be.equal('http')
+    secure_request.protocol.should.be.equal('https')
+
+    insecure_request.url.should.be.equal(url_http)
+    secure_request.url.should.be.equal(url_https)

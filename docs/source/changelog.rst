@@ -1,6 +1,26 @@
 Release Notes
 =============
 
+1.1.0
+-----
+
+- Feature: Display mismatched URL within ``UnmockedError`` whenever possible. `#388 <https://github.com/gabrielfalcao/HTTPretty/issues/388>`_
+- Feature: Display mismatched URL via logging. `#419 <https://github.com/gabrielfalcao/HTTPretty/pull/419>`_
+- Add new properties to :py:class:`httpretty.core.HTTPrettyRequest` (``protocol, host, url, path, method``).
+
+Example usage:
+
+.. testcode::
+
+   import httpretty
+   import requests
+
+   @httpretty.activate(verbose=True, allow_net_connect=False)
+   def test_mismatches():
+       requests.get('http://sql-server.local')
+       requests.get('https://redis.local')
+
+
 1.0.5
 -----
 

@@ -30,7 +30,6 @@ import signal
 import httpretty
 
 from freezegun import freeze_time
-from unittest import skip
 from contextlib import contextmanager
 from sure import within, microseconds, expect
 from tornado import version as tornado_version
@@ -388,7 +387,7 @@ def test_streaming_responses(now):
 
 @httprettified
 def test_multiline():
-    url = 'http://httpbin.org/post'
+    url = 'https://httpbin.org/post'
     data = b'content=Im\r\na multiline\r\n\r\nsentence\r\n'
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
@@ -402,16 +401,18 @@ def test_multiline():
 
     expect(response.status_code).to.equal(200)
     expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.url).to.equal('https://httpbin.org/post')
+    expect(HTTPretty.last_request.protocol).to.equal('https')
     expect(HTTPretty.last_request.path).to.equal('/post')
     expect(HTTPretty.last_request.body).to.equal(data)
     expect(HTTPretty.last_request.headers['content-length']).to.equal('37')
     expect(HTTPretty.last_request.headers['content-type']).to.equal('application/x-www-form-urlencoded; charset=utf-8')
-    expect(len(HTTPretty.latest_requests)).to.equal(1)
+    expect(len(HTTPretty.latest_requests)).to.equal(2)
 
 
 @httprettified
 def test_octet_stream():
-    url = 'http://httpbin.org/post'
+    url = 'https://httpbin.org/post'
     data = b"\xf5\x00\x00\x00"  # utf-8 with invalid start byte
     headers = {
         'Content-Type': 'application/octet-stream',
@@ -424,16 +425,18 @@ def test_octet_stream():
 
     expect(response.status_code).to.equal(200)
     expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.url).to.equal('https://httpbin.org/post')
+    expect(HTTPretty.last_request.protocol).to.equal('https')
     expect(HTTPretty.last_request.path).to.equal('/post')
     expect(HTTPretty.last_request.body).to.equal(data)
     expect(HTTPretty.last_request.headers['content-length']).to.equal('4')
     expect(HTTPretty.last_request.headers['content-type']).to.equal('application/octet-stream')
-    expect(len(HTTPretty.latest_requests)).to.equal(1)
+    expect(len(HTTPretty.latest_requests)).to.equal(2)
 
 
 @httprettified
 def test_multipart():
-    url = 'http://httpbin.org/post'
+    url = 'https://httpbin.org/post'
     data = b'--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="content"\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 68\r\n\r\nAction: comment\nText: Comment with attach\nAttachment: x1.txt, x2.txt\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_2"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz\r\nContent-Disposition: form-data; name="attachment_1"; filename="x.txt"\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nbye\n\r\n--xXXxXXyYYzzz--\r\n'
     headers = {'Content-Length': '495', 'Content-Type': 'multipart/form-data; boundary=xXXxXXyYYzzz', 'Accept': 'text/plain'}
     HTTPretty.register_uri(
@@ -443,11 +446,13 @@ def test_multipart():
     response = requests.post(url, data=data, headers=headers)
     expect(response.status_code).to.equal(200)
     expect(HTTPretty.last_request.method).to.equal('POST')
+    expect(HTTPretty.last_request.url).to.equal('https://httpbin.org/post')
+    expect(HTTPretty.last_request.protocol).to.equal('https')
     expect(HTTPretty.last_request.path).to.equal('/post')
     expect(HTTPretty.last_request.body).to.equal(data)
     expect(HTTPretty.last_request.headers['content-length']).to.equal('495')
     expect(HTTPretty.last_request.headers['content-type']).to.equal('multipart/form-data; boundary=xXXxXXyYYzzz')
-    expect(len(HTTPretty.latest_requests)).to.equal(1)
+    expect(len(HTTPretty.latest_requests)).to.equal(2)
 
 
 @httprettified
@@ -621,8 +626,7 @@ def test_httpretty_provides_easy_access_to_querystrings_with_regexes():
     })
 
 
-@skip('TODO: refactor this flaky test')
-@httprettified
+@httprettified(verbose=True)
 def test_httpretty_allows_to_chose_if_querystring_should_be_matched():
     "HTTPretty should provide a way to not match regexes that have a different querystring"
 

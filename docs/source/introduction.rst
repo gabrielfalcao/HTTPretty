@@ -17,13 +17,15 @@ Don't worry, HTTPretty is here for you:
 
 ::
 
+  import logging
   import requests
   import httpretty
 
   from sure import expect
 
+  logging.getLogger('httpretty.core').setLevel(logging.DEBUG)
 
-  @httpretty.activate
+  @httpretty.activate(allow_net_connect=False)
   def test_yipit_api_returning_deals():
       httpretty.register_uri(httpretty.GET, "http://api.yipit.com/v1/deals/",
                              body='[{"title": "Test Deal"}]',
@@ -37,8 +39,13 @@ Don't worry, HTTPretty is here for you:
 A more technical description
 ============================
 
-HTTPretty is a HTTP client mock library for Python 100% inspired on ruby's [FakeWeb](http://fakeweb.rubyforge.org/).
-If you come from ruby this would probably sound familiar :smiley:
+HTTPretty is a python library that swaps the modules :py:mod:`socket`
+and :py:mod:`ssl` with fake implementations that intercept HTTP
+requests at the level of a TCP connection.
+
+It is inspired on Ruby's `FakeWeb <http://fakeweb.rubyforge.org/>`_.
+
+If you come from the Ruby programming language this would probably sound familiar :smiley:
 
 Installing
 ==========
@@ -65,7 +72,7 @@ expecting a simple response body
    import httpretty
 
    def test_one():
-       httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
+       httpretty.enable(verbose=True, allow_net_connect=False)  # enable HTTPretty so that it will monkey patch the socket module
        httpretty.register_uri(httpretty.GET, "http://yipit.com/",
                               body="Find the best daily deals")
 
@@ -160,20 +167,16 @@ problem:
 
     *"I'm gonna need to mock all those requests"*
 
-It brings a lot of hassle, you will need to use a generic mocking
-tool, mess with scope and so on.
+It can be a bit of a hassle to use something like
+:py:class:`mock.Mock` to stub the requests, this can work well for
+low-level unit tests but when writing functional or integration tests
+we should be able to allow the http calls to go through the TCP socket
+module.
 
-The idea behind HTTPretty (how it works)
-========================================
+HTTPretty `monkey patches
+<http://en.wikipedia.org/wiki/Monkey_patch>`_ Python's
+:py:mod:`socket` core module with a fake version of the module.
 
-
-HTTPretty `monkey patches <http://en.wikipedia.org/wiki/Monkey_patch>`_
-Python's `socket <http://docs.python.org/library/socket.html>`_ core
-module, reimplementing the HTTP protocol, by mocking requests and
-responses.
-
-As for how it works this way, you don't need to worry what http
-library you're gonna use.
-
-HTTPretty will mock the response for you :) *(and also give you the
-latest requests so that you can check them)*
+Because HTTPretty implements a fake the modules :py:mod:`socket` and
+:py:mod:`ssl` you can use write tests to code against any HTTP library
+that use those modules.

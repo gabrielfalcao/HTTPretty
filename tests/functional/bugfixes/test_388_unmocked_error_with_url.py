@@ -1,5 +1,5 @@
 # <HTTPretty - HTTP client mock for Python>
-# Copyright (C) <2011-2020> Gabriel Falcão <gabriel@nacaolivre.org>
+# Copyright (C) <2011-2021> Gabriel Falcão <gabriel@nacaolivre.org>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -23,7 +23,9 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 import requests
 import httpretty
+from httpretty.errors import UnmockedError
 
+from unittest import skip
 from sure import expect
 
 
@@ -34,45 +36,21 @@ def http():
     sess.mount('https://', adapter)
     return sess
 
-
-def test_http_passthrough():
-    url = 'http://httpbin.org/status/200'
-    response1 = http().get(url)
-
-    response1 = http().get(url)
-
-    httpretty.enable(allow_net_connect=False, verbose=True)
+@httpretty.activate(allow_net_connect=False)
+def test_https_forwarding():
+    "UnmockedError is raised with details about the mismatched request"
     httpretty.register_uri(httpretty.GET, 'http://google.com/', body="Not Google")
-    httpretty.register_uri(httpretty.GET, url, body="mocked")
-
-    response2 = http().get('http://google.com/')
-    expect(response2.content).to.equal(b'Not Google')
-
-    response3 = http().get(url)
-    response3.content.should.equal(b"mocked")
-
-    httpretty.disable()
-
-    response4 = http().get(url)
-    (response4.content).should.equal(response1.content)
-
-
-def test_https_passthrough():
-    url = 'https://raw.githubusercontent.com/gabrielfalcao/httpretty/master/COPYING'
-
-    response1 = http().get(url)
-
-    httpretty.enable(allow_net_connect=True, verbose=True)
     httpretty.register_uri(httpretty.GET, 'https://google.com/', body="Not Google")
-    httpretty.register_uri(httpretty.GET, url, body="mocked")
-
+    response1 = http().get('http://google.com/')
     response2 = http().get('https://google.com/')
-    expect(response2.content).to.equal(b'Not Google')
 
-    response3 = http().get(url)
-    (response3.text).should.equal('mocked')
+    http().get.when.called_with("https://github.com/gabrielfalcao/HTTPretty").should.have.raised(UnmockedError, 'https://github.com/gabrielfalcao/HTTPretty')
 
-    httpretty.disable()
-
-    response4 = http().get(url)
-    (response4.content).should.equal(response1.content)
+    response1.text.should.equal(response2.text)
+    try:
+        http().get("https://github.com/gabrielfalcao/HTTPretty")
+    except UnmockedError as exc:
+        expect(exc).to.have.property('request')
+        expect(exc.request).to.have.property('host').being.equal('github.com')
+        expect(exc.request).to.have.property('protocol').being.equal('https')
+        expect(exc.request).to.have.property('url').being.equal('https://github.com/gabrielfalcao/HTTPretty')

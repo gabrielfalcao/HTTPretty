@@ -120,7 +120,7 @@ def test_httpretty_bypasses_when_disabled(context):
     core.POTENTIAL_HTTP_PORTS.remove(context.http_port)
 
 
-@httpretty.activate
+@httpretty.activate(verbose=True)
 @that_with_context(start_http_server, stop_http_server)
 def test_httpretty_bypasses_a_unregistered_request(context):
     "httpretty should bypass a unregistered request by disabling it"
@@ -143,7 +143,7 @@ def test_httpretty_bypasses_a_unregistered_request(context):
     core.POTENTIAL_HTTP_PORTS.remove(context.http_port)
 
 
-@httpretty.activate
+@httpretty.activate(verbose=True)
 @that_with_context(start_tcp_server, stop_tcp_server)
 def test_using_httpretty_with_other_tcp_protocols(context):
     "httpretty should work even when testing code that also use other TCP-based protocols"
@@ -163,7 +163,7 @@ def test_using_httpretty_with_other_tcp_protocols(context):
 
 @httpretty.activate(allow_net_connect=False)
 @that_with_context(start_http_server, stop_http_server)
-def test_disallow_net_connect_1(context):
+def test_disallow_net_connect_1(context, verbose=True):
     """
     When allow_net_connect = False, a request that otherwise
     would have worked results in UnmockedError.
