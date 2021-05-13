@@ -87,7 +87,7 @@ Simple Example
     import requests
 
 
-    @httpretty.activate
+    @httpretty.activate(verbose=True, allow_net_connect=False)
     def test_httpbin():
         httpretty.register_uri(
             httpretty.GET,
@@ -108,7 +108,7 @@ checking multiple responses
 
  .. code:: python
 
-    @httpretty.activate
+    @httpretty.activate(verbose=True, allow_net_connect=False)
     def test_post_bodies():
         url = 'http://httpbin.org/post'
         httpretty.register_uri(httpretty.POST, url, status=200)
