@@ -31,7 +31,7 @@ import httpretty
 
 from freezegun import freeze_time
 from contextlib import contextmanager
-from sure import within, microseconds, expect
+from sure import within, miliseconds, expect
 from tornado import version as tornado_version
 from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
@@ -54,7 +54,7 @@ server_url = lambda path, port: "http://localhost:{}/{}".format(port, path.lstri
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
     "HTTPretty should mock a simple GET with requests.get"
 
@@ -68,7 +68,7 @@ def test_httpretty_should_mock_a_simple_get_with_requests_read(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_hostname_case_insensitive(now):
     "HTTPretty should match the hostname case insensitive"
 
@@ -82,7 +82,7 @@ def test_hostname_case_insensitive(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_httpretty_provides_easy_access_to_querystrings(now):
     "HTTPretty should provide an easy access to the querystring"
 
@@ -144,7 +144,7 @@ def test_httpretty_should_allow_adding_and_overwritting_requests():
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_httpretty_should_allow_forcing_headers_requests(now):
     "HTTPretty should allow forcing headers with requests"
 
@@ -188,7 +188,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2():
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_rotating_responses_with_requests(now):
     "HTTPretty should support rotating responses with requests"
 
@@ -219,7 +219,7 @@ def test_rotating_responses_with_requests(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_can_inspect_last_request(now):
     "HTTPretty.last_request is a mimetools.Message request from last match"
 
@@ -245,7 +245,7 @@ def test_can_inspect_last_request(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_can_inspect_last_request_with_ssl(now):
     "HTTPretty.last_request is recorded even when mocking 'https' (SSL)"
 
@@ -271,7 +271,7 @@ def test_can_inspect_last_request_with_ssl(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_httpretty_ignores_querystrings_from_registered_uri(now):
     "HTTPretty should ignore querystrings from the registered uri (requests library)"
 
@@ -285,7 +285,7 @@ def test_httpretty_ignores_querystrings_from_registered_uri(now):
 
 
 @httprettified
-@within(five=microseconds)
+@within(five=miliseconds)
 def test_streaming_responses(now):
     """
     Mock a streaming HTTP response, like those returned by the Twitter streaming
@@ -456,7 +456,7 @@ def test_multipart():
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_callback_response(now):
     ("HTTPretty should call a callback function and set its return value as the body of the response"
      " requests")
@@ -485,7 +485,7 @@ def test_callback_response(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_callback_body_remains_callable_for_any_subsequent_requests(now):
     ("HTTPretty should call a callback function more than one"
      " requests")
@@ -505,7 +505,7 @@ def test_callback_body_remains_callable_for_any_subsequent_requests(now):
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_callback_setting_headers_and_status_response(now):
     ("HTTPretty should call a callback function and uses it retur tuple as status code, headers and body"
      " requests")
@@ -556,7 +556,7 @@ def test_httpretty_should_respect_matcher_priority():
 
 
 @httprettified
-@within(two=microseconds)
+@within(two=miliseconds)
 def test_callback_setting_content_length_on_head(now):
     ("HTTPretty should call a callback function, use it's return tuple as status code, headers and body"
      " requests and respect the content-length header when responding to HEAD")
