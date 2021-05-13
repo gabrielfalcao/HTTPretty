@@ -1557,7 +1557,7 @@ class httpretty(HttpBaseClass):
         """
         uri_is_string = isinstance(uri, str)
 
-        if uri_is_string and re.search(r'^\w+://[^/]+[.]\w{2,}$', uri):
+        if uri_is_string and re.search(r'^\w+://[^/]+[.]\w{2,}(:[0-9]+)?$', uri):
             uri += '/'
 
         if isinstance(responses, list) and len(responses) > 0:
