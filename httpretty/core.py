@@ -117,11 +117,23 @@ try:
 except ImportError:
     _ssl = None
 # used to handle error caused by ndg-httpsclient
+pyopenssl_overrides_inject = []
+pyopenssl_overrides_extract = []
 try:
     from requests.packages.urllib3.contrib.pyopenssl import inject_into_urllib3, extract_from_urllib3
-    pyopenssl_override = True
+    pyopenssl_overrides_extract.append(extract_from_urllib)
+    pyopenssl_overrides_inject.append(inject_from_urllib)
 except Exception:
-    pyopenssl_override = False
+    pass
+
+
+
+try:
+    from urllib3.contrib.pyopenssl import extract_from_urllib3, inject_into_urllib3
+    pyopenssl_overrides_extract.append(extract_from_urllib)
+    pyopenssl_overrides_inject.append(inject_from_urllib)
+except Exception:
+    pass
 
 
 try:
@@ -1720,9 +1732,9 @@ def apply_patch_socket():
     socket.__dict__['getaddrinfo'] = fake_getaddrinfo
 
 
-    if pyopenssl_override:
-        # Take out the pyopenssl version - use the default implementation
-        extract_from_urllib3()
+    # Take out the pyopenssl version - use the default implementation
+    for extract_from_urllib3 in pyopenssl_overrides_extract:
+        extract_into_urllib3()
 
     if requests_urllib3_connection is not None:
         urllib3_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
@@ -1795,8 +1807,9 @@ def undo_patch_socket():
         requests_urllib3_connection.__dict__['ssl_wrap_socket'] = \
             old_requests_ssl_wrap_socket
 
-    if pyopenssl_override:
-        # Put the pyopenssl version back in place
+
+    # Put the pyopenssl version back in place
+    for inject_from_urllib3 in pyopenssl_overrides_inject:
         inject_into_urllib3()
 
 
