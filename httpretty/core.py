@@ -376,7 +376,6 @@ class FakeSockFile(object):
 
     def close(self):
         self.socket.close()
-        self.file.close()
 
     def fileno(self):
         return self._fileno
