@@ -58,16 +58,6 @@ def test_httpretty_debugs_socket_sendto(context):
     )
 
 
-@httprettified
-@scenario(create_socket)
-def test_httpretty_debugs_socket_recv(context):
-    "HTTPretty should forward_and_trace socket.recv"
-
-    expect(context.sock.recv).when.called.to.throw(
-        "not connected"
-    )
-
-
 @skip('not currently supported')
 @httprettified
 @scenario(create_socket)

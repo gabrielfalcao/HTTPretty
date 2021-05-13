@@ -5,6 +5,7 @@ eventlet==0.25.1  # issue #254
 flake8>=3.7.9
 freezegun>=0.3.15
 httplib2>=0.17.0
+httpx>=0.18.1
 ipdb>=0.13.2
 mccabe>=0.6.1
 mock>=3.0.5;python_version<"3.3"

@@ -421,6 +421,8 @@ class fakesock(object):
         """drop-in replacement for :py:class:`socket.socket`
         """
         _entry = None
+        _read_buf = None
+
         debuglevel = 0
         _sent_data = []
         is_secure = False
@@ -720,7 +722,9 @@ class fakesock(object):
             matcher, entries = httpretty.match_uriinfo(info)
 
             if not entries:
+                logger.debug('no entries matching {}'.format(request))
                 self._entry = None
+                self._read_buf = None
                 self.real_sendall(data, request=request)
                 return
 
@@ -739,8 +743,9 @@ class fakesock(object):
                 if self.truesock:
                     self.truesock.settimeout(new_timeout)
 
-        def send(self, *args, **kwargs):
-            return self.forward_and_trace('send', *args, **kwargs)
+        def send(self, data, *args, **kwargs):
+            self.sendall(data, *args, **kwargs)
+            return len(data)
 
         def sendto(self, *args, **kwargs):
             return self.forward_and_trace('sendto', *args, **kwargs)
@@ -754,12 +759,20 @@ class fakesock(object):
         def recvfrom(self, *args, **kwargs):
             return self.forward_and_trace('recvfrom', *args, **kwargs)
 
-        def recv(self, buffersize=None, *args, **kwargs):
-            buffersize = buffersize or self._bufsize
-            return self.forward_and_trace('recv', buffersize, *args, **kwargs)
+        def recv(self, buffersize=0, *args, **kwargs):
+            if not self._read_buf:
+                self._read_buf = io.BytesIO()
+
+            if self._entry:
+                self._entry.fill_filekind(self._read_buf)
+
+            if not self._read_buf:
+                raise UnmockedError('socket cannot recv(): {!r}'.format(self))
+
+            return self._read_buf.read(buffersize)
 
         def __getattr__(self, name):
-            if name in ('getsockopt', ) and not self.truesock:
+            if name in ('getsockopt', 'selected_alpn_protocol') and not self.truesock:
                 self.truesock = self.create_socket()
             elif httpretty.allow_net_connect and not self.truesock:
                 # can't call self.connect_truesock() here because we
