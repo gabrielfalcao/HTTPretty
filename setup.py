@@ -52,7 +52,7 @@ setup(
     long_description=local_file('README.rst'),
     author='Gabriel Falcao',
     author_email='gabriel@nacaolivre.org',
-    url='https://httpretty.readthedocs.io',
+    url='https://httpretty.readthedocs.io/en/latest/',
     zip_safe=False,
     packages=find_packages(exclude=['*tests*']),
     tests_require=local_file('development.txt').splitlines(),

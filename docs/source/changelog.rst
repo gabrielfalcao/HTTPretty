@@ -6,7 +6,7 @@ Release 1.1.1
 
 - Bugfix: `httpretty.disable()` injects pyopenssl into :py:mod:`urllib3` even if it originally wasn't `#417 <https://github.com/gabrielfalcao/HTTPretty/issues/417>`_
 - Bugfix: "Incompatibility with boto3 S3 put_object" `#416 <https://github.com/gabrielfalcao/HTTPretty/issues/416>`_
-- Bugfix: "Regular expression for URL -> TypeError: wrap_socket() missing 1 required" `#423 <https://github.com/gabrielfalcao/HTTPretty/issues/423>`_
+- Bugfix: "Regular expression for URL -> TypeError: wrap_socket() missing 1 required" `#413 <https://github.com/gabrielfalcao/HTTPretty/issues/413>`_
 - Bugfix: "Making requests to non-stadard port throws TimeoutError "`#387 <https://github.com/gabrielfalcao/HTTPretty/issues/387>`_
 
 
