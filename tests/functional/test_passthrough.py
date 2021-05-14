@@ -58,11 +58,11 @@ def test_http_passthrough():
 
 
 def test_https_passthrough():
-    url = 'https://raw.githubusercontent.com/gabrielfalcao/httpretty/master/COPYING'
+    url = 'https://httpbin.org/status/200'
 
     response1 = http().get(url)
 
-    httpretty.enable(allow_net_connect=True, verbose=True)
+    httpretty.enable(allow_net_connect=False, verbose=True)
     httpretty.register_uri(httpretty.GET, 'https://google.com/', body="Not Google")
     httpretty.register_uri(httpretty.GET, url, body="mocked")
 
