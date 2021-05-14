@@ -23,8 +23,8 @@ setup $(VENV)/bin/sphinx-build $(VENV)/bin/twine $(VENV)/bin/nosetests $(VENV)/b
 	$(VENV)/bin/pip install -e .
 
 # Runs the unit and functional tests
-tests: $(VENV)/bin/nosetests  # runs all tests
-	$(VENV)/bin/nosetests tests --with-random --cover-erase
+tests: unit functional pyopenssl
+
 
 tdd: $(VENV)/bin/nosetests  # runs all tests
 	$(VENV)/bin/nosetests tests --with-watch --cover-erase
@@ -38,7 +38,6 @@ unit: $(VENV)/bin/nosetests  # runs only unit tests
 
 
 pyopenssl: $(VENV)/bin/nosetests
-	$(VENV)/bin/pip install ndg-httpsclient
 	$(VENV)/bin/nosetests --cover-erase tests/pyopenssl
 
 
