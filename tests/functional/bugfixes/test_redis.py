@@ -2,11 +2,18 @@ import os
 import requests
 import httpretty
 
-from redis import Redis
+try:
+    from redis import Redis
+except ImportError:
+    Redis = None
+
 from unittest import skipUnless
 
 
 def redis_available():
+    if Redis is None:
+        return False
+
     params = dict(
         host=os.getenv('REDIS_HOST') or '127.0.0.1',
         port=int(os.getenv('REDIS_PORT') or 6379)
