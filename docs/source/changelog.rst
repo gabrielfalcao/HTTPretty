@@ -1,8 +1,17 @@
 Release Notes
 =============
 
-1.1.0
------
+Release 1.1.1
+-------------
+
+- Bugfix: `httpretty.disable()` injects pyopenssl into :py:mod:`urllib3` even if it originally wasn't `#417 <https://github.com/gabrielfalcao/HTTPretty/issues/417>`_
+- Bugfix: "Incompatibility with boto3 S3 put_object" `#416 <https://github.com/gabrielfalcao/HTTPretty/issues/416>`_
+- Bugfix: "Regular expression for URL -> TypeError: wrap_socket() missing 1 required" `#423 <https://github.com/gabrielfalcao/HTTPretty/issues/423>`_
+- Bugfix: "Making requests to non-stadard port throws TimeoutError "`#387 <https://github.com/gabrielfalcao/HTTPretty/issues/387>`_
+
+
+Release 1.1.0
+-------------
 
 - Feature: Display mismatched URL within ``UnmockedError`` whenever possible. `#388 <https://github.com/gabrielfalcao/HTTPretty/issues/388>`_
 - Feature: Display mismatched URL via logging. `#419 <https://github.com/gabrielfalcao/HTTPretty/pull/419>`_
@@ -21,24 +30,24 @@ Example usage:
        requests.get('https://redis.local')
 
 
-1.0.5
------
+Release 1.0.5
+-------------
 
 - Bugfix: Support `socket.socketpair() <https://docs.python.org/3/library/socket.html#socket.socketpair>`_ . `#402 <https://github.com/gabrielfalcao/HTTPretty/issues/402>`_
 - Bugfix: Prevent exceptions from re-applying monkey patches. `#406 <https://github.com/gabrielfalcao/HTTPretty/issues/406>`_
 
-1.0.4
------
+Release 1.0.4
+-------------
 
 - Python 3.8 and 3.9 support. `#407 <https://github.com/gabrielfalcao/HTTPretty/issues/407>`_
 
-1.0.3
------
+Release 1.0.3
+-------------
 
 - Fix compatibility with urllib3>=1.26. `#410 <https://github.com/gabrielfalcao/HTTPretty/pull/410>`_
 
-1.0.0
------
+Release 1.0.0
+-------------
 
 - Drop Python 2 support.
 - Fix usage with redis and improve overall real-socket passthrough. `#271 <https://github.com/gabrielfalcao/HTTPretty/issues/271>`_.
@@ -58,8 +67,8 @@ Example usage:
 - Clarify relation between ``enabled`` and ``httprettized`` in API docs.
 - Align signature with builtin socket.
 
-0.9.4
------
+Release 0.9.4
+-------------
 
 Improvements:
 
@@ -70,8 +79,8 @@ Improvements:
 - Migrate from `pip <https://pypi.org/project/pip/>`_ to `pipenv <https://docs.pipenv.org/>`_
 
 
-0.8.4
------
+Release 0.8.4
+-------------
 
 Improvements:
 
@@ -83,8 +92,8 @@ Bug fixes:
 -  POST requests being called twice
    `#100 <https://github.com/gabrielfalcao/HTTPretty/pull/100>`__
 
-0.6.5
------
+Release 0.6.5
+-------------
 
 Applied pull requests:
 
@@ -113,8 +122,8 @@ Applied pull requests:
    `#87 <https://github.com/gabrielfalcao/HTTPretty/pull/87>`__ by
    `mardiros <http://github.com/mardiros>`__
 
-0.6.2
------
+Release 0.6.2
+-------------
 
 -  Fixing bug of lack of trailing slashes
    `#73 <https://github.com/gabrielfalcao/HTTPretty/issues/73>`__
@@ -125,8 +134,8 @@ Applied pull requests:
 -  Keyword arg coercion fix by @dupuy
 -  @papaeye fixed content-length calculation.
 
-0.6.1
------
+Release 0.6.1
+-------------
 
 -  New API, no more camel case and everything is available through a
    simple import:
@@ -143,8 +152,8 @@ Applied pull requests:
 
 -  Re-organized module into submodules
 
-0.5.14
-------
+Release 0.5.14
+--------------
 
 -  Delegate calls to other methods on socket
 
@@ -157,30 +166,30 @@ Applied pull requests:
 
 -  Normalize urls matching for url quoting
 
-0.5.12
-------
+Release 0.5.12
+--------------
 
 -  HTTPretty doesn't hang when using other application protocols under a
    @httprettified decorated test.
 
-0.5.11
-------
+Release 0.5.11
+--------------
 
 -  Ability to know whether HTTPretty is or not enabled through
    ``httpretty.is_enabled()``
 
-0.5.10
-------
+Release 0.5.10
+--------------
 
 -  Support to multiple methods per registered URL. Thanks @hughsaunders
 
-0.5.9
------
+Release 0.5.9
+-------------
 
 -  Fixed python 3 support. Thanks @spulec
 
-0.5.8
------
+Release 0.5.8
+-------------
 
 -  Support to `register regular expressions to match
    urls <#matching-regular-expressions>`__
