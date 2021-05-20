@@ -76,18 +76,32 @@ from errno import EAGAIN
 class __internals__:
     thread_timeout = 0  # https://github.com/gabrielfalcao/HTTPretty/issues/426
     temp_files = []
+    threads = []
 
     @classmethod
     def cleanup_sockets(cls):
         cls.cleanup_temp_files()
+        cls.cleanup_threads()
+
+    @classmethod
+    def cleanup_threads(cls):
+        for t in cls.threads:
+            t.join(cls.thread_timeout)
+            if t.is_alive():
+                raise socket.timeout(cls.thread_timeout)
+
+    @classmethod
+    def create_thread(cls, *args, **kwargs):
+        return threading.Thread(*args, **kwargs)
 
     @classmethod
     def cleanup_temp_files(cls):
-        for fd in cls.temp_files:
+        for fd in cls.temp_files[:]:
             try:
                 fd.close()
             except Exception as e:
                 logger.debug('error closing file {}: {}'.format(fd, e))
+            cls.temp_files.remove(fd)
 
     @classmethod
     def create_temp_file(cls):
@@ -406,17 +420,49 @@ class FakeSockFile(object):
 
     """
     def __init__(self):
+        self.file = None
+        self._fileno = None
+        self.__closed__ = None
+        self.reset()
+
+    def reset(self):
+        if self.file:
+            try:
+                self.file.close()
+            except Exception as e:
+                logger.debug('error closing file {}: {}'.format(self.file, e))
+            self.file = None
+
         self.file = __internals__.create_temp_file()
         self._fileno = self.file.fileno()
+        self.__closed__ = False
 
     def getvalue(self):
         if hasattr(self.file, 'getvalue'):
-            return self.file.getvalue()
+            value = self.file.getvalue()
         else:
-            return self.file.read()
+            value = self.file.read()
+        self.file.seek(0)
+        return value
 
     def close(self):
-        self.file.flush()
+        if self.__closed__:
+            return
+        self.__closed__ = True
+        self.flush()
+
+    def flush(self):
+        try:
+            super().flush()
+        except Exception as e:
+            logger.debug('error closing file {}: {}'.format(self, e))
+
+        try:
+            self.file.flush()
+        except Exception as e:
+            logger.debug('error closing file {}: {}'.format(self.file, e))
+
+
 
     def fileno(self):
         return self._fileno
@@ -642,17 +688,18 @@ class fakesock(object):
             self._bufsize = bufsize
 
             if self._entry:
-                t = threading.Thread(
+                t = __internals__.create_thread(
                     target=self._entry.fill_filekind, args=(self.fd,)
                 )
+
                 t.start()
                 if self.timeout == SOCKET_GLOBAL_DEFAULT_TIMEOUT:
-                    timeout = 0
+                    timeout = get_default_thread_timeout()
                 else:
                     timeout = self.timeout
-                t.join(timeout)
+                t.join(None)
                 if t.is_alive():
-                    raise socket.timeout
+                    raise socket.timeout(timeout)
 
             return self.fd
 
@@ -1545,6 +1592,7 @@ class httpretty(HttpBaseClass):
         cls._entries.clear()
         cls.latest_requests = []
         cls.last_request = HTTPrettyRequestEmpty()
+        __internals__.cleanup_sockets()
 
     @classmethod
     def historify_request(cls, headers, body='', sock=None):
@@ -1705,7 +1753,6 @@ class httpretty(HttpBaseClass):
         .. note:: This method does not call :py:meth:`httpretty.core.reset` automatically.
         """
         undo_patch_socket()
-        __internals__.cleanup_sockets()
         cls._is_enabled = False
 
 
