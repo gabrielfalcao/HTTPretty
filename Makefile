@@ -17,13 +17,13 @@ $(VENV):  # creates $(VENV) folder if does not exist
 	python3 -mvenv $(VENV)
 	$(VENV)/bin/pip install -U pip setuptools
 
-setup $(VENV)/bin/sphinx-build $(VENV)/bin/twine $(VENV)/bin/nosetests $(VENV)/bin/python $(VENV)/bin/pip: # installs latest pip
+setup $(VENV)/bin/sphinx-build $(VENV)/bin/twine $(VENV)/bin/nosetests $(VENV)/bin/pytest $(VENV)/bin/python $(VENV)/bin/pip: # installs latest pip
 	test -e $(VENV)/bin/pip || make $(VENV)
 	$(VENV)/bin/pip install -r development.txt
 	$(VENV)/bin/pip install -e .
 
 # Runs the unit and functional tests
-tests: unit functional pyopenssl
+tests: unit bugfixes functional pyopenssl
 
 
 tdd: $(VENV)/bin/nosetests  # runs all tests
@@ -40,9 +40,14 @@ unit: $(VENV)/bin/nosetests  # runs only unit tests
 pyopenssl: $(VENV)/bin/nosetests
 	$(VENV)/bin/nosetests --cover-erase tests/pyopenssl
 
+bugfixes: $(VENV)/bin/nosetests $(VENV)/bin/pytest   # runs tests for specific bugfixes
+	$(VENV)/bin/pytest -v --maxfail=1 --mypy tests/bugfixes/pytest
+	$(VENV)/bin/nosetests tests/bugfixes/nosetests
+
 
 # runs functional tests
 functional: $(VENV)/bin/nosetests  # runs functional tests
+	$(MAKE) bugfixes
 	$(VENV)/bin/nosetests tests/functional/bugfixes
 	$(VENV)/bin/nosetests tests/functional
 

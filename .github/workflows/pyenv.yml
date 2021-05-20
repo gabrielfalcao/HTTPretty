@@ -28,6 +28,9 @@ jobs:
     - name: Unit Tests
       run: make unit
 
+    - name: Test Bugfixes
+      run: make bugfixes
+
     - name: PyOpenSSL tests
       run: make pyopenssl
 
