@@ -48,7 +48,6 @@ bugfixes: $(VENV)/bin/nosetests $(VENV)/bin/pytest   # runs tests for specific b
 # runs functional tests
 functional: $(VENV)/bin/nosetests  # runs functional tests
 	$(MAKE) bugfixes
-	$(VENV)/bin/nosetests tests/functional/bugfixes
 	$(VENV)/bin/nosetests tests/functional
 
 
