@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+Release 1.1.2
+-------------
+
+- Bugfix: `#426 <https://github.com/gabrielfalcao/HTTPretty/issues/426>`_ Segmentation fault when running against a large amount of tests with ``pytest --mypy``.
+
 Release 1.1.1
 -------------
 
