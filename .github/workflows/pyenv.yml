@@ -24,6 +24,7 @@ jobs:
       uses: gabrielfalcao/pyenv-action@v7
       with:
         default: "${{ matrix.python }}"
+        command: make setup
 
     - name: Unit Tests
       run: make unit
