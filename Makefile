@@ -41,9 +41,8 @@ pyopenssl: $(VENV)/bin/nosetests
 	$(VENV)/bin/nosetests --cover-erase tests/pyopenssl
 
 bugfixes: $(VENV)/bin/nosetests $(VENV)/bin/pytest   # runs tests for specific bugfixes
-	$(VENV)/bin/pytest -v --maxfail=1 --mypy tests/bugfixes/pytest
 	$(VENV)/bin/nosetests tests/bugfixes/nosetests
-
+	$(VENV)/bin/pytest --maxfail=1 --mypy tests/bugfixes/pytest
 
 # runs functional tests
 functional: $(VENV)/bin/nosetests  # runs functional tests
