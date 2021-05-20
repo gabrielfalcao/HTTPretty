@@ -375,7 +375,7 @@ class FakeSockFile(object):
             return self.file.read()
 
     def close(self):
-        self.socket.close()
+        self.file.flush()
 
     def fileno(self):
         return self._fileno
@@ -388,6 +388,11 @@ class FakeSockFile(object):
             self.close()
         except (ValueError, AttributeError):
             pass
+
+        # Adding the line below as a potential fix of github issue #426
+        # that seems to be a compatible the solution of #413
+        self.file.close()
+
 
 
 class FakeSSLSocket(object):
