@@ -11,7 +11,7 @@ from unittest import skipIf
 try:
     from urllib3.contrib.pyopenssl import extract_from_urllib3
 except Exception:
-    extract_from_urllib3 = None
+    extract_from_urllib3 = lambda x: x
 
 
 @skipIf(extract_from_urllib3 is None,
