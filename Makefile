@@ -58,7 +58,7 @@ html: $(DOCS_INDEX) $(VENV)/bin/sphinx-build
 docs: $(DOCS_INDEX) $(VENV)/bin/sphinx-build
 	open $(DOCS_INDEX)
 
-release: | clean unit functional tests html
+release: | clean tests html
 	@rm -rf dist/*
 	@./.release
 	@make pypi
