@@ -38,7 +38,7 @@ def http():
 
 @httpretty.activate(allow_net_connect=False)
 def test_https_forwarding():
-    "UnmockedError is raised with details about the mismatched request"
+    "#388 UnmockedError is raised with details about the mismatched request"
     httpretty.register_uri(httpretty.GET, 'http://google.com/', body="Not Google")
     httpretty.register_uri(httpretty.GET, 'https://google.com/', body="Not Google")
     response1 = http().get('http://google.com/')

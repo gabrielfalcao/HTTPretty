@@ -7,6 +7,7 @@ from sure import expect
 
 @httpretty.activate(allow_net_connect=False, verbose=True)
 def test_boto3():
+    "#416 boto3 issue"
     httpretty.register_uri(
         httpretty.PUT,
         "https://foo-bucket.s3.amazonaws.com/foo-object",

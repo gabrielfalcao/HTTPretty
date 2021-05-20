@@ -17,6 +17,7 @@ except Exception:
 @skipIf(extract_from_urllib3 is None,
         "urllib3.contrib.pyopenssl.extract_from_urllib3 does not exist")
 def test_enable_disable_httpretty_extract():
+    "#417 urllib3.contrib.pyopenssl enable -> disable extract"
     expect(urllib3.util.IS_PYOPENSSL).to.be.false
     httpretty.enable()
     httpretty.disable()
@@ -24,6 +25,7 @@ def test_enable_disable_httpretty_extract():
     expect(urllib3.util.IS_PYOPENSSL).to.be.false
 
 def test_enable_disable_httpretty():
+    "#417 urllib3.contrib.pyopenssl enable -> disable extract"
     expect(urllib3.util.IS_PYOPENSSL).to.be.false
     httpretty.enable()
     httpretty.disable()
