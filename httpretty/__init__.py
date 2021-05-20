@@ -29,6 +29,7 @@
 from . import core
 
 from .core import httpretty, httprettified, EmptyRequestHeaders
+from .core import set_default_thread_timeout, get_default_thread_timeout
 from .errors import HTTPrettyError, UnmockedError
 from .version import version
 

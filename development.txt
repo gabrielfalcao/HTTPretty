@@ -27,3 +27,4 @@ twine>=1.15.0
 urllib3>=1.25.8
 boto3>=1.17.72
 ndg-httpsclient>=0.5.1
+pytest-mypy==0.8.1
