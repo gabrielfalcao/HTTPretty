@@ -73,6 +73,45 @@ from datetime import datetime
 from datetime import timedelta
 from errno import EAGAIN
 
+class __internals__:
+    thread_timeout = 0  # https://github.com/gabrielfalcao/HTTPretty/issues/426
+    temp_files = []
+
+    @classmethod
+    def cleanup_sockets(cls):
+        cls.cleanup_temp_files()
+
+    @classmethod
+    def cleanup_temp_files(cls):
+        for fd in cls.temp_files:
+            try:
+                fd.close()
+            except Exception as e:
+                logger.debug('error closing file {}: {}'.format(fd, e))
+
+    @classmethod
+    def create_temp_file(cls):
+        fd = tempfile.TemporaryFile()
+        cls.temp_files.append(fd)
+        return fd
+
+def set_default_thread_timeout(timeout):
+    """sets the default thread timeout for HTTPretty threads
+
+    :param timeout: int
+    """
+    __internals__.thread_timeout = timeout
+
+def get_default_thread_timeout():
+    """sets the default thread timeout for HTTPretty threads
+
+    :returns: int
+    """
+
+    return __internals__.thread_timeout
+
+
+SOCKET_GLOBAL_DEFAULT_TIMEOUT = socket._GLOBAL_DEFAULT_TIMEOUT
 old_socket = socket.socket
 old_socketpair = getattr(socket, 'socketpair', None)
 old_SocketType = socket.SocketType
@@ -153,6 +192,7 @@ DEFAULT_HTTP_PORTS = frozenset([80])
 POTENTIAL_HTTP_PORTS = set(DEFAULT_HTTP_PORTS)
 DEFAULT_HTTPS_PORTS = frozenset([443])
 POTENTIAL_HTTPS_PORTS = set(DEFAULT_HTTPS_PORTS)
+
 
 
 def FALLBACK_FUNCTION(x):
@@ -359,13 +399,14 @@ class HTTPrettyRequestEmpty(object):
     headers = EmptyRequestHeaders()
 
 
+
 class FakeSockFile(object):
     """Fake socket file descriptor. Under the hood all data is written in
     a temporary file, giving it a real file descriptor number.
 
     """
     def __init__(self):
-        self.file = tempfile.TemporaryFile()
+        self.file = __internals__.create_temp_file()
         self._fileno = self.file.fileno()
 
     def getvalue(self):
@@ -381,7 +422,10 @@ class FakeSockFile(object):
         return self._fileno
 
     def __getattr__(self, name):
-        return getattr(self.file, name)
+        try:
+            return getattr(self.file, name)
+        except AttributeError:
+            return super().__getattribute__(name)
 
     def __del__(self):
         try:
@@ -602,8 +646,8 @@ class fakesock(object):
                     target=self._entry.fill_filekind, args=(self.fd,)
                 )
                 t.start()
-                if self.timeout == socket._GLOBAL_DEFAULT_TIMEOUT:
-                    timeout = None
+                if self.timeout == SOCKET_GLOBAL_DEFAULT_TIMEOUT:
+                    timeout = 0
                 else:
                     timeout = self.timeout
                 t.join(timeout)
@@ -1661,6 +1705,7 @@ class httpretty(HttpBaseClass):
         .. note:: This method does not call :py:meth:`httpretty.core.reset` automatically.
         """
         undo_patch_socket()
+        __internals__.cleanup_sockets()
         cls._is_enabled = False
 
 
