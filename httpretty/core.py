@@ -1614,8 +1614,7 @@ class httpretty(HttpBaseClass):
         if request not in cls.latest_requests:
             cls.latest_requests.append(request)
         else:
-            pos = cls.latest_requests.index(request)
-            cls.latest_requests[pos] = request
+            cls.latest_requests[-1] = request
 
         logger.info("captured: {}".format(request))
         return request
