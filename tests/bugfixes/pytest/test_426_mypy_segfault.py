@@ -7,15 +7,15 @@ import httpretty
 
 
 class GenerateTests(type):
-
     def __init__(cls, name, bases, attrs):
-        if name in ('GenerateTestMeta',):
-            return
+        if name in ('GenerateTestMeta',): return
 
-        count = getattr(cls, '__generate_count__', attrs.get('__generate_count__')) or 100
+        count = getattr(cls, '__generate_count__', attrs.get('__generate_count__'))
+        if not isinstance(count, int):
+            raise SyntaxError(f'Metaclass requires def `__generate_count__ = NUMBER_OF_TESTS` to be set to an integer')
+
         generate_method = getattr(cls, '__generate_method__', attrs.get('__generate_method__'))
-
-        if not generate_method:
+        if not callable(generate_method):
             raise SyntaxError(f'Metaclass requires def `__generate_method__(test_name):` to be implemented')
 
 
@@ -69,8 +69,9 @@ class TestBug426MypySegfaultWithCallbackAndPayload(unittest.TestCase, metaclass=
 
         return request_callback
 
+
 class TestBug426MypySegfaultWithEmptyMethod(unittest.TestCase, metaclass=GenerateTests):
-    __generate_count__ = 1000
+    __generate_count__ = 10000
 
     def __generate_method__(test_name):
         @httpretty.httprettified(allow_net_connect=False)
