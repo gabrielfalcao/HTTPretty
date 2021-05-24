@@ -160,3 +160,4 @@ but some folks made remarkable contributions and deserve extra credit:
 -  Matt Luongo ~> `@mhluongo <https://github.com/mhluongo>`_
 -  Steve Pulec ~> `@spulec <https://github.com/spulec>`_
 -  Miro Hrončok ~> `@hroncok <https://github.com/hroncok>`_
+   Mario Jonke ~> `@mariojonke <https://github.com/mariojonke>`_
