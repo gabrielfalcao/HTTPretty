@@ -74,7 +74,7 @@ from datetime import timedelta
 from errno import EAGAIN
 
 class __internals__:
-    thread_timeout = 0  # https://github.com/gabrielfalcao/HTTPretty/issues/426
+    thread_timeout = 0.1  # https://github.com/gabrielfalcao/HTTPretty/issues/430
     temp_files = []
     threads = []
 
