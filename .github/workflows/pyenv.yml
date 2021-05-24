@@ -37,3 +37,9 @@ jobs:
 
     - name: Functional Tests
       run: make functional
+
+    - name: Upload Test Coverage Report
+      uses: Atrox/codecov-action@v0.1.3
+
+    - name: Codecov link
+      run: echo "https://app.codecov.io/gh/gabrielfalcao/httpretty/"
