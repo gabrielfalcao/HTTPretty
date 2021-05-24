@@ -59,6 +59,13 @@ setup(
     install_requires=install_requires,
     license='MIT',
     test_suite='nose.collector',
+    project_urls={
+        "Documentation": "https://httpretty.readthedocs.io/en/latest/",
+        "Source Code": "https://github.com/gabrielfalcao/httpretty",
+        "Issue Tracker": "https://github.com/gabrielfalcao/httpretty/issues",
+        "Continuous Integration": "https://github.com/gabrielfalcao/HTTPretty/actions/workflows/pyenv.yml?query=branch%3Amaster+event%3Apush",
+        "Test Coverage": "https://codecov.io/gh/gabrielfalcao/httpretty",
+    },
     python_requires='>=3',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
