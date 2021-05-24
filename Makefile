@@ -17,8 +17,11 @@ $(VENV):  # creates $(VENV) folder if does not exist
 	python3 -mvenv $(VENV)
 	$(VENV)/bin/pip install -U pip setuptools
 
-setup $(VENV)/bin/sphinx-build $(VENV)/bin/twine $(VENV)/bin/nosetests $(VENV)/bin/pytest $(VENV)/bin/python $(VENV)/bin/pip: # installs latest pip
+$(VENV)/bin/sphinx-build $(VENV)/bin/twine $(VENV)/bin/nosetests $(VENV)/bin/pytest $(VENV)/bin/python $(VENV)/bin/pip: # installs latest pip
 	test -e $(VENV)/bin/pip || make $(VENV)
+	$(MAKE) setup
+
+setup: | $(VENV)/bin/pip
 	$(VENV)/bin/pip install -r development.txt
 	$(VENV)/bin/pip install -e .
 
@@ -30,7 +33,7 @@ tdd: $(VENV)/bin/nosetests  # runs all tests
 	$(VENV)/bin/nosetests tests --with-watch --cover-erase
 
 # Install dependencies
-dependencies: | $(VENV)/bin/nosetests
+dependencies: | setup $(VENV)/bin/nosetests
 
 # runs unit tests
 unit: $(VENV)/bin/nosetests  # runs only unit tests
