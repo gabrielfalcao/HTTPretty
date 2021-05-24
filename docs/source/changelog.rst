@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+Release 1.1.3
+-------------
+
+- Bugfix: `#430 <https://github.com/gabrielfalcao/HTTPretty/issues/430>`_ Respect socket timeout.
+
 Release 1.1.2
 -------------
 
