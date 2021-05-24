@@ -74,7 +74,7 @@ from datetime import timedelta
 from errno import EAGAIN
 
 class __internals__:
-    thread_timeout = 0  # https://github.com/gabrielfalcao/HTTPretty/issues/426
+    thread_timeout = 0.1  # https://github.com/gabrielfalcao/HTTPretty/issues/430
     temp_files = []
     threads = []
 
@@ -692,13 +692,20 @@ class fakesock(object):
                     target=self._entry.fill_filekind, args=(self.fd,)
                 )
 
+                # execute body callback and send http response in a
+                # thread, wait for thread to finish within the timeout
+                # set via socket.settimeout()
                 t.start()
                 if self.timeout == SOCKET_GLOBAL_DEFAULT_TIMEOUT:
                     timeout = get_default_thread_timeout()
                 else:
                     timeout = self.timeout
-                t.join(None)
+
+                # fake socket timeout error by checking if the thread
+                # finished in time.
+                t.join(timeout)
                 if t.is_alive():
+                    # For more info check issue https://github.com/gabrielfalcao/HTTPretty/issues/430
                     raise socket.timeout(timeout)
 
             return self.fd
