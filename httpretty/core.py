@@ -1697,7 +1697,6 @@ class httpretty(HttpBaseClass):
             del cls._entries[matcher]
 
         cls._entries[matcher] = entries_for_this_uri
-        return matcher, entries_for_this_uri[:]
 
     def __str__(self):
         return '<HTTPretty with %d URI entries>' % len(self._entries)
