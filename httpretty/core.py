@@ -692,13 +692,20 @@ class fakesock(object):
                     target=self._entry.fill_filekind, args=(self.fd,)
                 )
 
+                # execute body callback and send http response in a
+                # thread, wait for thread to finish within the timeout
+                # set via socket.settimeout()
                 t.start()
                 if self.timeout == SOCKET_GLOBAL_DEFAULT_TIMEOUT:
                     timeout = get_default_thread_timeout()
                 else:
                     timeout = self.timeout
-                t.join(None)
+
+                # fake socket timeout error by checking if the thread
+                # finished in time.
+                t.join(timeout)
                 if t.is_alive():
+                    # For more info check issue https://github.com/gabrielfalcao/HTTPretty/issues/430
                     raise socket.timeout(timeout)
 
             return self.fd
@@ -1690,6 +1697,7 @@ class httpretty(HttpBaseClass):
             del cls._entries[matcher]
 
         cls._entries[matcher] = entries_for_this_uri
+        return matcher, entries_for_this_uri[:]
 
     def __str__(self):
         return '<HTTPretty with %d URI entries>' % len(self._entries)
