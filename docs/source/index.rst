@@ -66,6 +66,7 @@ Looking for the `Github Repository <https://github.com/gabrielfalcao/HTTPretty>`
    :maxdepth: 2
 
    introduction
+   guides
    acks
    api
    contributing

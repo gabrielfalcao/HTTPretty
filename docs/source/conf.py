@@ -34,6 +34,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.autosummary',
+    'sphinx.ext.autosummary',
+    'sphinxcontrib.asciinema',
 ]
 
 templates_path = ['_templates']
