@@ -1815,7 +1815,7 @@ class httpretty(HttpBaseClass):
         if verbose:
             logger.setLevel(logging.DEBUG)
         else:
-            logger.setLevel(logging.getLogger().level)
+            logger.setLevel(logging.getLogger().level or logging.WARNING)
 
 
 def apply_patch_socket():
