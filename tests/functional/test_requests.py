@@ -407,7 +407,7 @@ def test_multiline():
     expect(HTTPretty.last_request.body).to.equal(data)
     expect(HTTPretty.last_request.headers['content-length']).to.equal('37')
     expect(HTTPretty.last_request.headers['content-type']).to.equal('application/x-www-form-urlencoded; charset=utf-8')
-    expect(len(HTTPretty.latest_requests)).to.equal(2)
+    expect(len(HTTPretty.latest_requests)).to.equal(1)
 
 
 @httprettified
@@ -431,7 +431,7 @@ def test_octet_stream():
     expect(HTTPretty.last_request.body).to.equal(data)
     expect(HTTPretty.last_request.headers['content-length']).to.equal('4')
     expect(HTTPretty.last_request.headers['content-type']).to.equal('application/octet-stream')
-    expect(len(HTTPretty.latest_requests)).to.equal(2)
+    expect(len(HTTPretty.latest_requests)).to.equal(1)
 
 
 @httprettified
@@ -452,7 +452,7 @@ def test_multipart():
     expect(HTTPretty.last_request.body).to.equal(data)
     expect(HTTPretty.last_request.headers['content-length']).to.equal('495')
     expect(HTTPretty.last_request.headers['content-type']).to.equal('multipart/form-data; boundary=xXXxXXyYYzzz')
-    expect(len(HTTPretty.latest_requests)).to.equal(2)
+    expect(len(HTTPretty.latest_requests)).to.equal(1)
 
 
 @httprettified
