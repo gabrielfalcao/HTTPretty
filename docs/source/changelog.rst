@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+Release 1.1.4
+-------------
+
+- Bugfix: `#435 <https://github.com/gabrielfalcao/HTTPretty/issues/435>`_ Fallback to WARNING when logging.getLogger().level is None.
+
 Release 1.1.3
 -------------
 
