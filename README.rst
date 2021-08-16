@@ -1,4 +1,4 @@
-HTTPretty 1.1.3
+HTTPretty 1.1.4
 ===============
 
 .. image:: https://github.com/gabrielfalcao/HTTPretty/raw/master/docs/source/_static/logo.svg?sanitize=true
