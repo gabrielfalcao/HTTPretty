@@ -930,7 +930,7 @@ def create_fake_connection(
         s.settimeout(timeout)
 
     if isinstance(source_address, tuple) and len(source_address) == 2:
-        source_address[1] = int(source_address[1])
+        source_address = (source_address[0], int(source_address[1]))
 
     if source_address:
         s.bind(source_address)
