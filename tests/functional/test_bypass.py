@@ -88,7 +88,7 @@ def stop_tcp_server(context):
 
 @httpretty.activate
 @that_with_context(start_http_server, stop_http_server)
-def test_httpretty_bypasses_when_disabled(context):
+def test_httpretty_bypasses_when_disabled(context=None):
     "httpretty should bypass all requests by disabling it"
 
     httpretty.register_uri(
@@ -122,7 +122,7 @@ def test_httpretty_bypasses_when_disabled(context):
 
 @httpretty.activate(verbose=True)
 @that_with_context(start_http_server, stop_http_server)
-def test_httpretty_bypasses_a_unregistered_request(context):
+def test_httpretty_bypasses_a_unregistered_request(context=None):
     "httpretty should bypass a unregistered request by disabling it"
 
     httpretty.register_uri(
@@ -145,7 +145,7 @@ def test_httpretty_bypasses_a_unregistered_request(context):
 
 @httpretty.activate(verbose=True)
 @that_with_context(start_tcp_server, stop_tcp_server)
-def test_using_httpretty_with_other_tcp_protocols(context):
+def test_using_httpretty_with_other_tcp_protocols(context=None):
     "httpretty should work even when testing code that also use other TCP-based protocols"
 
     httpretty.register_uri(
@@ -163,7 +163,7 @@ def test_using_httpretty_with_other_tcp_protocols(context):
 
 @httpretty.activate(allow_net_connect=False)
 @that_with_context(start_http_server, stop_http_server)
-def test_disallow_net_connect_1(context, verbose=True):
+def test_disallow_net_connect_1(context=None, verbose=True):
     """
     When allow_net_connect = False, a request that otherwise
     would have worked results in UnmockedError.
