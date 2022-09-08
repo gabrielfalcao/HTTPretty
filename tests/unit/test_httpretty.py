@@ -117,6 +117,7 @@ def test_status_codes():
         417: "Expectation Failed",
         418: "I'm a teapot",
         420: "Enhance Your Calm",
+        421: "Misdirected Request",
         422: "Unprocessable Entity",
         423: "Locked",
         424: "Failed Dependency",
