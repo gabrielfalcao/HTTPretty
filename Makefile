@@ -53,7 +53,7 @@ functional: $(VENV)/bin/nosetests  # runs functional tests
 
 
 
-$(DOCS_INDEX): $(VENV)/bin/sphinx-build
+$(DOCS_INDEX): | $(VENV)/bin/sphinx-build
 	cd docs && make html
 
 html: $(DOCS_INDEX) $(VENV)/bin/sphinx-build
