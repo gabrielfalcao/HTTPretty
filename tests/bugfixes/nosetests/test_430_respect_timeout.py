@@ -51,4 +51,4 @@ def test_read_timeout():
     # And the total execution time should be less than 0.2 seconds
     event.set()
     total_time = time.time() - started_at
-    total_time.should.be.lower_than(0.2)
+    total_time.should.be.lower_than(0.24)
