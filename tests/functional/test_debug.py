@@ -39,7 +39,7 @@ def create_socket(context):
 @skip('not currently supported')
 @httprettified
 @scenario(create_socket)
-def test_httpretty_debugs_socket_send(context):
+def test_httpretty_debugs_socket_send(context=None):
     "HTTPretty should forward_and_trace socket.send"
 
     expect(context.sock.send).when.called_with(b'data').to.throw(
@@ -50,7 +50,7 @@ def test_httpretty_debugs_socket_send(context):
 @skip('not currently supported')
 @httprettified
 @scenario(create_socket)
-def test_httpretty_debugs_socket_sendto(context):
+def test_httpretty_debugs_socket_sendto(context=None):
     "HTTPretty should forward_and_trace socket.sendto"
 
     expect(context.sock.sendto).when.called.to.throw(
@@ -61,7 +61,7 @@ def test_httpretty_debugs_socket_sendto(context):
 @skip('not currently supported')
 @httprettified
 @scenario(create_socket)
-def test_httpretty_debugs_socket_recvfrom(context):
+def test_httpretty_debugs_socket_recvfrom(context=None):
     "HTTPretty should forward_and_trace socket.recvfrom"
 
     expect(context.sock.recvfrom).when.called.to.throw(
@@ -72,7 +72,7 @@ def test_httpretty_debugs_socket_recvfrom(context):
 @skip('not currently supported')
 @httprettified
 @scenario(create_socket)
-def test_httpretty_debugs_socket_recv_into(context):
+def test_httpretty_debugs_socket_recv_into(context=None):
     "HTTPretty should forward_and_trace socket.recv_into"
     buf = bytearray()
     expect(context.sock.recv_into).when.called_with(buf).to.throw(
@@ -83,7 +83,7 @@ def test_httpretty_debugs_socket_recv_into(context):
 @skip('not currently supported')
 @httprettified
 @scenario(create_socket)
-def test_httpretty_debugs_socket_recvfrom_into(context):
+def test_httpretty_debugs_socket_recvfrom_into(context=None):
     "HTTPretty should forward_and_trace socket.recvfrom_into"
 
     expect(context.sock.recvfrom_into).when.called.to.throw(

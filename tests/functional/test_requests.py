@@ -768,7 +768,7 @@ def test_unicode_querystrings():
 
 
 @use_tornado_server
-def test_recording_calls(port):
+def test_recording_calls(port=None):
     ("HTTPretty should be able to record calls")
     # Given a destination path:
     destination = FIXTURE_FILE("recording-1.json")
