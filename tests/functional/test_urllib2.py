@@ -127,7 +127,6 @@ def test_httpretty_should_allow_adding_and_overwritting_urllib2():
 
 
 @httprettified
-@within(two=miliseconds)
 def test_httpretty_should_allow_forcing_headers_urllib2():
     "HTTPretty should allow forcing headers with urllib2"
 
@@ -177,8 +176,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2():
 
 
 @httprettified
-@within(two=miliseconds)
-def test_httpretty_should_support_a_list_of_successive_responses_urllib2(now):
+def test_httpretty_should_support_a_list_of_successive_responses_urllib2():
     ("HTTPretty should support adding a list of successive "
      "responses with urllib2")
 
@@ -285,8 +283,7 @@ def test_httpretty_ignores_querystrings_from_registered_uri():
 
 
 @httprettified
-@within(two=miliseconds)
-def test_callback_response(now):
+def test_callback_response():
     ("HTTPretty should call a callback function to be set as the body with"
      " urllib2")
 

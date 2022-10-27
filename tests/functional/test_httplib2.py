@@ -112,8 +112,7 @@ def test_httpretty_should_allow_adding_and_overwritting_httplib2():
 
 
 @httprettified
-@within(two=miliseconds)
-def test_httpretty_should_allow_forcing_headers_httplib2(now):
+def test_httpretty_should_allow_forcing_headers_httplib2():
     "HTTPretty should allow forcing headers with httplib2"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
@@ -165,8 +164,7 @@ def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2():
 
 
 @httprettified
-@within(two=miliseconds)
-def test_rotating_responses_with_httplib2(now):
+def test_rotating_responses_with_httplib2():
     "HTTPretty should support rotating responses with httplib2"
 
     HTTPretty.register_uri(
@@ -248,8 +246,7 @@ def test_can_inspect_last_request_with_ssl(now):
 
 
 @httprettified
-@within(two=miliseconds)
-def test_httpretty_ignores_querystrings_from_registered_uri(now):
+def test_httpretty_ignores_querystrings_from_registered_uri():
     "Registering URIs with query string cause them to be ignored"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://yipit.com/?id=123",
