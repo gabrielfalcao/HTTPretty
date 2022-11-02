@@ -28,14 +28,13 @@ from __future__ import unicode_literals
 import re
 import json
 from sure import expect
+from unittest.mock import MagicMock, patch
 import httpretty
 from httpretty import HTTPretty
 from httpretty import HTTPrettyError
 from httpretty import core
 from httpretty.core import URIInfo, BaseClass, Entry, FakeSockFile, HTTPrettyRequest
 from httpretty.http import STATUSES
-
-from tests.compat import MagicMock, patch
 
 
 TEST_HEADER = """

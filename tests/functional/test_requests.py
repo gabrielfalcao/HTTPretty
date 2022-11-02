@@ -35,10 +35,10 @@ from sure import within, miliseconds, expect
 from tornado import version as tornado_version
 from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
+from unittest.mock import Mock
 
 from tests.functional.base import FIXTURE_FILE, use_tornado_server
 
-from tests.compat import Mock
 
 
 try:
