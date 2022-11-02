@@ -641,6 +641,8 @@ class fakesock(object):
 
             if httpretty.allow_net_connect and not self.truesock:
                 self.truesock = self.create_socket(address)
+            elif address in httpretty.whitelist:
+                self.truesock = self.create_socket(address)
             elif not self.truesock:
                 raise UnmockedError('Failed to socket.connect() because because a real socket was never created.', request=request, address=address)
 
@@ -725,8 +727,11 @@ class fakesock(object):
                 logger.warning('{self}.real_sendall({bytecount} bytes) to {request.url} via {request.method} at {request.created_at}'.format(**locals()))
 
             if httpretty.allow_net_connect and not self.truesock:
-
                 self.connect_truesock(request=request)
+
+            elif self._address in httpretty.whitelist:
+                self.connect_truesock(request=request)
+
             elif not self.truesock:
                 raise UnmockedError(request=request)
 
@@ -1401,6 +1406,7 @@ class httpretty(HttpBaseClass):
     last_request = HTTPrettyRequestEmpty()
     _is_enabled = False
     allow_net_connect = True
+    whitelist = []
 
     @classmethod
     def match_uriinfo(cls, info):
@@ -1485,7 +1491,7 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     @contextlib.contextmanager
-    def record(cls, filename, indentation=4, encoding='utf-8', verbose=False, allow_net_connect=True, pool_manager_params=None):
+    def record(cls, filename, indentation=4, encoding='utf-8', verbose=False, allow_net_connect=True, whitelist=None, pool_manager_params=None):
         """
         .. testcode::
 
@@ -1517,7 +1523,7 @@ class httpretty(HttpBaseClass):
 
         http = urllib3.PoolManager(**pool_manager_params or {})
 
-        cls.enable(allow_net_connect, verbose=verbose)
+        cls.enable(allow_net_connect, whitelist, verbose=verbose)
         calls = []
 
         def record_request(request, uri, headers):
@@ -1546,7 +1552,7 @@ class httpretty(HttpBaseClass):
                     'headers': dict(response.headers.items())
                 }
             })
-            cls.enable(allow_net_connect, verbose=verbose)
+            cls.enable(allow_net_connect, whitelist, verbose=verbose)
             return response.status, response.headers, response.data
 
         for method in cls.METHODS:
@@ -1559,7 +1565,7 @@ class httpretty(HttpBaseClass):
 
     @classmethod
     @contextlib.contextmanager
-    def playback(cls, filename, allow_net_connect=True, verbose=False):
+    def playback(cls, filename, allow_net_connect=True, whitelist=None, verbose=False):
         """
         .. testcode::
 
@@ -1577,7 +1583,7 @@ class httpretty(HttpBaseClass):
         :param filename: a string
         :returns: a `context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_
         """
-        cls.enable(allow_net_connect, verbose=verbose)
+        cls.enable(allow_net_connect, whitelist, verbose=verbose)
 
         data = json.loads(open(filename).read())
         for item in data:
@@ -1781,10 +1787,11 @@ class httpretty(HttpBaseClass):
         return cls._is_enabled
 
     @classmethod
-    def enable(cls, allow_net_connect=True, verbose=False):
+    def enable(cls, allow_net_connect=True, whitelist=None, verbose=False):
         """Enables HTTPretty.
 
         :param allow_net_connect: boolean to determine if unmatched requests are forwarded to a real network connection OR throw :py:class:`httpretty.errors.UnmockedError`.
+        :param whitelist: optional list of allowed domains to forward when `allow_net_connect` is False
         :param verbose: boolean to set HTTPretty's logging level to DEBUG
 
         .. testcode::
@@ -1810,6 +1817,7 @@ class httpretty(HttpBaseClass):
         .. warning:: after calling this method the original :py:mod:`socket` is replaced with :py:class:`httpretty.core.fakesock`. Make sure to call :py:meth:`~httpretty.disable` after done with your tests or use the :py:class:`httpretty.enabled` as decorator or `context-manager <https://docs.python.org/3/reference/datamodel.html#context-managers>`_
         """
         httpretty.allow_net_connect = allow_net_connect
+        httpretty.whitelist = whitelist or []
         apply_patch_socket()
         cls._is_enabled = True
         if verbose:
@@ -1952,20 +1960,21 @@ class httprettized(object):
        assert httpretty.latest_requests[-1].url == 'https://httpbin.org/ip'
        assert response.json() == {'origin': '42.42.42.42'}
     """
-    def __init__(self, allow_net_connect=True, verbose=False):
+    def __init__(self, allow_net_connect=True, whitelist=None, verbose=False):
         self.allow_net_connect = allow_net_connect
+        self.whitelist = whitelist
         self.verbose = verbose
 
     def __enter__(self):
         httpretty.reset()
-        httpretty.enable(allow_net_connect=self.allow_net_connect, verbose=self.verbose)
+        httpretty.enable(allow_net_connect=self.allow_net_connect, whitelist=self.whitelist, verbose=self.verbose)
 
     def __exit__(self, exc_type, exc_value, db):
         httpretty.disable()
         httpretty.reset()
 
 
-def httprettified(test=None, allow_net_connect=True, verbose=False):
+def httprettified(test=None, allow_net_connect=True, whitelist=None, verbose=False):
     """decorator for test functions
 
     .. tip:: Also available under the alias :py:func:`httpretty.activate`
@@ -2023,7 +2032,7 @@ def httprettified(test=None, allow_net_connect=True, verbose=False):
 
         def new_setUp(self):
             httpretty.reset()
-            httpretty.enable(allow_net_connect, verbose=verbose)
+            httpretty.enable(allow_net_connect, whitelist, verbose=verbose)
             if use_addCleanup:
                 self.addCleanup(httpretty.disable)
             if original_setUp:
@@ -2071,7 +2080,7 @@ def httprettified(test=None, allow_net_connect=True, verbose=False):
     def decorate_callable(test):
         @functools.wraps(test)
         def wrapper(*args, **kw):
-            with httprettized(allow_net_connect):
+            with httprettized(allow_net_connect, whitelist):
                 return test(*args, **kw)
         return wrapper
 
