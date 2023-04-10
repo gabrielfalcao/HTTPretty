@@ -1,7 +1,7 @@
 HTTPretty 1.1.4
 ===============
 
-.. image:: https://github.com/gabrielfalcao/HTTPretty/raw/master/docs/source/_static/logo.svg?sanitize=true
+.. image:: https://github.com/gabrielfalcao/HTTPretty/blob/f9f012711597634d40066d144a36888b3addcc46/docs/source/_static/logo.svg
 
 HTTP Client mocking tool for Python created by `Gabriel Falcão <https://github.com/gabrielfalcao>`_ . It provides a full fake TCP socket module. Inspired by `FakeWeb <https://github.com/chrisk/fakeweb>`_
 
