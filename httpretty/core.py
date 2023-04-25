@@ -452,17 +452,11 @@ class FakeSockFile(object):
         self.flush()
 
     def flush(self):
-        try:
-            super().flush()
-        except Exception as e:
-            logger.debug('error closing file {}: {}'.format(self, e))
-
+        logger.debug('{} flushing socket'.format(self))
         try:
             self.file.flush()
         except Exception as e:
             logger.debug('error closing file {}: {}'.format(self.file, e))
-
-
 
     def fileno(self):
         return self._fileno
@@ -482,7 +476,6 @@ class FakeSockFile(object):
         # Adding the line below as a potential fix of github issue #426
         # that seems to be a compatible the solution of #413
         self.file.close()
-
 
 
 class FakeSSLSocket(object):
@@ -507,6 +500,7 @@ def fake_socketpair(*args, **kw):
     with restored_libs():
         return old_socketpair(*args, **kw)
 
+
 class fakesock(object):
     """
     fake :py:mod:`socket`
@@ -520,6 +514,7 @@ class fakesock(object):
         debuglevel = 0
         _sent_data = []
         is_secure = False
+
         def __init__(
             self,
             family=socket.AF_INET,
