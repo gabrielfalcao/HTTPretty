@@ -130,6 +130,7 @@ Link headers
         second_url = "http://foo-api.com/data?page=2"
         link_str = "<%s>; rel='next'" % second_url
 
+        # Performs a request to `first_url` followed by some testing
         httpretty.register_uri(
             httpretty.GET,
             first_url,
@@ -138,14 +139,7 @@ Link headers
             content_type="text/json",
             adding_headers={"Link": link_str},
         )
-        httpretty.register_uri(
-            httpretty.GET,
-            second_url,
-            body='{"success": false}',
-            status=500,
-            content_type="text/json",
-        )
-        # Performs a request to `first_url` followed by some testing
+
         response = requests.get(first_url)
         expect(response.json()).to.equal({"success": True})
         expect(response.status_code).to.equal(200)
@@ -153,6 +147,14 @@ Link headers
         expect(next_url).to.equal(second_url)
 
         # Follow the next URL and perform some testing.
+        httpretty.register_uri(
+            httpretty.GET,
+            second_url,
+            body='{"success": false}',
+            status=500,
+            content_type="text/json",
+        )
+
         response2 = requests.get(next_url)
         expect(response2.json()).to.equal({"success": False})
         expect(response2.status_code).to.equal(500)
