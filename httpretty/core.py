@@ -1130,7 +1130,7 @@ class Entry(BaseClass):
             )
 
         for item in string_list:
-            fk.write(utf8(item) + b'\n')
+            fk.write(utf8(item) + b'\r\n')
 
         fk.write(b'\r\n')
 
