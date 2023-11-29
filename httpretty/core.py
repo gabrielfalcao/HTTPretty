@@ -1585,7 +1585,8 @@ class httpretty(HttpBaseClass):
             method = item['request']['method']
             body = item['response']['body']
             headers = item['response']['headers']
-            cls.register_uri(method, uri, body=body, forcing_headers=headers)
+            status = item['response']['status']
+            cls.register_uri(method, uri, body=body, forcing_headers=headers, status=status)
 
         yield
         cls.disable()
