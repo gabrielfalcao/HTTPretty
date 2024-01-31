@@ -678,7 +678,10 @@ def test_httpretty_should_allow_registering_regexes_with_streaming_responses():
     os.environ['DEBUG'] = 'true'
 
     def my_callback(request, url, headers):
-        request.body.should.equal(b'hithere')
+        if requests.__version__ < "2.29":
+            request.body.should.equal(b'hithere')
+        else:
+            request.body.should.equal(b'2\r\nhi\r\n5\r\nthere\r\n')
         return 200, headers, "Received"
 
     HTTPretty.register_uri(
