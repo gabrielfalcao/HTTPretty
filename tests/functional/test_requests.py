@@ -28,6 +28,7 @@ import json
 import requests
 import signal
 import httpretty
+from unittest.mock import Mock
 
 from freezegun import freeze_time
 from contextlib import contextmanager
@@ -37,8 +38,6 @@ from httpretty import HTTPretty, httprettified
 from httpretty.core import decode_utf8
 
 from tests.functional.base import FIXTURE_FILE, use_tornado_server
-
-from tests.compat import Mock
 
 
 try:

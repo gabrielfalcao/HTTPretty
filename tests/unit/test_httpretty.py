@@ -24,18 +24,18 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-from __future__ import unicode_literals
 import re
 import json
+from unittest.mock import MagicMock, patch
+
 from sure import expect
+
 import httpretty
 from httpretty import HTTPretty
 from httpretty import HTTPrettyError
 from httpretty import core
 from httpretty.core import URIInfo, BaseClass, Entry, FakeSockFile, HTTPrettyRequest
 from httpretty.http import STATUSES
-
-from tests.compat import MagicMock, patch
 
 
 TEST_HEADER = """

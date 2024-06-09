@@ -27,8 +27,7 @@
 
 import functools
 import socket
-
-import mock
+from unittest import mock
 
 
 class FakeSocket(socket.socket):
