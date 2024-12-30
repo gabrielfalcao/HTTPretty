@@ -861,6 +861,9 @@ class fakesock(object):
         def recvfrom(self, *args, **kwargs):
             return self.forward_and_trace('recvfrom', *args, **kwargs)
 
+        def shutdown(self, *args, **kwargs):
+            return self.forward_and_trace('shutdown', *args, **kwargs)
+
         def recv(self, buffersize=0, *args, **kwargs):
             if not self._read_buf:
                 self._read_buf = io.BytesIO()
