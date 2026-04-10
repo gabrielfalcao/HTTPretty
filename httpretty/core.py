@@ -1852,7 +1852,7 @@ def apply_patch_socket():
         extract_into_urllib3()
 
     if requests_urllib3_connection is not None:
-        urllib3_wrap = partial(fake_wrap_socket, old_requests_ssl_wrap_socket)
+        urllib3_wrap = staticmethod(partial(fake_wrap_socket, old_requests_ssl_wrap_socket))
         requests_urllib3_connection.ssl_wrap_socket = urllib3_wrap
         requests_urllib3_connection.__dict__['ssl_wrap_socket'] = urllib3_wrap
 
@@ -1867,12 +1867,12 @@ def apply_patch_socket():
         socks.__dict__['socksocket'] = fakesock.socket
 
     if ssl:
-        new_wrap = partial(fake_wrap_socket, old_ssl_wrap_socket)
+        new_wrap = staticmethod(partial(fake_wrap_socket, old_ssl_wrap_socket))
         ssl.wrap_socket = new_wrap
         ssl.SSLSocket = FakeSSLSocket
         ssl.SSLContext = old_sslcontext_class
         try:
-            ssl.SSLContext.wrap_socket = partial(fake_wrap_socket, old_ssl_wrap_socket)
+            ssl.SSLContext.wrap_socket = staticmethod(partial(fake_wrap_socket, old_ssl_wrap_socket))
         except AttributeError:
             pass
 
