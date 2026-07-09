@@ -377,7 +377,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         Return the regular body if not
 
         :param body: string
-        :returns: a python object such as dict or list in case the deserialization suceeded. Else returns the given param ``body``
+        :returns: a python object such as dict or list in case the deserialization succeeded. Else returns the given param ``body``
         """
 
         PARSING_FUNCTIONS = {
@@ -1070,7 +1070,7 @@ class Entry(BaseClass):
     def fill_filekind(self, fk):
         """writes HTTP Response data to a file descriptor
 
-        :parm fk: a file-like object
+        :param fk: a file-like object
 
         .. warning:: **side-effect:** this method moves the cursor of the given file object to zero
         """

@@ -88,7 +88,7 @@ Release 0.9.4
 Improvements:
 
 - Official Python 3.6 support
-- Normalized coding style to comform with PEP8 (partially)
+- Normalized coding style to conform with PEP8 (partially)
 - Add more API reference coverage in docstrings of members such as :py:class:`httpretty.core.Entry`
 - Continuous Integration building python 2.7 and 3.6
 - Migrate from `pip <https://pypi.org/project/pip/>`_ to `pipenv <https://docs.pipenv.org/>`_
@@ -208,5 +208,5 @@ Release 0.5.8
 
 -  Support to `register regular expressions to match
    urls <#matching-regular-expressions>`__
--  `Body callback <#dynamic-responses-through-callbacks>`__ suppport
+-  `Body callback <#dynamic-responses-through-callbacks>`__ support
 -  Python 3 support
