@@ -88,7 +88,7 @@ def test_httpretty_should_mock_headers_httplib2():
 @httprettified
 @freeze_time("2013-10-04 04:20:00")
 def test_httpretty_should_allow_adding_and_overwritting_httplib2():
-    "HTTPretty should allow adding and overwritting headers with httplib2"
+    "HTTPretty should allow adding and overwriting headers with httplib2"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="this is supposed to be the response",
@@ -138,7 +138,7 @@ def test_httpretty_should_allow_forcing_headers_httplib2(now):
 @httprettified
 @freeze_time("2013-10-04 04:20:00")
 def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2():
-    "HTTPretty should allow adding and overwritting headers by keyword args " \
+    "HTTPretty should allow adding and overwriting headers by keyword args " \
         "with httplib2"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",

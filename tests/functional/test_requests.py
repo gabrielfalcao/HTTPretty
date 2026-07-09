@@ -121,7 +121,7 @@ def test_httpretty_should_mock_headers_requests():
 @httprettified
 @freeze_time("2013-10-04 04:20:00")
 def test_httpretty_should_allow_adding_and_overwritting_requests():
-    "HTTPretty should allow adding and overwritting headers with requests"
+    "HTTPretty should allow adding and overwriting headers with requests"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
                            body="this is supposed to be the response",
@@ -166,7 +166,7 @@ def test_httpretty_should_allow_forcing_headers_requests(now):
 @httprettified
 @freeze_time("2013-10-04 04:20:00")
 def test_httpretty_should_allow_adding_and_overwritting_by_kwargs_u2():
-    "HTTPretty should allow adding and overwritting headers by keyword args " \
+    "HTTPretty should allow adding and overwriting headers by keyword args " \
         "with requests"
 
     HTTPretty.register_uri(HTTPretty.GET, "http://github.com/foo",
@@ -507,7 +507,7 @@ def test_callback_body_remains_callable_for_any_subsequent_requests(now):
 @httprettified
 @within(two=miliseconds)
 def test_callback_setting_headers_and_status_response(now):
-    ("HTTPretty should call a callback function and uses it retur tuple as status code, headers and body"
+    ("HTTPretty should call a callback function and uses it return tuple as status code, headers and body"
      " requests")
 
     def request_callback(request, uri, headers):
