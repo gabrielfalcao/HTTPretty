@@ -387,6 +387,10 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         }
 
         content_type = self.headers.get('content-type', '')
+        # RFC 7231 §3.1.1.1 allows optional parameters after the media
+        # type, e.g. "application/json; charset=UTF-8". Strip them so
+        # the lookup matches on the media type only. See issue #462.
+        content_type = content_type.split(';', 1)[0].strip().lower()
 
         do_parse = PARSING_FUNCTIONS.get(content_type, FALLBACK_FUNCTION)
         try:
