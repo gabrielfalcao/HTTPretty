@@ -151,6 +151,61 @@ def test_request_parse_body_when_unrecognized():
     request.parsed_body.should.equal("foobar:\nlalala")
 
 
+def test_request_parse_body_when_content_type_has_charset():
+    ("HTTPrettyRequest#parse_request_body recognizes the media type "
+     "even when an optional charset parameter is appended, per "
+     "RFC 7231 §3.1.1.1")
+
+    # Given a request with a charset-suffixed content-type
+    headers = "\r\n".join([
+        'POST /create HTTP/1.1',
+        'Content-Type: application/json; charset=UTF-8',
+    ])
+    # And a valid json body
+    body = json.dumps({'name': 'Gabriel Falcão'})
+
+    # When I create a HTTPrettyRequest with that data
+    request = HTTPrettyRequest(headers, body)
+
+    # Then it should parse the body as JSON, ignoring the charset suffix
+    request.parsed_body.should.equal({'name': 'Gabriel Falcão'})
+
+
+def test_request_parse_body_when_content_type_has_charset_and_caps():
+    ("HTTPrettyRequest#parse_request_body recognizes the media type "
+     "in a case-insensitive way when parameters are present, per "
+     "RFC 7231 §3.1.1.1 (issue #462)")
+
+    headers = "\r\n".join([
+        'POST /create HTTP/1.1',
+        'Content-Type: Application/JSON; charset=UTF-8',
+    ])
+    body = json.dumps({'name': 'Gabriel Falcão'})
+
+    request = HTTPrettyRequest(headers, body)
+
+    request.parsed_body.should.equal({'name': 'Gabriel Falcão'})
+
+
+def test_request_parse_body_when_urlencoded_has_charset():
+    ("HTTPrettyRequest#parse_request_body recognizes "
+     "application/x-www-form-urlencoded; charset=... as the form "
+     "content-type, per RFC 7231 §3.1.1.1 (issue #462)")
+
+    headers = "\r\n".join([
+        'POST /create HTTP/1.1',
+        'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+    ])
+    body = "name=Gabriel+Falcão&age=25"
+
+    request = HTTPrettyRequest(headers, body)
+
+    request.parsed_body.should.equal({
+        'name': ['Gabriel Falcão'],
+        'age': ["25"],
+    })
+
+
 def test_request_string_representation():
     ("HTTPrettyRequest should have a forward_and_trace-friendly "
      "string representation")
