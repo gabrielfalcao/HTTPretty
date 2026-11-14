@@ -55,7 +55,6 @@ HTTP Client mocking tool for Python created by `Gabriel Falcão <https://github.
 .. image:: https://img.shields.io/github/v/tag/gabrielfalcao/HTTPretty
    :target: https://github.com/gabrielfalcao/HTTPretty/releases
 
-   :target: https://gitter.im/gabrielfalcao/HTTPretty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 Install
 -------
