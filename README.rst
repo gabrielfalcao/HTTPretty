@@ -1,7 +1,6 @@
 HTTPretty 1.1.4
 ===============
 
-.. image:: https://github.com/gabrielfalcao/HTTPretty/raw/master/docs/source/_static/logo.svg?sanitize=true
 
 HTTP Client mocking tool for Python created by `Gabriel Falcão <https://github.com/gabrielfalcao>`_ . It provides a full fake TCP socket module. Inspired by `FakeWeb <https://github.com/chrisk/fakeweb>`_
 
@@ -52,13 +51,10 @@ HTTP Client mocking tool for Python created by `Gabriel Falcão <https://github.
    :target: https://pypi.org/project/HTTPretty
 
 .. image:: https://img.shields.io/snyk/vulnerabilities/github/gabrielfalcao/HTTPretty
-   :target: https://github.com/gabrielfalcao/HTTPretty/network/alerts
 
 .. image:: https://img.shields.io/github/v/tag/gabrielfalcao/HTTPretty
    :target: https://github.com/gabrielfalcao/HTTPretty/releases
 
-.. |Join the chat at https://gitter.im/gabrielfalcao/HTTPretty| image:: https://badges.gitter.im/gabrielfalcao/HTTPretty.svg
-   :target: https://gitter.im/gabrielfalcao/HTTPretty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 Install
 -------
