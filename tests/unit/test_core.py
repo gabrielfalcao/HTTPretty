@@ -71,6 +71,46 @@ def test_request_parse_querystring():
     request.querystring.should.equal({'name': ['Gabriel Falcão']})
 
 
+def test_request_parse_querystring_decodes_once():
+    headers = "\r\n".join([
+        'GET /?already_encoded=foo%3Da%26bar%3Db&literal=a%2Bb'
+        '&percent=%2526&encoded%26key=value%3Dwith%26separators'
+        '&name=Gabriel+Falc%C3%A3o&name=other HTTP/1.1',
+        'Host: example.com',
+    ])
+
+    request = HTTPrettyRequest(headers)
+
+    request.querystring.should.equal({
+        'already_encoded': ['foo=a&bar=b'],
+        'literal': ['a+b'],
+        'percent': ['%26'],
+        'encoded&key': ['value=with&separators'],
+        'name': ['Gabriel Falcão', 'other'],
+    })
+
+
+def test_request_parse_urlencoded_body_decodes_once():
+    headers = "\r\n".join([
+        'POST /create HTTP/1.1',
+        'Content-Type: application/x-www-form-urlencoded',
+    ])
+    body = ('already_encoded=foo%3Da%26bar%3Db&literal=a%2Bb'
+            '&percent=%2526&encoded%26key=value%3Dwith%26separators'
+            '&name=Gabriel+Falc%C3%A3o&name=other')
+
+    request = HTTPrettyRequest(headers, body)
+
+    request.parsed_body.should.equal({
+        'already_encoded': ['foo=a&bar=b'],
+        'literal': ['a+b'],
+        'percent': ['%26'],
+        'encoded&key': ['value=with&separators'],
+        'name': ['Gabriel Falcão', 'other'],
+    })
+    request.body.should.equal(body.encode('utf-8'))
+
+
 def test_request_parse_body_when_it_is_application_json():
     ("HTTPrettyRequest#parse_request_body recognizes the "
      "content-type `application/json` and parses it")
