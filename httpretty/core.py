@@ -53,7 +53,6 @@ from .compat import (
     urlunsplit,
     urlsplit,
     parse_qs,
-    unquote_utf8,
 )
 from .http import (
     STATUSES,
@@ -364,8 +363,7 @@ class HTTPrettyRequest(BaseHTTPRequestHandler, BaseClass):
         :returns: a dict of lists
 
         """
-        expanded = unquote_utf8(qs)
-        parsed = parse_qs(expanded)
+        parsed = parse_qs(qs)
         result = {}
         for k in parsed:
             result[k] = list(map(decode_utf8, parsed[k]))
